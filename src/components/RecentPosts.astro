@@ -1,0 +1,51 @@
+---
+import { getCollection } from 'astro:content';
+import { ArrowRight } from 'lucide-react';
+
+const posts = (await getCollection('blog'))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 3);
+---
+
+<section class="py-24 px-4 max-w-7xl mx-auto">
+  <div class="flex justify-between items-end mb-12">
+    <div>
+      <h2 class="text-4xl md:text-5xl font-bold mb-4 text-slate-800 font-heading">Recent <span class="text-emerald-700">Writings</span></h2>
+      <p class="text-slate-600 text-lg font-body">Thoughts on code, policy, and everything in between.</p>
+    </div>
+    <a href="/blog" class="hidden md:flex items-center gap-2 text-emerald-700 hover:text-emerald-900 transition-colors group font-bold">
+      View all posts <ArrowRight size={20} class="group-hover:translate-x-1 transition-transform" />
+    </a>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+    {posts.map((post) => (
+      <a href={`/blog/${post.slug}/`} class="group block p-8 bg-white hand-drawn">
+        <div class="mb-4">
+            <span class="text-sm font-bold text-emerald-600 uppercase tracking-wider">
+                {post.data.pubDate.toLocaleDateString('en-us', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                })}
+            </span>
+        </div>
+        <h3 class="text-2xl font-bold mb-3 text-slate-800 group-hover:text-emerald-700 transition-colors line-clamp-2 font-heading">
+            {post.data.title}
+        </h3>
+        <p class="text-slate-600 leading-relaxed line-clamp-3 font-body">
+            {post.data.description}
+        </p>
+        <div class="mt-6 flex items-center gap-2 text-sm font-bold text-emerald-700 group-hover:text-emerald-900">
+            Read Article <ArrowRight size={16} class="group-hover:translate-x-1 transition-transform" />
+        </div>
+      </a>
+    ))}
+  </div>
+
+  <div class="mt-12 text-center md:hidden">
+    <a href="/blog" class="inline-flex items-center gap-2 text-emerald-600 hover:text-emerald-800 transition-colors font-bold">
+      View all posts <ArrowRight size={20} />
+    </a>
+  </div>
+</section>

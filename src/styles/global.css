@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+:root {
+  --color-bg: #fdfbf7; /* Cream/Eggshell */
+  --color-text: #2f3e46; /* Dark Slate/Forest */
+  --color-primary: #52b788; /* Sage Green */
+  --color-secondary: #8ecae6; /* Sky Blue */
+  --color-accent: #e07a5f; /* Terracotta */
+  --color-paper: #ffffff;
+  
+  --font-heading: 'Lora', serif;
+  --font-body: 'Nunito', sans-serif;
+}
+
+html,
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  color: #1a262a;
+}
+
+/* Cream Background (No Heavy Texture) */
+body {
+  background-color: #fdfbf7;
+  background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Remove the heavy noise overlay */
+body::before {
+  display: none;
+}
+
+/* Enhanced Hand-Drawn Border Utility */
+.hand-drawn {
+  border: 3px solid #2f3e46;
+  border-radius: 2px 255px 3px 25px / 255px 5px 22px 3px; /* This was likely the intended "sketchy" look, but let's make it safer */
+  border-radius: 0.5rem; /* Fallback */
+  border-radius: 5px 20px 5px 20px / 20px 5px 20px 5px; /* Safer organic shape */
+  box-shadow: 6px 6px 0px 0px rgba(47, 62, 70, 0.2);
+  transition: all 0.3s ease;
+}
+
+@keyframes wiggle {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(1deg); }
+  50% { transform: rotate(0deg); }
+  75% { transform: rotate(-1deg); }
+  100% { transform: rotate(0deg); }
+}
+
+.hand-drawn:hover {
+  box-shadow: 8px 8px 0px 0px rgba(47, 62, 70, 0.3);
+  transform: translate(-2px, -2px);
+  border-color: #1a262a;
+  animation: wiggle 0.4s ease-in-out;
+}
+
+/* Typography Overrides */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  color: #1a262a;
+}
+
+
+/* Typography Overrides */
+.prose h1, .prose h2, .prose h3 {
+    color: #1a262a;
+}
+.prose p {
+    color: #4a5a63;
+}
+.prose strong {
+    color: var(--color-accent);
+}

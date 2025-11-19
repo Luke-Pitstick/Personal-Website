@@ -1,0 +1,36 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import Layout from './Layout.astro';
+import { ArrowLeft } from 'lucide-react';
+
+type Props = CollectionEntry<'blog'>['data'];
+
+const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
+
+const formattedDate = pubDate.toLocaleDateString('en-us', {
+	year: 'numeric',
+	month: 'short',
+	day: 'numeric',
+});
+---
+
+<Layout title={title} description={description}>
+	<main class="max-w-3xl mx-auto px-4 py-20 relative z-10">
+        <a href="/blog" class="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-8 transition-colors group">
+            <ArrowLeft size={20} class="group-hover:-translate-x-1 transition-transform" />
+            Back to Blog
+        </a>
+
+		<article class="prose prose-invert prose-lg max-w-none">
+            <div class="mb-8 text-center">
+                <div class="text-gray-400 mb-2 font-mono text-sm">{formattedDate}</div>
+                <h1 class="text-4xl md:text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">{title}</h1>
+                <hr class="border-white/10 my-8" />
+            </div>
+            
+            {heroImage && <img width={1020} height={510} src={heroImage} alt="" class="rounded-xl mb-8 border border-white/10" />}
+            
+			<slot />
+		</article>
+	</main>
+</Layout>

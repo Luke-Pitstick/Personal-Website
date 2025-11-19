@@ -1,0 +1,40 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { User, BookOpen, Award } from 'lucide-react';
+---
+
+<Layout title="About | Luke Pitstick">
+	<main class="pt-32 pb-20 px-4 min-h-screen">
+		<div class="max-w-4xl mx-auto">
+            <h1 class="text-4xl md:text-5xl font-bold text-emerald-900 mb-8 font-heading text-center">About Me</h1>
+            
+            <div class="bg-white/80 backdrop-blur-sm p-8 md:p-12 rounded-2xl shadow-xl border-2 border-emerald-900/10 relative overflow-hidden">
+                {/* Decorative Background Icon */}
+                <div class="absolute -top-10 -right-10 text-emerald-900/5 rotate-12">
+                    <User size={300} />
+                </div>
+
+                <div class="prose prose-lg prose-emerald text-slate-700 relative z-10 font-body leading-relaxed">
+                    <p class="mb-6 first-letter:text-5xl first-letter:font-bold first-letter:text-emerald-800 first-letter:mr-1 first-letter:float-left">
+                        I am a dedicated student at the University of Colorado Boulder, pursuing a dual focus in Computer Science and History. My journey is defined by a passion for bridging the gap between technical innovation and public service. As a developer, I love building intuitive, efficient systems that solve real-world problems. As a historian, I value the context and narratives that shape our society. This unique combination allows me to approach challenges with both analytical rigor and a deep appreciation for the human element.
+                    </p>
+                    
+                    <p>
+                        Currently, I serve as a Representative-at-Large and Historian for the CU Student Government (CUSG). In this role, I champion initiatives that improve campus life and sustainability. My recent work includes authoring and passing the "Resolution in Support of Recycling Initiatives," which mandates bin parity across campus to ensure equal access to recycling and waste disposal. I believe in proactive leadership—whether it's writing code or writing policy—and I am committed to leaving a positive, lasting impact on my community.
+                    </p>
+                </div>
+
+                <div class="mt-10 flex flex-wrap gap-4 justify-center">
+                    <div class="flex items-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-800 rounded-full text-sm font-bold">
+                        <BookOpen size={18} />
+                        <span>Data Science & Political Science Major</span>
+                    </div>
+                    <div class="flex items-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-800 rounded-full text-sm font-bold">
+                        <Award size={18} />
+                        <span>Junior Data Manager & CUSG Representative</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+	</main>
+</Layout>
