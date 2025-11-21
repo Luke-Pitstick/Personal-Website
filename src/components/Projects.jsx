@@ -52,7 +52,7 @@ const Projects = () => {
         className="mb-16 relative"
       >
         <SootSprite className="absolute -top-8 -left-8 opacity-20 rotate-[-15deg]" />
-        <h2 className="text-4xl md:text-5xl font-bold mb-6 text-slate-800 font-heading">Featured <span className="text-emerald-700">Work</span></h2>
+        <h2 className="text-4xl md:text-5xl font-bold mb-6 text-slate-800 font-heading">Featured <span className="text-emerald-700">Projects</span></h2>
         <p className="text-slate-600 max-w-2xl text-lg font-body">
           A collection of projects exploring web development, automation, and creative coding.
         </p>

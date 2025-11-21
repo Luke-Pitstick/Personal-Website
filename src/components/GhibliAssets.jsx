@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-export const Tree = ({ className, delay = 0 }) => (
+export const Tree = ({ className, delay = 0, isSnowing = false }) => (
   <motion.svg
     initial={{ scaleY: 0, opacity: 0 }}
     animate={{ scaleY: 1, opacity: 1 }}
@@ -11,17 +11,22 @@ export const Tree = ({ className, delay = 0 }) => (
     preserveAspectRatio="none"
   >
     {/* Trunk */}
-    <path d="M45,200 C45,200 40,150 45,120 C50,90 45,80 45,80" stroke="#5D4037" strokeWidth="8" fill="none" />
+    <rect x="42" y="160" width="16" height="40" fill="#3E2723" />
     
-    {/* Leaves - Layer 1 */}
-    <circle cx="45" cy="80" r="35" fill="#2E7D32" fillOpacity="0.9" />
-    <circle cx="25" cy="90" r="25" fill="#388E3C" fillOpacity="0.9" />
-    <circle cx="65" cy="90" r="25" fill="#388E3C" fillOpacity="0.9" />
+    {/* Layers of branches (Evergreen style) */}
+    {/* Bottom Layer */}
+    <path d="M10,170 L50,100 L90,170 Z" fill="#1B5E20" />
+    <path d="M10,170 L50,100 L90,170 Z" fill="none" stroke="#1B5E20" strokeWidth="2" strokeLinejoin="round" />
     
-    {/* Leaves - Layer 2 (Highlight) */}
-    <circle cx="45" cy="70" r="25" fill="#4CAF50" fillOpacity="0.8" />
-    <circle cx="35" cy="60" r="15" fill="#66BB6A" fillOpacity="0.8" />
-    <circle cx="55" cy="60" r="15" fill="#66BB6A" fillOpacity="0.8" />
+    {/* Middle Layer */}
+    <path d="M20,130 L50,70 L80,130 Z" fill="#2E7D32" />
+    <path d="M20,130 L50,70 L80,130 Z" fill="none" stroke="#2E7D32" strokeWidth="2" strokeLinejoin="round" />
+    
+    {/* Top Layer */}
+    <path d="M30,90 L50,40 L70,90 Z" fill="#388E3C" />
+    <path d="M30,90 L50,40 L70,90 Z" fill="none" stroke="#388E3C" strokeWidth="2" strokeLinejoin="round" />
+
+
   </motion.svg>
 );
 
@@ -260,41 +265,56 @@ export const Hill = ({ className, color = "#4CAF50" }) => (
   </svg>
 );
 
-export const FallingLeaves = () => {
-  // Generate random leaves
-  const leaves = Array.from({ length: 20 }).map((_, i) => ({
+export const Flower = ({ className, delay = 0, color = "#F48FB1" }) => (
+  <motion.svg
+    initial={{ scale: 0, opacity: 0 }}
+    animate={{ scale: 1, opacity: 1 }}
+    transition={{ delay, duration: 0.5, ease: "backOut" }}
+    viewBox="0 0 24 24"
+    className={className}
+  >
+    <path d="M12,22 L12,12" stroke="#4CAF50" strokeWidth="2" />
+    <circle cx="12" cy="12" r="3" fill="#FFEB3B" />
+    <circle cx="12" cy="8" r="3" fill={color} />
+    <circle cx="16" cy="12" r="3" fill={color} />
+    <circle cx="12" cy="16" r="3" fill={color} />
+    <circle cx="8" cy="12" r="3" fill={color} />
+  </motion.svg>
+);
+
+export const Snow = () => {
+  const flakes = Array.from({ length: 150 }).map((_, i) => ({
     id: i,
     x: Math.random() * 100,
-    delay: Math.random() * 10,
-    duration: 15 + Math.random() * 10,
-    scale: 0.5 + Math.random() * 0.5,
+    delay: Math.random() * 2, // Reduced delay for immediate effect
+    duration: 3 + Math.random() * 4, // Faster fall
+    size: 4 + Math.random() * 4, // Larger flakes
   }));
 
   return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden">
-      {leaves.map((leaf) => (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden z-[60]">
+      {flakes.map((flake) => (
         <motion.div
-          key={leaf.id}
-          initial={{ y: -20, x: `${leaf.x}%`, opacity: 0, rotate: 0 }}
+          key={flake.id}
+          initial={{ y: -20, opacity: 0 }}
           animate={{ 
             y: '100vh', 
-            x: [`${leaf.x}%`, `${leaf.x + 5}%`, `${leaf.x - 5}%`, `${leaf.x}%`],
-            opacity: [0, 1, 1, 0],
-            rotate: 360 
+            x: [-20, 20, -20], // Sway effect in pixels
+            opacity: [0, 1, 1, 0] 
           }}
           transition={{ 
-            duration: leaf.duration, 
-            delay: leaf.delay, 
+            duration: flake.duration, 
+            delay: flake.delay, 
             repeat: Infinity, 
             ease: "linear" 
           }}
-          className="absolute top-0"
-          style={{ scale: leaf.scale }}
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="#4CAF50" style={{ opacity: 0.6 }}>
-            <path d="M12,2 C12,2 20,4 20,12 C20,20 12,22 12,22 C12,22 4,20 4,12 C4,4 12,2 12,2 Z" />
-          </svg>
-        </motion.div>
+          className="absolute top-0 bg-white rounded-full blur-[1px]"
+          style={{ 
+            width: flake.size, 
+            height: flake.size,
+            left: `${flake.x}%` // Correct positioning relative to container
+          }}
+        />
       ))}
     </div>
   );
