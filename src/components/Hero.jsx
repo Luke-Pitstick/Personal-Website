@@ -109,13 +109,13 @@ const Hero = () => {
         {/* Flowers on Hill */}
         {!isSnowing && (
           <>
-            <Flower className="absolute bottom-[25%] left-[28%] w-6 h-6" delay={0.7} color="#F48FB1" />
-            <Flower className="absolute bottom-[20%] right-[35%] w-5 h-5" delay={0.8} color="#CE93D8" />
-            <Flower className="absolute bottom-[22%] left-[50%] w-5 h-5" delay={1.1} color="#FFCC80" />
-            <Flower className="absolute bottom-[18%] left-[65%] w-4 h-4" delay={1.3} color="#CE93D8" />
-            <Flower className="absolute bottom-[32%] right-[45%] w-5 h-5" delay={1.4} color="#90CAF9" />
-            <Flower className="absolute bottom-[24%] left-[2%] w-6 h-6" delay={1.5} color="#FFAB91" />
-            <Flower className="absolute bottom-[26%] right-[2%] w-5 h-5" delay={1.6} color="#F48FB1" />
+            <Flower className="hidden md:block absolute bottom-[25%] left-[28%] w-6 h-6" delay={0.7} color="#F48FB1" />
+            <Flower className="hidden md:block absolute bottom-[20%] right-[35%] w-5 h-5" delay={0.8} color="#CE93D8" />
+            <Flower className="hidden md:block absolute bottom-[22%] left-[50%] w-5 h-5" delay={1.1} color="#FFCC80" />
+            <Flower className="hidden md:block absolute bottom-[18%] left-[65%] w-4 h-4" delay={1.3} color="#CE93D8" />
+            <Flower className="hidden md:block absolute bottom-[32%] right-[45%] w-5 h-5" delay={1.4} color="#90CAF9" />
+            <Flower className="hidden md:block absolute bottom-[24%] left-[2%] w-6 h-6" delay={1.5} color="#FFAB91" />
+            <Flower className="hidden md:block absolute bottom-[26%] right-[2%] w-5 h-5" delay={1.6} color="#F48FB1" />
           </>
         )}
       </motion.div>
@@ -144,23 +144,23 @@ const Hero = () => {
          {!isSnowing && (
           <>
             {/* Left Side - Adjusted to avoid trees at -2%, 8%, 18% */}
-            <Flower className="absolute bottom-[5%] left-[28%] w-7 h-7" delay={0.5} color="#FFAB91" />
-            <Flower className="absolute bottom-[3%] left-[32%] w-6 h-6" delay={0.9} color="#90CAF9" />
-            <Flower className="absolute bottom-[5%] left-[36%] w-8 h-8" delay={0.6} color="#F48FB1" />
-            <Flower className="absolute bottom-[4%] left-[40%] w-7 h-7" delay={1.3} color="#FFCC80" />
+            <Flower className="hidden md:block absolute bottom-[5%] left-[28%] w-7 h-7" delay={0.5} color="#FFAB91" />
+            <Flower className="hidden md:block absolute bottom-[3%] left-[32%] w-6 h-6" delay={0.9} color="#90CAF9" />
+            <Flower className="hidden md:block absolute bottom-[5%] left-[36%] w-8 h-8" delay={0.6} color="#F48FB1" />
+            <Flower className="hidden md:block absolute bottom-[4%] left-[40%] w-7 h-7" delay={1.3} color="#FFCC80" />
             
             {/* Center-Right - Adjusted to avoid trees at 45%, 55% */}
-            <Flower className="absolute bottom-[3%] left-[62%] w-6 h-6" delay={0.8} color="#CE93D8" />
-            <Flower className="absolute bottom-[5%] left-[66%] w-7 h-7" delay={1.2} color="#90CAF9" />
-            <Flower className="absolute bottom-[7%] left-[70%] w-6 h-6" delay={1.0} color="#F48FB1" />
+            <Flower className="hidden md:block absolute bottom-[3%] left-[62%] w-6 h-6" delay={0.8} color="#CE93D8" />
+            <Flower className="hidden md:block absolute bottom-[5%] left-[66%] w-7 h-7" delay={1.2} color="#90CAF9" />
+            <Flower className="hidden md:block absolute bottom-[7%] left-[70%] w-6 h-6" delay={1.0} color="#F48FB1" />
             
             {/* Far Right - Adjusted to avoid trees at 75%(R25%), 88%(R12%), 95%(R5%) */}
-            <Flower className="absolute bottom-[6%] right-[35%] w-7 h-7" delay={0.7} color="#FFAB91" />
-            <Flower className="absolute bottom-[2%] right-[32%] w-8 h-8" delay={1.1} color="#CE93D8" />
-            <Flower className="absolute bottom-[5%] right-[18%] w-6 h-6" delay={1.7} color="#F48FB1" />
-            <Flower className="absolute bottom-[3%] right-[22%] w-7 h-7" delay={1.8} color="#90CAF9" />
-            <Flower className="absolute bottom-[3%] right-[40%] w-8 h-8" delay={1.4} color="#F48FB1" />
-            <Flower className="absolute bottom-[6%] right-[2%] w-7 h-7" delay={1.5} color="#CE93D8" />
+            <Flower className="hidden md:block absolute bottom-[6%] right-[35%] w-7 h-7" delay={0.7} color="#FFAB91" />
+            <Flower className="hidden md:block absolute bottom-[2%] right-[32%] w-8 h-8" delay={1.1} color="#CE93D8" />
+            <Flower className="hidden md:block absolute bottom-[5%] right-[18%] w-6 h-6" delay={1.7} color="#F48FB1" />
+            <Flower className="hidden md:block absolute bottom-[3%] right-[22%] w-7 h-7" delay={1.8} color="#90CAF9" />
+            <Flower className="hidden md:block absolute bottom-[3%] right-[40%] w-8 h-8" delay={1.4} color="#F48FB1" />
+            <Flower className="hidden md:block absolute bottom-[6%] right-[2%] w-7 h-7" delay={1.5} color="#CE93D8" />
           </>
         )}
 
