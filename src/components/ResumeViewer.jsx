@@ -34,7 +34,7 @@ const ResumeViewer = ({ pdfUrl }) => {
   }
 
   return (
-    <div ref={containerRef} className="w-full flex flex-col items-center bg-white rounded-2xl shadow-xl overflow-hidden border border-emerald-100 min-h-[500px]">
+    <div ref={containerRef} className="resume-viewer w-full flex flex-col items-center bg-white rounded-2xl shadow-xl overflow-hidden border border-emerald-100 min-h-[500px]">
       <Document
         file={pdfUrl}
         onLoadSuccess={onDocumentLoadSuccess}

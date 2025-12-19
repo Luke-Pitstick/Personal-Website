@@ -80,3 +80,19 @@ h1, h2, h3, h4, h5, h6 {
 .prose strong {
     color: var(--color-accent);
 }
+
+.resume-viewer .react-pdf__Page__textContent span {
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+.resume-viewer .react-pdf__Page__textContent span::selection {
+  background: rgba(16, 185, 129, 0.25);
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+.resume-viewer .react-pdf__Page__textContent span::-moz-selection {
+  background: rgba(16, 185, 129, 0.25);
+  color: transparent;
+}
