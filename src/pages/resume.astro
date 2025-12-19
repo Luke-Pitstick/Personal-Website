@@ -1,0 +1,37 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ResumeViewer from '../components/ResumeViewer.jsx';
+---
+
+<Layout title="Resume | Luke Pitstick">
+  <main class="pt-24 pb-12 px-4">
+    <div class="max-w-5xl mx-auto">
+      <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+        <h1 class="text-4xl font-heading font-bold text-emerald-900">Resume</h1>
+        <a 
+          href="/Luke's Resume.pdf" 
+          download 
+          class="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 hover:shadow-emerald-300 active:scale-95"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-download"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+          Download PDF
+        </a>
+      </div>
+
+      <div class="w-full">
+        <ResumeViewer client:only="react" pdfUrl="/Luke's Resume.pdf" />
+      </div>
+
+      <div class="mt-8 text-center md:hidden">
+        <p class="text-emerald-800 mb-4">Viewing on mobile? For the best experience, download the PDF or view it directly.</p>
+        <a 
+          href="/Luke's Resume.pdf" 
+          target="_blank"
+          class="text-emerald-600 underline font-bold"
+        >
+          View PDF Directly
+        </a>
+      </div>
+    </div>
+  </main>
+</Layout>

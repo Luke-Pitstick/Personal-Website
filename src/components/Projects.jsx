@@ -1,39 +1,28 @@
 import React from 'react';
 import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
-import { ExternalLink, Github, Code2, Terminal, Globe } from 'lucide-react';
+import { ExternalLink, Github, Code2, Terminal, Globe, FileText } from 'lucide-react';
 
 const projects = [
   {
-    title: "CU Boulder RAG Search",
-    description: "Retrieval-Augmented Generation search tool for university data.",
-    tags: ["Python", "AI", "Search"],
-    link: "https://github.com/Luke-Pitstick/CU-Boulder-RAG-Search",
-    icon: <Globe className="text-cyan-400" />,
-    size: "large" // spans 2 cols
+    title: "Citation Generator",
+    description: "A citation generator for academic papers using BAML and Streamlit.",
+    tags: ["Python", "LLM", "BAML", "Streamlit"],
+    link: "https://llm-citation-machine.streamlit.app/",
+    icon: <FileText className="text-cyan-400" />
   },
   {
-    title: "Markdown Rich Editor",
-    description: "A feature-rich markdown editor with live preview.",
-    tags: ["React", "TypeScript", "Editor"],
-    link: "https://github.com/Luke-Pitstick/newMarkdownRichEditor",
-    icon: <Code2 className="text-violet-400" />,
-    size: "small"
-  },
-  {
-    title: "JSynthMuke",
-    description: "A browser-based synthesizer built with JavaScript.",
-    tags: ["JavaScript", "Audio", "Synth"],
-    link: "https://github.com/Luke-Pitstick/JSynthMuke",
-    icon: <Code2 className="text-yellow-400" />,
-    size: "small"
+    title: "University Search",
+    description: "Retrieval-Augmented Generation search tool for university information.",
+    tags: ["Python", "Langchain", "RAG"],
+    link: "https://github.com/Luke-Pitstick/university-search",
+    icon: <Globe className="text-cyan-400" />
   },
   {
     title: "Gas Notifier",
     description: "Utility to track and notify about gas prices.",
     tags: ["Python", "Automation", "API"],
     link: "https://github.com/Luke-Pitstick/gasNotifierSignup",
-    icon: <Terminal className="text-green-400" />,
-    size: "small"
+    icon: <Terminal className="text-green-400" />
   }
 ];
 
@@ -58,7 +47,7 @@ const Projects = () => {
         </p>
       </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 auto-rows-[200px]">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {projects.map((project, index) => (
           <ProjectCard key={index} project={project} index={index} />
         ))}
@@ -68,23 +57,19 @@ const Projects = () => {
 };
 
 const ProjectCard = ({ project, index }) => {
-  const isLarge = project.size === "large";
-
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      whileInView={{ opacity: 1, scale: 1 }}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ delay: index * 0.1 }}
-      className={`
-        ${isLarge ? 'md:col-span-2 md:row-span-2' : 'md:col-span-1 md:row-span-1'}
-      `}
+      className="h-full"
     >
       <a
         href={project.link}
         target="_blank"
         rel="noopener noreferrer"
-        className="block h-full group relative p-10 bg-white hand-drawn flex flex-col justify-between overflow-hidden"
+        className="block h-full group relative p-6 bg-white hand-drawn flex flex-col justify-between overflow-hidden"
       >
         <div className="relative z-10">
           <div className="flex justify-between items-start mb-4">
@@ -94,7 +79,7 @@ const ProjectCard = ({ project, index }) => {
             <ExternalLink className="text-slate-400 group-hover:text-emerald-600 transition-colors" size={20} />
           </div>
           
-          <h3 className={`font-bold mb-2 text-slate-800 font-heading ${isLarge ? 'text-3xl' : 'text-xl'}`}>
+          <h3 className="text-xl font-bold mb-2 text-slate-800 font-heading">
             {project.title}
           </h3>
           <p className="text-slate-600 text-sm leading-relaxed mb-4 font-body">

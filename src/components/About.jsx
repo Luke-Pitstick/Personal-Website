@@ -4,13 +4,13 @@ import { Briefcase, GraduationCap, Calendar } from 'lucide-react';
 
 const experiences = [
   {
-    role: "Data Analyst",
-    company: "Ranked Choice Voting for Longmont",
-    period: "Nov 2025 - Present",
-  },
-  {
     role: "Junior Data Manager",
     company: "NOAA",
+    period: "Oct 2025 - Present",
+  },
+  {
+    role: "Data Science Intern",
+    company: "Ranked Choice Voting for Longmont",
     period: "Oct 2025 - Present",
   },
   {
@@ -140,7 +140,7 @@ const About = () => {
               <div className="absolute top-0 right-0 p-4 opacity-10">
                 <Briefcase size={100} />
               </div>
-              <h3 className="text-lg font-bold text-slate-800 mb-4 font-heading relative z-10">The Journey So Far</h3>
+              <h3 className="text-lg font-bold text-slate-800 mb-4 font-heading relative z-10">What I Do</h3>
               <p className="text-slate-700 leading-relaxed font-body relative z-10 font-medium">
                 I combine Data Science and Political Science to analyze public policy and help communities flourish. My focus is on bridging the gap between technical innovation and social impact, using data to drive meaningful change.
               </p>
