@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, Home, User, Briefcase, FileText, PenTool, Palette } from 'lucide-react';
+import { Menu, X, Home, User, Briefcase, FileText, PenTool, Palette, BookOpen } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { SootSprite } from './GhibliAssets';
@@ -22,6 +22,7 @@ const Navbar = () => {
     { name: 'Projects', href: '/projects', icon: <Briefcase size={18} /> },
     { name: 'Resume', href: '/resume', icon: <FileText size={18} /> },
     { name: 'Legislation', href: '/legislation', icon: <FileText size={18} /> },
+    { name: 'Booknote', href: '/booknote', icon: <BookOpen size={18} /> },
     //{ name: 'Art', href: '/art', icon: <Palette size={18} /> },
     //{ name: 'Blog', href: '/blog', icon: <PenTool size={18} /> },
   ];

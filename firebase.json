@@ -5,6 +5,19 @@
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ],
+    "redirects": [
+      {
+        "source": "/booknote",
+        "destination": "https://booknote--booknote-6b162.us-east4.hosted.app",
+        "type": 301
+      }
     ]
   }
 }
