@@ -21,8 +21,8 @@ const Navbar = () => {
     { name: 'About', href: '/about', icon: <User size={18} /> },
     { name: 'Projects', href: '/projects', icon: <Briefcase size={18} /> },
     { name: 'Resume', href: '/resume', icon: <FileText size={18} /> },
-    { name: 'Legislation', href: '/legislation', icon: <FileText size={18} /> },
-    { name: 'Booknote', href: '/booknote', icon: <BookOpen size={18} /> },
+    //{ name: 'Legislation', href: '/legislation', icon: <FileText size={18} /> },
+    //{ name: 'Booknote', href: '/booknote', icon: <BookOpen size={18} /> },
     //{ name: 'Art', href: '/art', icon: <Palette size={18} /> },
     //{ name: 'Blog', href: '/blog', icon: <PenTool size={18} /> },
   ];

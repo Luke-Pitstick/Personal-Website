@@ -1,8 +1,25 @@
 import React from 'react';
-import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
-import { ExternalLink, Github, Code2, Terminal, Globe, FileText } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { ExternalLink, Github, Terminal, Globe, FileText, BarChart3, Boxes } from 'lucide-react';
 
 const projects = [
+  {
+    title: "NYC Rent Prices",
+    description:
+      "Hierarchical time series forecasting and visualization for NYC rent by borough and neighborhood.",
+    tags: ["Python", "React", "Forecasting", "Vercel"],
+    link: "https://nyc-rent-forecast-git-main-lukepitsticks-projects.vercel.app/",
+    github: "https://github.com/Luke-Pitstick/nyc-rent-prices",
+    icon: <BarChart3 className="text-cyan-400" />,
+  },
+  {
+    title: "BrickMe",
+    description:
+      "Winner of HackCU 12. Turns photos into LEGO-style 3D models you can view in the browser.",
+    tags: ["Python", "FastAPI", "Next.js", "Redis"],
+    link: "https://github.com/Luke-Pitstick/brickme",
+    icon: <Boxes className="text-amber-600" />,
+  },
   {
     title: "Citation Generator",
     description: "A citation generator for academic papers using BAML and Streamlit.",
@@ -65,22 +82,45 @@ const ProjectCard = ({ project, index }) => {
       transition={{ delay: index * 0.1 }}
       className="h-full"
     >
-      <a
-        href={project.link}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="block h-full group relative p-6 bg-white hand-drawn flex flex-col justify-between overflow-hidden"
-      >
+      <article className="block h-full group relative p-6 bg-white hand-drawn flex flex-col justify-between overflow-hidden">
         <div className="relative z-10">
           <div className="flex justify-between items-start mb-4">
             <div className="p-3 rounded-xl bg-emerald-50 border-2 border-emerald-100 text-emerald-700">
               {project.icon}
             </div>
-            <ExternalLink className="text-slate-400 group-hover:text-emerald-600 transition-colors" size={20} />
+            <div className="flex items-center gap-1">
+              {project.github ? (
+                <a
+                  href={project.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+                  aria-label={`${project.title} on GitHub`}
+                >
+                  <Github size={20} />
+                </a>
+              ) : null}
+              <a
+                href={project.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-1.5 rounded-lg text-slate-400 group-hover:text-emerald-600 hover:bg-emerald-50/80 transition-colors"
+                aria-label={`Open ${project.title}`}
+              >
+                <ExternalLink size={20} />
+              </a>
+            </div>
           </div>
-          
+
           <h3 className="text-xl font-bold mb-2 text-slate-800 font-heading">
-            {project.title}
+            <a
+              href={project.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-emerald-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 rounded"
+            >
+              {project.title}
+            </a>
           </h3>
           <p className="text-slate-600 text-sm leading-relaxed mb-4 font-body">
             {project.description}
@@ -94,7 +134,7 @@ const ProjectCard = ({ project, index }) => {
             </span>
           ))}
         </div>
-      </a>
+      </article>
     </motion.div>
   );
 };
