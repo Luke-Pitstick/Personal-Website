@@ -1,8 +1,17 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ExternalLink, Github, Terminal, Globe, FileText, BarChart3, Boxes } from 'lucide-react';
+import { ExternalLink, Github, Terminal, Globe, FileText, BarChart3, Boxes, Leaf } from 'lucide-react';
 
 const projects = [
+  {
+    title: "Renewably Wind",
+    description:
+      "Renewable energy optimization platform for exploring wind farm suitability to generate site recommendations.",
+    tags: ["React", "TypeScript", "FastAPI", "GeoJSON"],
+    link: "https://renewably-wind.onrender.com",
+    github: "https://github.com/Luke-Pitstick/renewably-wind",
+    icon: <Leaf className="text-emerald-600" />,
+  },
   {
     title: "NYC Rent Prices",
     description:
@@ -60,7 +69,7 @@ const Projects = () => {
         <SootSprite className="absolute -top-8 -left-8 opacity-20 rotate-[-15deg]" />
         <h2 className="text-4xl md:text-5xl font-bold mb-6 text-slate-800 font-heading">Featured <span className="text-emerald-700">Projects</span></h2>
         <p className="text-slate-600 max-w-2xl text-lg font-body">
-          A collection of projects exploring web development, automation, and creative coding.
+          A collection of projects exploring web development, geospatial analysis, automation, and creative coding.
         </p>
       </motion.div>
 
