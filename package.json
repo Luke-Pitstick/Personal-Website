@@ -6,7 +6,8 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "deploy": "astro build && firebase deploy --only hosting",
+    "deploy": "npx vercel --prod",
+    "deploy:preview": "npx vercel",
     "astro": "astro"
   },
   "dependencies": {
@@ -16,8 +17,8 @@
     "@types/react-dom": "^19.2.3",
     "astro": "^5.15.9",
     "clsx": "^2.1.1",
-    "framer-motion": "^12.23.24",
     "lucide-react": "^0.554.0",
+    "motion": "^12.39.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-pdf": "^10.2.0",

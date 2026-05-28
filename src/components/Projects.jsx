@@ -1,150 +1,238 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { ExternalLink, Github, Terminal, Globe, FileText, BarChart3, Boxes, Leaf } from 'lucide-react';
+import { ExternalLink, Github } from 'lucide-react';
+
+const projectImages = {
+  renewably: '/renewably.png',
+  brickme: '/brickme.png',
+  nycRent: '/nycrentpriceforecaster.png',
+  pogi: '/pogi.png',
+  infraDrone: '/infradrone.png',
+};
 
 const projects = [
   {
-    title: "Renewably Wind",
+    title: 'Renewably Wind',
+    eyebrow: 'Machine Learning',
     description:
-      "Renewable energy optimization platform for exploring wind farm suitability to generate site recommendations.",
-    tags: ["React", "TypeScript", "FastAPI", "GeoJSON"],
-    link: "https://renewably-wind.onrender.com",
-    github: "https://github.com/Luke-Pitstick/renewably-wind",
-    icon: <Leaf className="text-emerald-600" />,
+      '1st place BlasterHacks winner. Full-stack wind farm siting platform that ranks candidate locations using an XGBoost model trained on wind, terrain, and grid data. Users explore viability scores on an ArcGIS map, compare sites side by side, and drill into feature-level explanations before committing to a location.',
+    tags: ['Python', 'XGBoost', 'Polars', 'React', 'FastAPI'],
+    link: 'https://renewably-wind.onrender.com',
+    github: 'https://github.com/Luke-Pitstick/renewably-wind',
+    image: projectImages.renewably,
+    metric: '96% model accuracy',
+    accent: 'emerald',
+    size: 'flagship',
   },
   {
-    title: "NYC Rent Prices",
+    title: 'NYC Rent Price Forecaster',
+    eyebrow: 'Forecasting',
     description:
-      "Hierarchical time series forecasting and visualization for NYC rent by borough and neighborhood.",
-    tags: ["Python", "React", "Forecasting", "Vercel"],
-    link: "https://nyc-rent-forecast-git-main-lukepitsticks-projects.vercel.app/",
-    github: "https://github.com/Luke-Pitstick/nyc-rent-prices",
-    icon: <BarChart3 className="text-cyan-400" />,
+      'End-to-end rent forecasting app for NYC: historical asking rents are cleaned and modeled with hierarchical time series at the borough and neighborhood level, then surfaced in an interactive dashboard. Browse forecasts by area, compare trends across markets, and see how predictions shift over different horizons.',
+    tags: ['Python', 'React', 'Forecasting', 'Vercel'],
+    link: 'https://nyc-rent-forecast-git-main-lukepitsticks-projects.vercel.app/',
+    github: 'https://github.com/Luke-Pitstick/nyc-rent-prices',
+    image: projectImages.nycRent,
+    metric: 'Rent forecasting',
+    accent: 'cyan',
+    size: 'wide',
   },
   {
-    title: "BrickMe",
+    title: 'Pogi',
+    eyebrow: 'AI Agents',
     description:
-      "Winner of HackCU 12. Turns photos into LEGO-style 3D models you can view in the browser.",
-    tags: ["Python", "FastAPI", "Next.js", "Redis"],
-    link: "https://github.com/Luke-Pitstick/brickme",
-    icon: <Boxes className="text-amber-600" />,
+      'Study planning agents that generate personalized course maps, homework guides, and weekly plans from Canvas data.',
+    tags: ['Python', 'OpenAI Agents SDK', 'Next.js'],
+    link: 'https://github.com/Luke-Pitstick/pogi',
+    github: 'https://github.com/Luke-Pitstick/pogi',
+    image: projectImages.pogi,
+    metric: 'Saves 5+ hours/week',
+    accent: 'emerald',
+    size: 'compact',
   },
   {
-    title: "Citation Generator",
-    description: "A citation generator for academic papers using BAML and Streamlit.",
-    tags: ["Python", "LLM", "BAML", "Streamlit"],
-    link: "https://llm-citation-machine.streamlit.app/",
-    icon: <FileText className="text-cyan-400" />
+    title: 'InfraDrone',
+    eyebrow: 'Robotics',
+    description:
+      'Autonomous drone and ground-station system for offline road damage surveys with YOLO segmentation and GPS-temporal analysis.',
+    tags: ['Computer Vision', 'PyTorch', 'TensorRT'],
+    link: 'https://github.com/Luke-Pitstick/InfraDrone',
+    github: 'https://github.com/Luke-Pitstick/InfraDrone',
+    image: projectImages.infraDrone,
+    imageClass: '-translate-x-[6%] -translate-y-[14%] scale-[1.28] object-[center_42%]',
+    metric: 'Road surveys',
+    accent: 'sky',
+    size: 'compact',
   },
   {
-    title: "University Search",
-    description: "Retrieval-Augmented Generation search tool for university information.",
-    tags: ["Python", "Langchain", "RAG"],
-    link: "https://github.com/Luke-Pitstick/university-search",
-    icon: <Globe className="text-cyan-400" />
+    title: 'BrickMe',
+    eyebrow: 'HackCU Winner',
+    description:
+      'Browser app that turns photos into LEGO-style 3D models you can inspect and share.',
+    tags: ['Python', 'FastAPI', 'Next.js'],
+    link: 'https://github.com/Luke-Pitstick/brickme',
+    github: 'https://github.com/Luke-Pitstick/brickme',
+    image: projectImages.brickme,
+    metric: '3D model generation',
+    accent: 'amber',
+    size: 'compact',
   },
-  {
-    title: "Gas Notifier",
-    description: "Utility to track and notify about gas prices.",
-    tags: ["Python", "Automation", "API"],
-    link: "https://github.com/Luke-Pitstick/gasNotifierSignup",
-    icon: <Terminal className="text-green-400" />
-  }
 ];
 
-import { SootSprite, Cloud } from './GhibliAssets';
+const accents = {
+  emerald: {
+    chip: 'border-emerald-800/30 bg-emerald-50 text-emerald-800',
+    wash: 'from-emerald-100 via-sky-50 to-white',
+  },
+  cyan: {
+    chip: 'border-cyan-800/30 bg-cyan-50 text-cyan-800',
+    wash: 'from-cyan-100 via-sky-50 to-white',
+  },
+  sky: {
+    chip: 'border-sky-800/30 bg-sky-50 text-sky-800',
+    wash: 'from-sky-100 via-emerald-50 to-white',
+  },
+  amber: {
+    chip: 'border-amber-800/30 bg-amber-50 text-amber-800',
+    wash: 'from-amber-100 via-emerald-50 to-white',
+  },
+};
 
-const Projects = () => {
+const sizeClasses = {
+  flagship: 'md:col-span-4 md:row-span-2',
+  wide: 'md:col-span-2 md:row-span-2',
+  compact: 'md:col-span-2 md:row-span-2',
+};
+
+const Projects = () => (
+  <section className="relative mx-auto max-w-6xl overflow-hidden px-4 py-16 md:py-20" aria-labelledby="projects-heading">
+    <div className="relative mb-8">
+      <h2 id="projects-heading" className="mb-4 font-heading text-3xl font-bold text-slate-800 md:text-4xl">
+        Featured <span className="text-emerald-700">Projects</span>
+      </h2>
+      <p className="max-w-2xl text-base leading-relaxed text-slate-600 font-body">
+        Some of the projects I am proud of, spanning renewable energy, forecasting, robotics, AI agents, and creative tools.
+      </p>
+    </div>
+
+    <div className="grid grid-cols-1 gap-5 md:auto-rows-[minmax(220px,auto)] md:grid-cols-6">
+      {projects.map((project) => (
+        <ProjectTile key={project.title} project={project} />
+      ))}
+    </div>
+  </section>
+);
+
+const ProjectTile = ({ project }) => {
+  const isFlagship = project.size === 'flagship';
+  const isCompact = project.size === 'compact';
+  const accent = accents[project.accent];
+  const titleId = `${project.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-title`;
+
   return (
-    <section className="py-24 px-4 max-w-7xl mx-auto relative overflow-hidden">
-      <Cloud className="absolute top-20 -left-20 w-48 opacity-40 pointer-events-none" duration={45} />
-      <Cloud className="absolute bottom-40 -right-20 w-64 opacity-30 pointer-events-none" delay={5} duration={60} />
-      
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        className="mb-16 relative"
-      >
-        <SootSprite className="absolute -top-8 -left-8 opacity-20 rotate-[-15deg]" />
-        <h2 className="text-4xl md:text-5xl font-bold mb-6 text-slate-800 font-heading">Featured <span className="text-emerald-700">Projects</span></h2>
-        <p className="text-slate-600 max-w-2xl text-lg font-body">
-          A collection of projects exploring web development, geospatial analysis, automation, and creative coding.
-        </p>
-      </motion.div>
+    <article
+      className={`project-tile hand-drawn group relative min-h-[390px] overflow-hidden bg-slate-950 ${sizeClasses[project.size]}`}
+      aria-labelledby={titleId}
+    >
+      {project.image ? (
+        <img
+          src={project.image}
+          alt={`${project.title} preview`}
+          width="1200"
+          height="800"
+          loading={isFlagship ? 'eager' : 'lazy'}
+          decoding="async"
+          className={`absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03] ${project.imageClass ?? ''}`}
+        />
+      ) : (
+        <div className={`absolute inset-0 bg-gradient-to-br ${accent.wash}`} />
+      )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {projects.map((project, index) => (
-          <ProjectCard key={index} project={project} index={index} />
-        ))}
+      <div className={`absolute inset-0 ${project.image ? 'bg-gradient-to-t from-slate-950/95 via-slate-950/60 to-slate-950/10' : ''}`} />
+
+      {!project.image && (
+        <div className="absolute inset-4 rounded-lg border-2 border-dashed border-emerald-800/20" />
+      )}
+
+      <div className="relative z-20 flex min-h-[390px] flex-col justify-between p-5 sm:p-6">
+        <div className="flex shrink-0 items-start justify-between gap-3">
+          <div className={`rounded-full border px-3 py-1 text-xs font-bold shadow-sm ${accent.chip}`}>
+            <span>{project.eyebrow}</span>
+          </div>
+          <ProjectLinks project={project} />
+        </div>
+        <div className={isFlagship ? 'max-w-2xl' : ''}>
+          <p className={`project-tile-metric font-mono font-bold uppercase tracking-wider ${isCompact ? 'mb-2 text-[11px]' : 'mb-2 text-xs'}`}>{project.metric}</p>
+          <h3
+            id={titleId}
+            className={`font-heading font-bold leading-tight ${
+              isFlagship ? 'text-3xl md:text-4xl' : project.size === 'wide' ? 'text-2xl md:text-3xl' : 'text-2xl'
+            }`}
+          >
+            {project.title}
+          </h3>
+          <p className={`project-tile-body font-body ${isCompact ? 'mt-3 text-sm leading-relaxed' : 'mt-3 text-sm leading-relaxed md:text-base'}`}>
+            {project.description}
+          </p>
+          <div className={`flex flex-wrap ${isCompact ? 'mt-3 gap-1.5' : 'mt-4 gap-2'}`}>
+            {project.tags.map((tag) => (
+              <span
+                key={tag}
+                className={`project-tile-tag rounded-full border border-white/30 bg-white/15 font-bold backdrop-blur-sm ${
+                  isCompact ? 'px-2 py-0.5 text-[10px]' : 'px-2.5 py-1 text-[11px]'
+                }`}
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        </div>
       </div>
-    </section>
+    </article>
   );
 };
 
-const ProjectCard = ({ project, index }) => {
+const ProjectLinks = ({ project }) => {
+  const links = [
+    project.github
+      ? {
+          href: project.github,
+          label: 'GitHub',
+          ariaLabel: `${project.title} on GitHub`,
+          icon: Github,
+        }
+      : null,
+    project.link && project.link !== project.github
+      ? {
+          href: project.link,
+          label: 'Project link',
+          ariaLabel: `Open ${project.title}`,
+          icon: ExternalLink,
+        }
+      : null,
+  ].filter(Boolean);
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ delay: index * 0.1 }}
-      className="h-full"
+      <div className="flex items-center gap-2">
+      {links.map((link) => (
+        <ProjectLink key={link.label} link={link} />
+      ))}
+    </div>
+  );
+};
+
+const ProjectLink = ({ link }) => {
+  const Icon = link.icon;
+
+  return (
+    <a
+      href={link.href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="focus-ring rounded-full border border-white/70 bg-white/90 p-1.5 text-slate-600 shadow-sm transition-[background-color,border-color,color,transform] hover:-translate-y-0.5 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800"
+      aria-label={link.ariaLabel}
+      title={link.label}
     >
-      <article className="block h-full group relative p-6 bg-white hand-drawn flex flex-col justify-between overflow-hidden">
-        <div className="relative z-10">
-          <div className="flex justify-between items-start mb-4">
-            <div className="p-3 rounded-xl bg-emerald-50 border-2 border-emerald-100 text-emerald-700">
-              {project.icon}
-            </div>
-            <div className="flex items-center gap-1">
-              {project.github ? (
-                <a
-                  href={project.github}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors"
-                  aria-label={`${project.title} on GitHub`}
-                >
-                  <Github size={20} />
-                </a>
-              ) : null}
-              <a
-                href={project.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-1.5 rounded-lg text-slate-400 group-hover:text-emerald-600 hover:bg-emerald-50/80 transition-colors"
-                aria-label={`Open ${project.title}`}
-              >
-                <ExternalLink size={20} />
-              </a>
-            </div>
-          </div>
-
-          <h3 className="text-xl font-bold mb-2 text-slate-800 font-heading">
-            <a
-              href={project.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-emerald-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 rounded"
-            >
-              {project.title}
-            </a>
-          </h3>
-          <p className="text-slate-600 text-sm leading-relaxed mb-4 font-body">
-            {project.description}
-          </p>
-        </div>
-
-        <div className="relative z-10 flex flex-wrap gap-2 mt-auto">
-          {project.tags.map((tag, i) => (
-            <span key={i} className="px-3 py-1 text-xs font-bold rounded-full bg-slate-100 text-slate-600 border border-slate-300">
-              {tag}
-            </span>
-          ))}
-        </div>
-      </article>
-    </motion.div>
+      <Icon size={18} aria-hidden="true" focusable="false" />
+    </a>
   );
 };
 

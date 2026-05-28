@@ -1,48 +1,58 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import * as motion from 'motion/react-client';
+import { useReducedMotion } from 'motion/react';
 
-export const Tree = ({ className, delay = 0, isSnowing = false }) => (
-  <motion.svg
-    initial={{ scaleY: 0, opacity: 0 }}
-    animate={{ scaleY: 1, opacity: 1 }}
-    transition={{ delay, duration: 1, ease: "backOut" }}
-    viewBox="0 0 100 200"
-    className={className}
-    preserveAspectRatio="none"
-  >
-    {/* Trunk */}
-    <rect x="42" y="160" width="16" height="40" fill="#3E2723" />
-    
-    {/* Layers of branches (Evergreen style) */}
-    {/* Bottom Layer */}
-    <path d="M10,170 L50,100 L90,170 Z" fill="#1B5E20" />
-    <path d="M10,170 L50,100 L90,170 Z" fill="none" stroke="#1B5E20" strokeWidth="2" strokeLinejoin="round" />
-    
-    {/* Middle Layer */}
-    <path d="M20,130 L50,70 L80,130 Z" fill="#2E7D32" />
-    <path d="M20,130 L50,70 L80,130 Z" fill="none" stroke="#2E7D32" strokeWidth="2" strokeLinejoin="round" />
-    
-    {/* Top Layer */}
-    <path d="M30,90 L50,40 L70,90 Z" fill="#388E3C" />
-    <path d="M30,90 L50,40 L70,90 Z" fill="none" stroke="#388E3C" strokeWidth="2" strokeLinejoin="round" />
+export const Tree = ({ className, delay = 0, isSnowing = false }) => {
+  const shouldReduceMotion = useReducedMotion();
+
+  return (
+    <motion.svg
+      initial={shouldReduceMotion ? { opacity: 0 } : { scaleY: 0, opacity: 0 }}
+      animate={{ scaleY: 1, opacity: 1 }}
+      transition={{ delay: shouldReduceMotion ? 0 : delay, duration: shouldReduceMotion ? 0.25 : 1, ease: "backOut" }}
+      viewBox="0 0 100 200"
+      className={className}
+      preserveAspectRatio="none"
+    >
+      {/* Trunk */}
+      <rect x="42" y="160" width="16" height="40" fill="#3E2723" />
+      
+      {/* Layers of branches (Evergreen style) */}
+      {/* Bottom Layer */}
+      <path d="M10,170 L50,100 L90,170 Z" fill="#1B5E20" />
+      <path d="M10,170 L50,100 L90,170 Z" fill="none" stroke="#1B5E20" strokeWidth="2" strokeLinejoin="round" />
+      
+      {/* Middle Layer */}
+      <path d="M20,130 L50,70 L80,130 Z" fill="#2E7D32" />
+      <path d="M20,130 L50,70 L80,130 Z" fill="none" stroke="#2E7D32" strokeWidth="2" strokeLinejoin="round" />
+      
+      {/* Top Layer */}
+      <path d="M30,90 L50,40 L70,90 Z" fill="#388E3C" />
+      <path d="M30,90 L50,40 L70,90 Z" fill="none" stroke="#388E3C" strokeWidth="2" strokeLinejoin="round" />
 
 
-  </motion.svg>
-);
+    </motion.svg>
+  );
+};
 
-export const Cloud = ({ className, delay = 0, duration = 20 }) => (
-  <motion.svg
-    animate={{ x: [0, 100, 0] }}
-    transition={{ repeat: Infinity, duration, ease: "linear", delay }}
-    viewBox="0 0 200 100"
-    className={className}
-  >
-    <path d="M20,80 Q40,60 50,70 Q60,40 90,50 Q110,20 140,40 Q170,30 180,60 Q200,70 190,90 H20 Z" fill="white" fillOpacity="0.8" />
-  </motion.svg>
-);
+export const Cloud = ({ className, delay = 0, duration = 20 }) => {
+  const shouldReduceMotion = useReducedMotion();
+
+  return (
+    <motion.svg
+      animate={shouldReduceMotion ? { x: 0 } : { x: [0, 100, 0] }}
+      transition={{ repeat: shouldReduceMotion ? 0 : Infinity, duration, ease: "linear", delay }}
+      viewBox="0 0 200 100"
+      className={className}
+    >
+      <path d="M20,80 Q40,60 50,70 Q60,40 90,50 Q110,20 140,40 Q170,30 180,60 Q200,70 190,90 H20 Z" fill="white" fillOpacity="0.8" />
+    </motion.svg>
+  );
+};
 
 // Soot Sprite variants with different expressions
 export const SootSprite = ({ className, variant = 'normal' }) => {
+  const shouldReduceMotion = useReducedMotion();
   const expressions = {
     normal: { eyeY: 45, pupilY: 45 },
     surprised: { eyeY: 42, pupilY: 40 },
@@ -54,14 +64,14 @@ export const SootSprite = ({ className, variant = 'normal' }) => {
   
   return (
     <motion.div
-      whileHover={{ scale: 1.2, rotate: 180 }}
-      animate={{ 
+      whileHover={shouldReduceMotion ? { scale: 1.08 } : { scale: 1.2, rotate: 180 }}
+      animate={shouldReduceMotion ? { y: 0, rotate: 0 } : { 
         y: [0, -5, 0],
         rotate: [0, 5, -5, 0]
       }}
       transition={{
         duration: 3,
-        repeat: Infinity,
+        repeat: shouldReduceMotion ? 0 : Infinity,
         ease: "easeInOut"
       }}
       className={`relative w-8 h-8 ${className}`}
@@ -72,8 +82,8 @@ export const SootSprite = ({ className, variant = 'normal' }) => {
         {/* Add some fuzzy spikes around the edges */}
         {Array.from({ length: 12 }).map((_, i) => {
           const angle = (i * 30) * Math.PI / 180;
-          const x = 50 + 35 * Math.cos(angle);
-          const y = 50 + 35 * Math.sin(angle);
+          const x = Number((50 + 35 * Math.cos(angle)).toFixed(3));
+          const y = Number((50 + 35 * Math.sin(angle)).toFixed(3));
           return (
             <circle key={i} cx={x} cy={y} r="6" fill="black" opacity="0.8" />
           );
@@ -93,47 +103,54 @@ export const SootSprite = ({ className, variant = 'normal' }) => {
 };
 
 // Kodama - cute tree spirits that bob and tilt their heads
-export const Kodama = ({ className, delay = 0 }) => (
-  <motion.div
-    initial={{ opacity: 0, y: -20 }}
-    animate={{ 
-      opacity: 1,
-      y: [0, -10, 0],
-      rotate: [0, -5, 5, 0]
-    }}
-    transition={{
-      opacity: { duration: 0.5, delay },
-      y: { duration: 2, repeat: Infinity, ease: "easeInOut", delay },
-      rotate: { duration: 3, repeat: Infinity, ease: "easeInOut", delay }
-    }}
-    className={`relative ${className}`}
-  >
-    <svg viewBox="0 0 60 100" className="w-full h-full">
-      {/* Body */}
-      <ellipse cx="30" cy="60" rx="20" ry="35" fill="white" stroke="#333" strokeWidth="2" />
-      {/* Head */}
-      <circle cx="30" cy="25" r="18" fill="white" stroke="#333" strokeWidth="2" />
-      {/* Eyes - triangle shaped */}
-      <polygon points="22,22 26,27 18,27" fill="black" />
-      <polygon points="38,22 42,27 34,27" fill="black" />
-      {/* Mouth - triangle */}
-      <polygon points="30,32 26,36 34,36" fill="black" />
-      {/* Arms (optional small bumps) */}
-      <ellipse cx="10" cy="60" rx="4" ry="8" fill="white" stroke="#333" strokeWidth="1.5" />
-      <ellipse cx="50" cy="60" rx="4" ry="8" fill="white" stroke="#333" strokeWidth="1.5" />
-    </svg>
-  </motion.div>
-);
+export const Kodama = ({ className, delay = 0 }) => {
+  const shouldReduceMotion = useReducedMotion();
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: shouldReduceMotion ? 0 : -20 }}
+      animate={shouldReduceMotion ? { opacity: 1, y: 0, rotate: 0 } : { 
+        opacity: 1,
+        y: [0, -10, 0],
+        rotate: [0, -5, 5, 0]
+      }}
+      transition={{
+        opacity: { duration: 0.5, delay: shouldReduceMotion ? 0 : delay },
+        y: { duration: 2, repeat: shouldReduceMotion ? 0 : Infinity, ease: "easeInOut", delay },
+        rotate: { duration: 3, repeat: shouldReduceMotion ? 0 : Infinity, ease: "easeInOut", delay }
+      }}
+      className={`relative ${className}`}
+    >
+      <svg viewBox="0 0 60 100" className="w-full h-full">
+        {/* Body */}
+        <ellipse cx="30" cy="60" rx="20" ry="35" fill="white" stroke="#333" strokeWidth="2" />
+        {/* Head */}
+        <circle cx="30" cy="25" r="18" fill="white" stroke="#333" strokeWidth="2" />
+        {/* Eyes - triangle shaped */}
+        <polygon points="22,22 26,27 18,27" fill="black" />
+        <polygon points="38,22 42,27 34,27" fill="black" />
+        {/* Mouth - triangle */}
+        <polygon points="30,32 26,36 34,36" fill="black" />
+        {/* Arms (optional small bumps) */}
+        <ellipse cx="10" cy="60" rx="4" ry="8" fill="white" stroke="#333" strokeWidth="1.5" />
+        <ellipse cx="50" cy="60" rx="4" ry="8" fill="white" stroke="#333" strokeWidth="1.5" />
+      </svg>
+    </motion.div>
+  );
+};
 
 // Totoro peeking from the side
-export const Totoro = ({ className }) => (
-  <motion.div
-    initial={{ x: -100, opacity: 0 }}
-    animate={{ x: 0, opacity: 1 }}
-    whileHover={{ x: 10, scale: 1.05 }}
-    transition={{ duration: 1, ease: "backOut" }}
-    className={`relative ${className}`}
-  >
+export const Totoro = ({ className }) => {
+  const shouldReduceMotion = useReducedMotion();
+
+  return (
+    <motion.div
+      initial={{ x: shouldReduceMotion ? 0 : -100, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      whileHover={shouldReduceMotion ? { scale: 1.03 } : { x: 10, scale: 1.05 }}
+      transition={{ duration: shouldReduceMotion ? 0.25 : 1, ease: "backOut" }}
+      className={`relative ${className}`}
+    >
     <svg viewBox="0 0 120 140" className="w-full h-full">
       {/* Body */}
       <ellipse cx="60" cy="85" rx="50" ry="55" fill="#9CA3AF" />
@@ -163,44 +180,48 @@ export const Totoro = ({ className }) => (
       {/* Smile */}
       <path d="M45,65 Q60,72 75,65" stroke="black" strokeWidth="2" fill="none" />
     </svg>
-  </motion.div>
-);
+    </motion.div>
+  );
+};
 
 // Calcifer - flickering flame
-export const Calcifer = ({ className }) => (
-  <motion.div
-    animate={{
-      scale: [1, 1.1, 0.95, 1.05, 1],
-      y: [0, -3, 2, -2, 0]
-    }}
-    transition={{
-      duration: 2,
-      repeat: Infinity,
-      ease: "easeInOut"
-    }}
-    className={`relative ${className}`}
-  >
+export const Calcifer = ({ className }) => {
+  const shouldReduceMotion = useReducedMotion();
+
+  return (
+    <motion.div
+      animate={shouldReduceMotion ? { scale: 1, y: 0 } : {
+        scale: [1, 1.1, 0.95, 1.05, 1],
+        y: [0, -3, 2, -2, 0]
+      }}
+      transition={{
+        duration: 2,
+        repeat: shouldReduceMotion ? 0 : Infinity,
+        ease: "easeInOut"
+      }}
+      className={`relative ${className}`}
+    >
     <svg viewBox="0 0 100 120" className="w-full h-full">
       {/* Outer flame (orange) */}
       <motion.path
         d="M50,10 C30,20 20,35 25,55 C28,65 35,75 50,80 C65,75 72,65 75,55 C80,35 70,20 50,10 Z"
         fill="#FF6B35"
-        animate={{ opacity: [0.8, 1, 0.8] }}
-        transition={{ duration: 1.5, repeat: Infinity }}
+        animate={shouldReduceMotion ? { opacity: 0.9 } : { opacity: [0.8, 1, 0.8] }}
+        transition={{ duration: 1.5, repeat: shouldReduceMotion ? 0 : Infinity }}
       />
       {/* Middle flame (yellow) */}
       <motion.path
         d="M50,20 C38,28 32,38 35,52 C37,60 42,68 50,72 C58,68 63,60 65,52 C68,38 62,28 50,20 Z"
         fill="#FFB627"
-        animate={{ opacity: [0.9, 1, 0.9] }}
-        transition={{ duration: 1, repeat: Infinity }}
+        animate={shouldReduceMotion ? { opacity: 1 } : { opacity: [0.9, 1, 0.9] }}
+        transition={{ duration: 1, repeat: shouldReduceMotion ? 0 : Infinity }}
       />
       {/* Inner flame (light yellow) */}
       <motion.path
         d="M50,30 C42,36 38,42 40,52 C42,58 45,63 50,66 C55,63 58,58 60,52 C62,42 58,36 50,30 Z"
         fill="#FFF4A3"
-        animate={{ opacity: [1, 0.9, 1] }}
-        transition={{ duration: 0.8, repeat: Infinity }}
+        animate={shouldReduceMotion ? { opacity: 1 } : { opacity: [1, 0.9, 1] }}
+        transition={{ duration: 0.8, repeat: shouldReduceMotion ? 0 : Infinity }}
       />
       {/* Face - eyes */}
       <ellipse cx="42" cy="50" rx="4" ry="6" fill="black" />
@@ -208,20 +229,24 @@ export const Calcifer = ({ className }) => (
       {/* Mouth - mischievous smile */}
       <path d="M42,58 Q50,62 58,58" stroke="black" strokeWidth="2" fill="none" />
     </svg>
-  </motion.div>
-);
+    </motion.div>
+  );
+};
 
 // Catbus eyes peeking
-export const CatbusEyes = ({ className }) => (
-  <motion.div
-    initial={{ opacity: 0, x: -20 }}
-    animate={{ opacity: [0.6, 1, 0.6], x: 0 }}
-    transition={{ 
-      opacity: { duration: 3, repeat: Infinity },
-      x: { duration: 1 }
-    }}
-    className={`relative ${className}`}
-  >
+export const CatbusEyes = ({ className }) => {
+  const shouldReduceMotion = useReducedMotion();
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: shouldReduceMotion ? 0 : -20 }}
+      animate={shouldReduceMotion ? { opacity: 0.8, x: 0 } : { opacity: [0.6, 1, 0.6], x: 0 }}
+      transition={{ 
+        opacity: { duration: 3, repeat: shouldReduceMotion ? 0 : Infinity },
+        x: { duration: shouldReduceMotion ? 0.25 : 1 }
+      }}
+      className={`relative ${className}`}
+    >
     <svg viewBox="0 0 100 40" className="w-full h-full">
       {/* Eyes glowing in the dark */}
       <ellipse cx="30" cy="20" rx="12" ry="16" fill="#FFF4A3" opacity="0.9" />
@@ -232,31 +257,38 @@ export const CatbusEyes = ({ className }) => (
       <circle cx="28" cy="18" r="2" fill="white" opacity="0.8" />
       <circle cx="68" cy="18" r="2" fill="white" opacity="0.8" />
     </svg>
-  </motion.div>
-);
+    </motion.div>
+  );
+};
 
 // Paper Airplane (Kiki's Delivery Service inspired)
-export const PaperAirplane = ({ className }) => (
-  <motion.div
-    initial={{ x: -100, y: 50, rotate: 45 }}
-    animate={{ 
-      x: ['-100vw', '100vw'],
-      y: [50, 20, 40, 10, 30],
-      rotate: [45, 40, 45, 42, 45]
-    }}
-    transition={{
-      duration: 20,
-      repeat: Infinity,
-      ease: "linear"
-    }}
-    className={`absolute ${className}`}
-  >
+export const PaperAirplane = ({ className }) => {
+  const shouldReduceMotion = useReducedMotion();
+
+  if (shouldReduceMotion) return null;
+
+  return (
+    <motion.div
+      initial={{ x: -100, y: 50, rotate: 45 }}
+      animate={{ 
+        x: ['-100vw', '100vw'],
+        y: [50, 20, 40, 10, 30],
+        rotate: [45, 40, 45, 42, 45]
+      }}
+      transition={{
+        duration: 20,
+        repeat: Infinity,
+        ease: "linear"
+      }}
+      className={`absolute ${className}`}
+    >
     <svg viewBox="0 0 60 30" className="w-full h-full drop-shadow-md">
       <path d="M5,15 L55,5 L50,15 L55,25 Z" fill="white" stroke="#94A3B8" strokeWidth="1" />
       <line x1="5" y1="15" x2="50" y2="15" stroke="#CBD5E1" strokeWidth="0.5" />
     </svg>
-  </motion.div>
-);
+    </motion.div>
+  );
+};
 
 
 export const Hill = ({ className, color = "#4CAF50" }) => (
@@ -265,31 +297,38 @@ export const Hill = ({ className, color = "#4CAF50" }) => (
   </svg>
 );
 
-export const Flower = ({ className, delay = 0, color = "#F48FB1" }) => (
-  <motion.svg
-    initial={{ scale: 0, opacity: 0 }}
-    animate={{ scale: 1, opacity: 1 }}
-    transition={{ delay, duration: 0.5, ease: "backOut" }}
-    viewBox="0 0 24 24"
-    className={className}
-  >
-    <path d="M12,22 L12,12" stroke="#4CAF50" strokeWidth="2" />
-    <circle cx="12" cy="12" r="3" fill="#FFEB3B" />
-    <circle cx="12" cy="8" r="3" fill={color} />
-    <circle cx="16" cy="12" r="3" fill={color} />
-    <circle cx="12" cy="16" r="3" fill={color} />
-    <circle cx="8" cy="12" r="3" fill={color} />
-  </motion.svg>
-);
+export const Flower = ({ className, delay = 0, color = "#F48FB1" }) => {
+  const shouldReduceMotion = useReducedMotion();
+
+  return (
+    <motion.svg
+      initial={shouldReduceMotion ? { opacity: 0 } : { scale: 0, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ delay: shouldReduceMotion ? 0 : delay, duration: shouldReduceMotion ? 0.2 : 0.5, ease: "backOut" }}
+      viewBox="0 0 24 24"
+      className={className}
+    >
+      <path d="M12,22 L12,12" stroke="#4CAF50" strokeWidth="2" />
+      <circle cx="12" cy="12" r="3" fill="#FFEB3B" />
+      <circle cx="12" cy="8" r="3" fill={color} />
+      <circle cx="16" cy="12" r="3" fill={color} />
+      <circle cx="12" cy="16" r="3" fill={color} />
+      <circle cx="8" cy="12" r="3" fill={color} />
+    </motion.svg>
+  );
+};
 
 export const Snow = () => {
-  const flakes = Array.from({ length: 150 }).map((_, i) => ({
+  const shouldReduceMotion = useReducedMotion();
+  const flakes = React.useMemo(() => Array.from({ length: 150 }).map((_, i) => ({
     id: i,
     x: Math.random() * 100,
     delay: Math.random() * 2, // Reduced delay for immediate effect
     duration: 3 + Math.random() * 4, // Faster fall
     size: 4 + Math.random() * 4, // Larger flakes
-  }));
+  })), []);
+
+  if (shouldReduceMotion) return null;
 
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden z-[60]">
@@ -321,12 +360,15 @@ export const Snow = () => {
 };
 
 export const DustMotes = () => {
-    const motes = Array.from({ length: 30 }).map((_, i) => ({
+    const shouldReduceMotion = useReducedMotion();
+    const motes = React.useMemo(() => Array.from({ length: 30 }).map((_, i) => ({
         id: i,
         x: Math.random() * 100,
         y: Math.random() * 100,
         duration: 4 + Math.random() * 4,
-    }));
+    })), []);
+
+    if (shouldReduceMotion) return null;
 
     return (
         <div className="absolute inset-0 pointer-events-none overflow-hidden">

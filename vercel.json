@@ -1,0 +1,19 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/booknote",
+      "destination": "https://booknote--booknote-6b162.us-east4.hosted.app",
+      "permanent": true
+    },
+    {
+      "source": "/nyc-rent",
+      "destination": "https://nyc-rent-forecast-git-main-lukepitsticks-projects.vercel.app/",
+      "permanent": true
+    }
+  ]
+}

@@ -1,15 +1,28 @@
 import React, { useRef } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
-import { Github, Linkedin, Mail, ArrowDown } from 'lucide-react';
-import { Tree, Cloud, Hill, SootSprite, Mountains, Flower, Snow } from './GhibliAssets';
-import { Snowflake } from 'lucide-react';
+import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react';
+import { ChevronDown, Github, Linkedin, Mail, Snowflake } from 'lucide-react';
+import SoftHeroBackground from './SoftHeroBackground';
+import { softSpring, tapMotion } from '../lib/motion';
+
+const portraitUrl = '/pictureofme.jpg';
+const emailAddress = 'contact@lukepitstick.com';
+
+// Swap this constant to test another background without touching hero content.
+const ActiveHeroBackground = SoftHeroBackground;
+
+const SOCIAL_HIDE_SCROLL_Y = 96;
 
 const Hero = () => {
   const [isSnowing, setIsSnowing] = React.useState(false);
+  const [socialsVisible, setSocialsVisible] = React.useState(true);
+  const [arrowPinned, setArrowPinned] = React.useState(false);
+  const [arrowVisible, setArrowVisible] = React.useState(true);
+  const [arrowTop, setArrowTop] = React.useState(80);
+  const shouldReduceMotion = useReducedMotion();
   const ref = useRef(null);
   const { scrollYProgress } = useScroll({
     target: ref,
-    offset: ["start start", "end start"]
+    offset: ["start start", "end start"],
   });
 
   const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
@@ -17,176 +30,181 @@ const Hero = () => {
   const hillY = useTransform(scrollYProgress, [0, 1], ["0%", "20%"]);
   const mountainsY = useTransform(scrollYProgress, [0, 1], ["0%", "10%"]);
 
+  const scrollPastHero = () => {
+    const home = document.getElementById('home');
+    if (!home) return;
+
+    const top = home.getBoundingClientRect().bottom + window.scrollY;
+    window.scrollTo({
+      top,
+      behavior: shouldReduceMotion ? 'auto' : 'smooth',
+    });
+  };
+
+  React.useEffect(() => {
+    const onScroll = () => {
+      const scrollY = window.scrollY;
+      const home = document.getElementById('home');
+      const nav = document.querySelector('nav[aria-label="Primary navigation"]');
+      const navBottom = nav?.getBoundingClientRect().bottom ?? 80;
+      const homeBottom = home?.getBoundingClientRect().bottom ?? 0;
+
+      setSocialsVisible(scrollY < SOCIAL_HIDE_SCROLL_Y);
+      setArrowPinned(scrollY >= SOCIAL_HIDE_SCROLL_Y);
+      setArrowTop(navBottom + 8);
+      setArrowVisible(homeBottom > navBottom + 48);
+    };
+
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
+  }, []);
+
   return (
-    <section 
-      ref={ref} 
-      className="min-h-screen flex flex-col justify-center items-center px-4 relative overflow-hidden bg-gradient-to-b from-sky-200 via-sky-100 to-blue-50"
+    <section
+      ref={ref}
+      className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#eaf7f1] px-4"
     >
-      
-      {/* Sky Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <Cloud className="absolute top-20 left-10 w-32 opacity-80" delay={0} duration={60} />
-        <Cloud className="absolute top-40 right-20 w-48 opacity-60" delay={5} duration={80} />
-        <Cloud className="absolute top-10 left-1/2 w-24 opacity-40" delay={10} duration={100} />
-      </div>
+      <ActiveHeroBackground
+        isSnowing={isSnowing}
+        hillY={shouldReduceMotion ? 0 : hillY}
+        mountainsY={shouldReduceMotion ? 0 : mountainsY}
+      />
 
-      {/* Snow Effect */}
-      {isSnowing && <Snow />}
-
-      {/* Snow Toggle Button */}
-      <button
+      <motion.button
+        type="button"
         onClick={() => setIsSnowing(!isSnowing)}
-        className={`absolute top-24 right-4 z-[100] p-2 rounded-full transition-all duration-300 ${
-          isSnowing ? 'bg-blue-100 text-blue-500 shadow-lg' : 'bg-white/50 text-slate-400 hover:bg-white'
+        whileHover={shouldReduceMotion ? undefined : { y: -2, rotate: isSnowing ? -8 : 8 }}
+        whileTap={tapMotion}
+        transition={softSpring}
+        className={`focus-ring absolute right-4 top-24 z-[100] rounded-full p-2 transition-[background-color,box-shadow,color,transform] duration-300 ${
+          isSnowing ? 'bg-blue-100 text-blue-500 shadow-lg' : 'bg-white/60 text-slate-500 shadow-sm hover:bg-white'
         }`}
         aria-label="Toggle Snow"
       >
-        <Snowflake size={20} />
-      </button>
+        <Snowflake size={20} aria-hidden="true" focusable="false" />
+      </motion.button>
 
-      {/* Main Content */}
-      <motion.div style={{ y, opacity }} className="max-w-5xl w-full z-20 relative text-center mt-[-100px]">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1, ease: "easeOut" }}
-          className="space-y-8"
-        >
-           <div className="inline-block">
-             <div className="bg-white/80 backdrop-blur-sm p-8 hand-drawn relative">
-                <div className="flex items-center justify-center gap-3 text-emerald-800 font-body text-sm tracking-widest uppercase mb-4">
-                    <span className="w-8 h-[2px] bg-emerald-600 rounded-full"></span>
-                    Based in Boulder, CO
-                    <span className="w-8 h-[2px] bg-emerald-600 rounded-full"></span>
-                </div>
-                
-                <h1 className="text-6xl md:text-8xl font-bold tracking-tight leading-none text-slate-800 font-heading">
-                    Luke Pitstick
-                </h1>
-                
-                <p className="text-xl md:text-2xl text-slate-700 max-w-2xl mx-auto font-body leading-relaxed mt-6">
-                    Cultivating digital gardens with <span className="text-emerald-700 font-bold">Data</span> & <span className="text-emerald-700 font-bold">Policy</span>.
-                </p>
-             </div>
-           </div>
-
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.8, duration: 0.8 }}
-            className="flex justify-center gap-6 pt-8"
+      <motion.div
+        style={{
+          y: shouldReduceMotion ? 0 : y,
+          opacity: shouldReduceMotion ? 1 : opacity,
+        }}
+        className="relative z-30 w-full max-w-5xl text-center"
+      >
+        <motion.div className="space-y-8">
+          <motion.div
+            className="motion-reveal inline-block [--motion-delay:0.08s] [--reveal-scale:0.94]"
           >
-            <SocialLink href="https://github.com/Luke-Pitstick" icon={<Github />} label="GitHub" />
-            <SocialLink href="https://www.linkedin.com/in/luke-pitstick-2ab1a5239/" icon={<Linkedin />} label="LinkedIn" />
-            <SocialLink href="mailto:contact@lukepitstick.com" icon={<Mail />} label="Email" />
+            <div className="hand-drawn relative bg-white/90 p-6 backdrop-blur-sm sm:p-8">
+              <motion.div
+                className="motion-reveal mx-auto mb-5 h-24 w-24 overflow-hidden rounded-full border-4 border-white shadow-[4px_4px_0px_0px_rgba(47,62,70,0.25)] [--motion-delay:0.18s] [--reveal-scale:0.9] [--reveal-y:14px]"
+              >
+                <img
+                  src={portraitUrl}
+                  alt="Luke Pitstick"
+                  width="384"
+                  height="384"
+                  fetchPriority="high"
+                  decoding="async"
+                  className="h-full w-full object-cover"
+                />
+              </motion.div>
+              <motion.div
+                className="motion-reveal mb-4 flex items-center justify-center gap-3 font-body text-xs uppercase tracking-widest text-emerald-800 sm:text-sm [--motion-delay:0.28s] [--reveal-y:10px]"
+              >
+                <span className="h-[2px] w-7 rounded-full bg-emerald-600 sm:w-8"></span>
+                Based in Boulder, CO
+                <span className="h-[2px] w-7 rounded-full bg-emerald-600 sm:w-8"></span>
+              </motion.div>
+
+              <motion.h1
+                className="motion-reveal font-heading text-5xl font-bold leading-none tracking-tight text-slate-900 sm:text-6xl md:text-8xl [--motion-delay:0.36s] [--reveal-scale:0.98] [--reveal-y:16px]"
+              >
+                Luke Pitstick
+              </motion.h1>
+
+              <motion.p
+                className="motion-reveal mx-auto mt-6 max-w-2xl font-body text-lg leading-relaxed text-slate-700 sm:text-xl md:text-2xl [--motion-delay:0.46s] [--reveal-y:12px]"
+              >
+                AI/ML <span className="font-bold text-emerald-700">research</span> and <span className="font-bold text-emerald-700">software development</span> for practical, human-centered tools.
+              </motion.p>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={false}
+            animate={{
+              opacity: socialsVisible ? 1 : 0,
+              y: socialsVisible ? 0 : 12,
+            }}
+            transition={{ duration: shouldReduceMotion ? 0.15 : 0.3, ease: 'easeOut' }}
+            className="flex flex-wrap justify-center gap-5 pt-5 sm:gap-6"
+            style={{ pointerEvents: socialsVisible ? 'auto' : 'none' }}
+            aria-hidden={!socialsVisible}
+          >
+            <SocialLink href="https://github.com/Luke-Pitstick" icon={<Github />} label="GitHub" delay="0.62s" />
+            <SocialLink href="https://www.linkedin.com/in/luke-pitstick" icon={<Linkedin />} label="LinkedIn" delay="0.69s" />
+            <SocialLink href={`mailto:${emailAddress}`} icon={<Mail />} label="Email" delay="0.76s" local />
           </motion.div>
         </motion.div>
       </motion.div>
 
-      {/* Landscape Foreground */}
-      
-      {/* Mountains - Longs Peak & Range */}
-      {/* Mountains - Longs Peak & Range */}
-      <motion.div style={{ y: mountainsY }} className="absolute bottom-0 left-0 w-full z-0 pointer-events-none opacity-90">
-        <Mountains className="w-full h-auto min-w-[1000px] -mb-20 md:-mb-32" />
-      </motion.div>
-
-      <motion.div style={{ y: hillY }} className="absolute bottom-0 left-0 w-full z-10 pointer-events-none">
-        <Hill className={`w-full h-auto transition-colors duration-1000 ${isSnowing ? 'text-slate-100' : 'text-emerald-200'}`} color={isSnowing ? "#F5F5F5" : "#A5D6A7"} />
-        {/* Background Trees (Parallax) */}
-        <Tree className="absolute bottom-[12%] left-[5%] w-16 h-32 md:w-24 md:h-48 opacity-80" delay={0.2} isSnowing={isSnowing} />
-        <div className="absolute bottom-[22%] left-[15%] w-12 h-24 md:w-16 md:h-32 opacity-0 md:opacity-70 transition-opacity duration-700">
-          <Tree className="w-full h-full" delay={0.4} isSnowing={isSnowing} />
-        </div>
-        <Tree className="absolute bottom-[15%] right-[8%] w-20 h-40 md:w-28 md:h-56 opacity-80" delay={0.3} isSnowing={isSnowing} />
-        <div className="absolute bottom-[25%] right-[20%] w-10 h-20 md:w-14 md:h-28 opacity-0 md:opacity-60 transition-opacity duration-700">
-          <Tree className="w-full h-full" delay={0.5} isSnowing={isSnowing} />
-        </div>
-        <div className="absolute bottom-[18%] left-[35%] w-14 h-28 md:w-18 md:h-36 opacity-0 md:opacity-70 transition-opacity duration-700">
-          <Tree className="w-full h-full" delay={0.6} isSnowing={isSnowing} />
-        </div>
-        
-        {/* Flowers on Hill */}
-        {!isSnowing && (
-          <>
-            <Flower className="hidden md:block absolute bottom-[25%] left-[28%] w-6 h-6" delay={0.7} color="#F48FB1" />
-            <Flower className="hidden md:block absolute bottom-[20%] right-[35%] w-5 h-5" delay={0.8} color="#CE93D8" />
-            <Flower className="hidden md:block absolute bottom-[22%] left-[50%] w-5 h-5" delay={1.1} color="#FFCC80" />
-            <Flower className="hidden md:block absolute bottom-[18%] left-[65%] w-4 h-4" delay={1.3} color="#CE93D8" />
-            <Flower className="hidden md:block absolute bottom-[32%] right-[45%] w-5 h-5" delay={1.4} color="#90CAF9" />
-            <Flower className="hidden md:block absolute bottom-[24%] left-[2%] w-6 h-6" delay={1.5} color="#FFAB91" />
-            <Flower className="hidden md:block absolute bottom-[26%] right-[2%] w-5 h-5" delay={1.6} color="#F48FB1" />
-          </>
-        )}
-      </motion.div>
-      <div className="absolute bottom-0 left-0 w-full z-10 pointer-events-none translate-y-10">
-         <Hill className={`w-full h-auto transition-colors duration-1000 ${isSnowing ? 'text-white' : 'text-emerald-400'}`} color={isSnowing ? "#FFFFFF" : "#66BB6A"} />
-      </div>
-      
-      {/* Foreground Trees */}
-      <div className="absolute bottom-0 w-full h-full pointer-events-none z-10">
-         {/* Left Group */}
-         <Tree className="absolute bottom-[-2%] left-[-2%] w-24 h-48 md:w-32 md:h-64" delay={0.1} isSnowing={isSnowing} />
-         <div className="absolute bottom-[5%] left-[8%] w-16 h-32 md:w-20 md:h-40 opacity-0 md:opacity-100 transition-opacity duration-700">
-           <Tree className="w-full h-full" delay={0.3} isSnowing={isSnowing} />
-         </div>
-         <Tree className="absolute bottom-[2%] left-[18%] w-28 h-56 md:w-40 md:h-80" delay={0.2} isSnowing={isSnowing} />
-         
-         {/* Scattered Middle */}
-         <div className="absolute bottom-[8%] left-[45%] w-20 h-40 md:w-24 md:h-48 opacity-0 md:opacity-100 transition-opacity duration-700">
-           <Tree className="w-full h-full" delay={0.5} isSnowing={isSnowing} />
-         </div>
-         <div className="absolute bottom-[4%] left-[55%] w-14 h-28 md:w-16 md:h-32 opacity-0 md:opacity-100 transition-opacity duration-700">
-           <Tree className="w-full h-full" delay={0.4} isSnowing={isSnowing} />
-         </div>
-         
-         {/* Flowers in Foreground */}
-         {!isSnowing && (
-          <>
-            {/* Left Side - Adjusted to avoid trees at -2%, 8%, 18% */}
-            <Flower className="hidden md:block absolute bottom-[5%] left-[28%] w-7 h-7" delay={0.5} color="#FFAB91" />
-            <Flower className="hidden md:block absolute bottom-[3%] left-[32%] w-6 h-6" delay={0.9} color="#90CAF9" />
-            <Flower className="hidden md:block absolute bottom-[5%] left-[36%] w-8 h-8" delay={0.6} color="#F48FB1" />
-            <Flower className="hidden md:block absolute bottom-[4%] left-[40%] w-7 h-7" delay={1.3} color="#FFCC80" />
-            
-            {/* Center-Right - Adjusted to avoid trees at 45%, 55% */}
-            <Flower className="hidden md:block absolute bottom-[3%] left-[62%] w-6 h-6" delay={0.8} color="#CE93D8" />
-            <Flower className="hidden md:block absolute bottom-[5%] left-[66%] w-7 h-7" delay={1.2} color="#90CAF9" />
-            <Flower className="hidden md:block absolute bottom-[7%] left-[70%] w-6 h-6" delay={1.0} color="#F48FB1" />
-            
-            {/* Far Right - Adjusted to avoid trees at 75%(R25%), 88%(R12%), 95%(R5%) */}
-            <Flower className="hidden md:block absolute bottom-[6%] right-[35%] w-7 h-7" delay={0.7} color="#FFAB91" />
-            <Flower className="hidden md:block absolute bottom-[2%] right-[32%] w-8 h-8" delay={1.1} color="#CE93D8" />
-            <Flower className="hidden md:block absolute bottom-[5%] right-[18%] w-6 h-6" delay={1.7} color="#F48FB1" />
-            <Flower className="hidden md:block absolute bottom-[3%] right-[22%] w-7 h-7" delay={1.8} color="#90CAF9" />
-            <Flower className="hidden md:block absolute bottom-[3%] right-[40%] w-8 h-8" delay={1.4} color="#F48FB1" />
-            <Flower className="hidden md:block absolute bottom-[6%] right-[2%] w-7 h-7" delay={1.5} color="#CE93D8" />
-          </>
-        )}
-
-         {/* Right Group */}
-         <div className="absolute bottom-[6%] right-[25%] w-24 h-48 md:w-36 md:h-72 opacity-0 md:opacity-100 transition-opacity duration-700">
-           <Tree className="w-full h-full" delay={0.6} isSnowing={isSnowing} />
-         </div>
-         <Tree className="absolute bottom-[-4%] right-[-5%] w-32 h-64 md:w-48 md:h-96" delay={0.2} isSnowing={isSnowing} />
-         <div className="absolute bottom-[3%] right-[12%] w-18 h-36 md:w-24 md:h-48 opacity-0 md:opacity-100 transition-opacity duration-700">
-           <Tree className="w-full h-full" delay={0.4} isSnowing={isSnowing} />
-         </div>
-      </div>
+      <motion.button
+        type="button"
+        onClick={scrollPastHero}
+        initial={{ opacity: 0, y: 12 }}
+        animate={{
+          opacity: arrowVisible ? 1 : 0,
+          y: arrowVisible ? 0 : 8,
+        }}
+        whileHover={shouldReduceMotion ? { scale: 1.03 } : { y: -4, scale: 1.03 }}
+        whileTap={tapMotion}
+        transition={{ duration: shouldReduceMotion ? 0.15 : 0.25, ease: 'easeOut' }}
+        style={{
+          x: '-50%',
+          top: arrowPinned ? arrowTop : undefined,
+          pointerEvents: arrowVisible ? 'auto' : 'none',
+        }}
+        className={`focus-ring left-1/2 z-40 rounded-full border-2 border-slate-800 bg-white/90 p-3 text-slate-800 shadow-[3px_3px_0_0_rgba(47,62,70,0.55)] backdrop-blur-sm transition-[background-color,box-shadow,color,transform,top] duration-300 hover:bg-emerald-50 hover:shadow-[5px_5px_0_0_rgba(47,62,70,0.75)] ${
+          arrowPinned ? 'fixed' : 'absolute bottom-4'
+        }`}
+        aria-label="Scroll past hero to about section"
+        aria-hidden={!arrowVisible}
+      >
+        <motion.span
+          animate={shouldReduceMotion ? { y: 0 } : { y: [0, 4, 0] }}
+          transition={{ duration: 1.8, repeat: shouldReduceMotion ? 0 : Infinity, ease: 'easeInOut' }}
+          className="block"
+        >
+          <ChevronDown size={24} aria-hidden="true" focusable="false" />
+        </motion.span>
+      </motion.button>
     </section>
   );
 };
 
-const SocialLink = ({ href, icon, label }) => (
-  <a 
-    href={href} 
-    target="_blank" 
-    rel="noopener noreferrer"
-    className="p-3 rounded-full bg-white border-2 border-slate-800 text-slate-800 hover:bg-emerald-50 transition-all duration-300 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
-    aria-label={label}
-  >
-    {icon}
-  </a>
-);
+const SocialLink = ({ href, icon, label, delay = '0s', local = false }) => {
+  const shouldReduceMotion = useReducedMotion();
+
+  return (
+    <motion.a
+      href={href}
+      target={local ? undefined : "_blank"}
+      rel={local ? undefined : "noopener noreferrer"}
+      whileHover={shouldReduceMotion ? { scale: 1.03 } : { y: -4, scale: 1.05 }}
+      whileTap={tapMotion}
+      className="focus-ring motion-reveal rounded-full border-2 border-slate-800 bg-white p-3 text-slate-800 transition-[background-color,box-shadow,color,transform] duration-300 hover:-translate-y-1 hover:bg-emerald-50 hover:shadow-[4px_4px_0_0_rgba(0,0,0,1)] [--reveal-scale:0.92] [--reveal-y:12px]"
+      style={{ '--motion-delay': delay }}
+      aria-label={label}
+    >
+      {React.cloneElement(icon, { 'aria-hidden': true, focusable: 'false' })}
+    </motion.a>
+  );
+};
 
 export default Hero;

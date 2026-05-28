@@ -1,11 +1,11 @@
 @import "tailwindcss";
 
 :root {
-  --color-bg: #fdfbf7; /* Cream/Eggshell */
-  --color-text: #2f3e46; /* Dark Slate/Forest */
-  --color-primary: #52b788; /* Sage Green */
-  --color-secondary: #8ecae6; /* Sky Blue */
-  --color-accent: #e07a5f; /* Terracotta */
+  --color-bg: #f5fbf8;
+  --color-text: #233138;
+  --color-primary: #23845f;
+  --color-secondary: #4aa3c7;
+  --color-accent: #c75f46;
   --color-paper: #ffffff;
   
   --font-heading: 'Lora', serif;
@@ -19,6 +19,8 @@ body {
   font-family: var(--font-body);
   overflow-x: hidden;
   scroll-behavior: smooth;
+  -webkit-tap-highlight-color: rgba(35, 132, 95, 0.18);
+  touch-action: manipulation;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -28,9 +30,12 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Cream Background (No Heavy Texture) */
 body {
-  background-color: #fdfbf7;
-  background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
-  background-size: 20px 20px;
+  background-color: var(--color-bg);
+  background-image:
+    radial-gradient(circle at 20% 0%, rgba(74, 163, 199, 0.12), transparent 28rem),
+    radial-gradient(circle at 82% 10%, rgba(35, 132, 95, 0.1), transparent 24rem),
+    radial-gradient(#dbe8e2 1px, transparent 1px);
+  background-size: auto, auto, 24px 24px;
 }
 
 /* Remove the heavy noise overlay */
@@ -41,11 +46,11 @@ body::before {
 /* Enhanced Hand-Drawn Border Utility */
 .hand-drawn {
   border: 3px solid #2f3e46;
-  border-radius: 2px 255px 3px 25px / 255px 5px 22px 3px; /* This was likely the intended "sketchy" look, but let's make it safer */
-  border-radius: 0.5rem; /* Fallback */
-  border-radius: 5px 20px 5px 20px / 20px 5px 20px 5px; /* Safer organic shape */
-  box-shadow: 6px 6px 0px 0px rgba(47, 62, 70, 0.2);
-  transition: all 0.3s ease;
+  border-radius: 8px;
+  box-shadow: 6px 6px 0 0 rgba(47, 62, 70, 0.16);
+  transition-duration: 0.25s;
+  transition-property: border-color, box-shadow, transform;
+  transition-timing-function: ease;
 }
 
 @keyframes wiggle {
@@ -56,17 +61,71 @@ body::before {
   100% { transform: rotate(0deg); }
 }
 
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translate3d(0, var(--reveal-y, 18px), 0) scale(var(--reveal-scale, 1));
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.motion-reveal {
+  animation: reveal-up 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--motion-delay, 0s);
+  transform-origin: center;
+}
+
 .hand-drawn:hover {
-  box-shadow: 8px 8px 0px 0px rgba(47, 62, 70, 0.3);
+  box-shadow: 8px 8px 0 0 rgba(47, 62, 70, 0.24);
   transform: translate(-2px, -2px);
   border-color: #1a262a;
   animation: wiggle 0.4s ease-in-out;
+}
+
+.focus-ring {
+  outline: 2px solid transparent;
+  outline-offset: 4px;
+}
+
+.focus-ring:focus-visible {
+  outline-color: #047857;
+}
+
+@supports (text-wrap: balance) {
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
 }
 
 /* Typography Overrides */
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
   color: #1a262a;
+}
+
+.project-title-on-image {
+  color: #ffffff;
+  text-shadow:
+    0 2px 10px rgba(15, 23, 42, 0.95),
+    0 0 1px rgba(15, 23, 42, 0.9);
+}
+
+.project-tile h3 {
+  color: #ffffff;
+  text-shadow:
+    0 2px 10px rgba(15, 23, 42, 0.9),
+    0 0 1px rgba(15, 23, 42, 0.85);
+}
+
+.project-tile .project-tile-metric,
+.project-tile .project-tile-body,
+.project-tile .project-tile-tag {
+  color: #ffffff;
 }
 
 
@@ -81,18 +140,29 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--color-accent);
 }
 
-.resume-viewer .react-pdf__Page__textContent span {
-  color: transparent;
-  -webkit-text-fill-color: transparent;
-}
+@media (prefers-reduced-motion: reduce) {
+  html,
+  body {
+    scroll-behavior: auto;
+  }
 
-.resume-viewer .react-pdf__Page__textContent span::selection {
-  background: rgba(16, 185, 129, 0.25);
-  color: transparent;
-  -webkit-text-fill-color: transparent;
-}
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 
-.resume-viewer .react-pdf__Page__textContent span::-moz-selection {
-  background: rgba(16, 185, 129, 0.25);
-  color: transparent;
+  .hand-drawn:hover {
+    animation: none;
+    transform: none;
+  }
+
+  .motion-reveal {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
 }
