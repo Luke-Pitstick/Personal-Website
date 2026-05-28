@@ -32,4 +32,5 @@ firebase-debug.log
 # Python virtual environment
 .venv
 
-public/
+public/*
+!public/favicon.svg

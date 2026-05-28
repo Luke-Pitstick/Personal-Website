@@ -4,7 +4,7 @@ import { ChevronDown, Github, Linkedin, Mail, Snowflake } from 'lucide-react';
 import SoftHeroBackground from './SoftHeroBackground';
 import { softSpring, tapMotion } from '../lib/motion';
 
-const portraitUrl = '/pictureofme.jpg';
+const portraitUrl = 'https://np69tokggkswfstp.public.blob.vercel-storage.com/website/pictureofme.jpg';
 const emailAddress = 'contact@lukepitstick.com';
 
 // Swap this constant to test another background without touching hero content.

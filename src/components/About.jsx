@@ -4,7 +4,7 @@ import { useReducedMotion } from 'motion/react';
 import { Briefcase, Calendar, Download, MapPin, UserRound } from 'lucide-react';
 import { createReveal, createStagger, liftHover, softSpring, tapMotion, viewportOnce } from '../lib/motion';
 
-const resumeDownloadUrl = '/Luke_Pitstick_Resume.pdf';
+const resumeDownloadUrl = 'https://np69tokggkswfstp.public.blob.vercel-storage.com/website/Luke_Pitstick_Resume.pdf?download=1';
 
 const experiences = [
   {

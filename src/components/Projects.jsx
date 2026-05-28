@@ -1,11 +1,11 @@
 import { ExternalLink, Github } from 'lucide-react';
 
 const projectImages = {
-  renewably: '/renewably.png',
-  brickme: '/brickme.png',
-  nycRent: '/nycrentpriceforecaster.png',
-  pogi: '/pogi.png',
-  infraDrone: '/infradrone.png',
+  renewably: 'https://np69tokggkswfstp.public.blob.vercel-storage.com/website/projects/renewably.png',
+  brickme: 'https://np69tokggkswfstp.public.blob.vercel-storage.com/website/projects/brickme.png',
+  nycRent: 'https://np69tokggkswfstp.public.blob.vercel-storage.com/website/projects/nycrentpriceforecaster.png',
+  pogi: 'https://np69tokggkswfstp.public.blob.vercel-storage.com/website/projects/pogi.png',
+  infraDrone: 'https://np69tokggkswfstp.public.blob.vercel-storage.com/website/projects/infradrone.png',
 };
 
 const projects = [
