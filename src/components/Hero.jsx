@@ -13,10 +13,14 @@ const Hero = () => {
   const [arrowVisible, setArrowVisible] = useState(true);
   const [arrowTop, setArrowTop] = useState(80);
   const [heroShaderActive, setHeroShaderActive] = useState(false);
+  const [heroShaderAutoOnly, setHeroShaderAutoOnly] = useState(false);
   const [shaderHintDismissed, setShaderHintDismissed] = useState(false);
   const shouldReduceMotion = useReducedMotion();
   const ref = useRef(null);
   const dismissShaderHint = useCallback(() => setShaderHintDismissed(true), []);
+  const handleHeroAutoOnlyChange = useCallback((autoOnly) => {
+    setHeroShaderAutoOnly(autoOnly);
+  }, []);
   const handleHeroInteractiveChange = useCallback((interactive) => {
     setHeroShaderActive(interactive);
   }, []);
@@ -69,12 +73,13 @@ const Hero = () => {
       className="relative grid min-h-screen overflow-hidden bg-[#f8f7f1] px-4 text-[#101617]"
     >
       <DitheredHeroCanvas
+        onAutoOnlyChange={handleHeroAutoOnlyChange}
         onInteractiveChange={handleHeroInteractiveChange}
       />
 
       <AnimatePresence>
         {showShaderHint ? (
-          <ShaderHint key="shader-hint" onDismiss={dismissShaderHint} />
+          <ShaderHint key="shader-hint" autoOnly={heroShaderAutoOnly} onDismiss={dismissShaderHint} />
         ) : null}
       </AnimatePresence>
 
@@ -158,7 +163,7 @@ const Hero = () => {
   );
 };
 
-const ShaderHint = ({ onDismiss }) => {
+const ShaderHint = ({ autoOnly, onDismiss }) => {
   const shouldReduceMotion = useReducedMotion();
 
   return (
@@ -192,9 +197,11 @@ const ShaderHint = ({ onDismiss }) => {
       <p className="m-0 mt-2 font-body text-[0.9rem] font-semibold leading-snug text-[#101617] sm:text-base">
         Fun Fact! This scene is painted in real time on your GPU.
       </p>
-      <p className="m-0 mt-1.5 font-body text-[0.84rem] leading-snug text-[#101617]/80 sm:text-[0.92rem]">
-        Move your cursor over the scene to reveal the clouds.
-      </p>
+      {!autoOnly ? (
+        <p className="m-0 mt-1.5 font-body text-[0.84rem] leading-snug text-[#101617]/80 sm:text-[0.92rem]">
+          Move your cursor over the scene to reveal the clouds.
+        </p>
+      ) : null}
       <button
         type="button"
         onClick={onDismiss}

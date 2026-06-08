@@ -98,7 +98,7 @@ const AUTO_CURSOR_RESUME_MS = 2400;
 const AUTO_CURSOR_LOOP_MS = 14500;
 const TAU = Math.PI * 2;
 
-const DitheredHeroCanvas = ({ onInteractiveChange, onUserInteract }) => {
+const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInteract }) => {
   const rootRef = useRef(null);
   const fallbackCanvasRef = useRef(null);
   const mountainCanvasRef = useRef(null);
@@ -106,6 +106,7 @@ const DitheredHeroCanvas = ({ onInteractiveChange, onUserInteract }) => {
   const [revealBackground, setRevealBackground] = useState();
   const [mountainBase, setMountainBase] = useState();
   const [useStaticFallback, setUseStaticFallback] = useState(shouldUseStaticFallback);
+  const autoOnly = useAutoOnlyShaderMode();
 
   const handleRendererError = useCallback((error) => {
     console.error('Dithered hero WebGL renderer failed.', error);
@@ -129,6 +130,10 @@ const DitheredHeroCanvas = ({ onInteractiveChange, onUserInteract }) => {
     const startedAt = performance.now();
 
     const pauseForUser = (event) => {
+      if (autoOnly) {
+        return;
+      }
+
       if (event.isTrusted) {
         pauseUntil = performance.now() + AUTO_CURSOR_RESUME_MS;
         onUserInteract?.();
@@ -156,7 +161,7 @@ const DitheredHeroCanvas = ({ onInteractiveChange, onUserInteract }) => {
       root.removeEventListener('pointermove', pauseForUser);
       root.removeEventListener('pointerdown', pauseForUser);
     };
-  }, [useStaticFallback, onUserInteract]);
+  }, [autoOnly, useStaticFallback, onUserInteract]);
 
   useEffect(() => {
     if (useStaticFallback) {
@@ -225,6 +230,10 @@ const DitheredHeroCanvas = ({ onInteractiveChange, onUserInteract }) => {
   }, [isInteractive, onInteractiveChange]);
 
   useEffect(() => {
+    onAutoOnlyChange?.(autoOnly);
+  }, [autoOnly, onAutoOnlyChange]);
+
+  useEffect(() => {
     if (useStaticFallback) {
       onInteractiveChange?.(false);
     }
@@ -263,7 +272,7 @@ const DitheredHeroCanvas = ({ onInteractiveChange, onUserInteract }) => {
   }, [mountains]);
 
   return (
-    <div ref={rootRef} className="dithered-hero">
+    <div ref={rootRef} className={`dithered-hero${autoOnly ? ' dithered-hero--auto-only' : ''}`}>
       {fallbackSurface ? (
         <canvas
           ref={fallbackCanvasRef}
@@ -421,6 +430,31 @@ function useInteractionScale(rootRef) {
   }, [rootRef]);
 
   return interactionScale;
+}
+
+function useAutoOnlyShaderMode() {
+  const [autoOnly, setAutoOnly] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return undefined;
+    }
+
+    const media = window.matchMedia('(hover: none), (pointer: coarse)');
+    const updateAutoOnly = () => setAutoOnly(media.matches);
+
+    updateAutoOnly();
+
+    if (typeof media.addEventListener === 'function') {
+      media.addEventListener('change', updateAutoOnly);
+      return () => media.removeEventListener('change', updateAutoOnly);
+    }
+
+    media.addListener(updateAutoOnly);
+    return () => media.removeListener(updateAutoOnly);
+  }, []);
+
+  return autoOnly;
 }
 
 function scaleInteractionValue(value, interactionScale) {
