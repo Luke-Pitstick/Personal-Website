@@ -2,7 +2,7 @@ import * as motion from 'motion/react-client';
 import { useReducedMotion } from 'motion/react';
 import { createReveal, createStagger, softSpring, tapMotion, viewportOnce } from '../lib/motion';
 
-const emailAddress = 'contact@lukepitstick.com';
+const emailAddress = 'lukepitstick06@gmail.com';
 
 const Contact = () => {
   const shouldReduceMotion = useReducedMotion();
