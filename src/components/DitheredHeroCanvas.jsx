@@ -95,8 +95,20 @@ const QUALITY = {
 };
 
 const AUTO_CURSOR_RESUME_MS = 2400;
-const AUTO_CURSOR_LOOP_MS = 14500;
-const TAU = Math.PI * 2;
+const AUTO_REVEAL_BALL_COUNT = 5;
+const AUTO_REVEAL_BOUNDS = {
+  maxX: 0.92,
+  maxY: 0.9,
+  minX: 0.08,
+  minY: 0.1,
+};
+const AUTO_REVEAL_BALLS = [
+  { id: 1, x: 0.14, y: 0.2, vx: 0.00011, vy: 0.000076 },
+  { id: 2, x: 0.34, y: 0.73, vx: -0.000084, vy: 0.000112 },
+  { id: 3, x: 0.58, y: 0.28, vx: 0.000096, vy: -0.000089 },
+  { id: 4, x: 0.78, y: 0.66, vx: -0.000118, vy: -0.000071 },
+  { id: 5, x: 0.48, y: 0.48, vx: 0.000073, vy: 0.000126 },
+];
 
 const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInteract }) => {
   const rootRef = useRef(null);
@@ -127,7 +139,8 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
 
     let frame = 0;
     let pauseUntil = 0;
-    const startedAt = performance.now();
+    let lastAutoRevealTime = performance.now();
+    const autoRevealBalls = createAutoRevealBalls();
 
     const pauseForUser = (event) => {
       if (autoOnly) {
@@ -145,8 +158,11 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
 
       if (canvas && time >= pauseUntil) {
         const rect = canvas.getBoundingClientRect();
-        const progress = moduloFloat((time - startedAt) / AUTO_CURSOR_LOOP_MS, 1);
-        dispatchAutoPointer(canvas, rect, sampleInfinityAutoCursorPath(progress));
+        const deltaMs = Math.min(64, Math.max(0, time - lastAutoRevealTime));
+
+        stepAutoRevealBalls(autoRevealBalls, deltaMs);
+        dispatchAutoPointers(canvas, rect, autoRevealBalls);
+        lastAutoRevealTime = time;
       }
 
       frame = window.requestAnimationFrame(animate);
@@ -570,28 +586,41 @@ function moduloFloat(value, divisor) {
   return ((value % divisor) + divisor) % divisor;
 }
 
-function sampleInfinityAutoCursorPath(progress) {
-  const theta = moduloFloat(progress, 1) * TAU;
-
-  return {
-    x: 0.5 + Math.sin(theta) * 0.38 + Math.sin(theta * 3 + 0.55) * 0.1,
-    y: 0.52 + Math.sin(theta * 2 + 0.18) * 0.31 + Math.sin(theta * 3 - 0.75) * 0.07,
-  };
+function createAutoRevealBalls() {
+  return AUTO_REVEAL_BALLS.slice(0, AUTO_REVEAL_BALL_COUNT).map((ball) => ({ ...ball }));
 }
 
-function dispatchAutoPointer(canvas, rect, point) {
-  const xRatio = Math.max(0.08, Math.min(0.92, point.x));
-  const yRatio = Math.max(0.1, Math.min(0.9, point.y));
+function stepAutoRevealBalls(balls, deltaMs) {
+  balls.forEach((ball) => {
+    ball.x += ball.vx * deltaMs;
+    ball.y += ball.vy * deltaMs;
 
-  canvas.dispatchEvent(
-    new PointerEvent('pointermove', {
-      bubbles: true,
-      clientX: rect.left + rect.width * xRatio,
-      clientY: rect.top + rect.height * yRatio,
-      pointerType: 'mouse',
-      pressure: 0.65,
-    })
-  );
+    if (ball.x <= AUTO_REVEAL_BOUNDS.minX || ball.x >= AUTO_REVEAL_BOUNDS.maxX) {
+      ball.x = Math.max(AUTO_REVEAL_BOUNDS.minX, Math.min(AUTO_REVEAL_BOUNDS.maxX, ball.x));
+      ball.vx *= -1;
+    }
+
+    if (ball.y <= AUTO_REVEAL_BOUNDS.minY || ball.y >= AUTO_REVEAL_BOUNDS.maxY) {
+      ball.y = Math.max(AUTO_REVEAL_BOUNDS.minY, Math.min(AUTO_REVEAL_BOUNDS.maxY, ball.y));
+      ball.vy *= -1;
+    }
+  });
+}
+
+function dispatchAutoPointers(canvas, rect, balls) {
+  balls.forEach((ball, index) => {
+    canvas.dispatchEvent(
+      new PointerEvent('pointermove', {
+        bubbles: true,
+        clientX: rect.left + rect.width * ball.x,
+        clientY: rect.top + rect.height * ball.y,
+        isPrimary: index === 0,
+        pointerId: ball.id,
+        pointerType: 'mouse',
+        pressure: 0.65,
+      })
+    );
+  });
 }
 
 async function loadSkyRevealBackground(width, height) {
