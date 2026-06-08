@@ -85,7 +85,7 @@ const MOUNTAIN_CONTROLS = {
 };
 
 const QUALITY = {
-  backend: 'auto',
+  backend: 'canvas2d',
   resolutionScale: LOW_RESOLUTION_SCALE,
   targetFps: 60,
 };
@@ -109,7 +109,7 @@ const DitheredHeroCanvas = () => {
   useEffect(() => {
     const root = rootRef.current;
 
-    if (!root || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (!root) {
       return undefined;
     }
 
@@ -224,7 +224,7 @@ const DitheredHeroCanvas = () => {
           fallback="Dithered hero"
           height={HERO_HEIGHT}
           layers={layers}
-          motion="auto"
+          motion="full"
           onError={() => setIsFallback(true)}
           preset="browserbase"
           quality={QUALITY}
