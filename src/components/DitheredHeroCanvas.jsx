@@ -96,7 +96,7 @@ const AUTO_CURSOR_RESUME_MS = 2400;
 const AUTO_CURSOR_LOOP_MS = 14500;
 const TAU = Math.PI * 2;
 
-const DitheredHeroCanvas = ({ onInteractiveChange }) => {
+const DitheredHeroCanvas = ({ onInteractiveChange, onUserInteract }) => {
   const rootRef = useRef(null);
   const mountainCanvasRef = useRef(null);
   const [idleLayer, setIdleLayer] = useState();
@@ -126,6 +126,7 @@ const DitheredHeroCanvas = ({ onInteractiveChange }) => {
     const pauseForUser = (event) => {
       if (event.isTrusted) {
         pauseUntil = performance.now() + AUTO_CURSOR_RESUME_MS;
+        onUserInteract?.();
       }
     };
 
@@ -150,7 +151,7 @@ const DitheredHeroCanvas = ({ onInteractiveChange }) => {
       root.removeEventListener('pointermove', pauseForUser);
       root.removeEventListener('pointerdown', pauseForUser);
     };
-  }, [useStaticFallback]);
+  }, [useStaticFallback, onUserInteract]);
 
   useEffect(() => {
     if (useStaticFallback) {
@@ -204,11 +205,17 @@ const DitheredHeroCanvas = ({ onInteractiveChange }) => {
     return createHeroLayers(idleLayer, revealBackground);
   }, [useStaticFallback, idleLayer, revealBackground]);
 
-  const isInteractive = !useStaticFallback && Boolean(layers);
+  const isInteractive = !useStaticFallback && Boolean(layers) && Boolean(revealBackground);
 
   useEffect(() => {
     onInteractiveChange?.(isInteractive);
   }, [isInteractive, onInteractiveChange]);
+
+  useEffect(() => {
+    if (useStaticFallback) {
+      onInteractiveChange?.(false);
+    }
+  }, [useStaticFallback, onInteractiveChange]);
 
   const mountains = useMemo(() => {
     if (!mountainBase) {
