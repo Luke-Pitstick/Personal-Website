@@ -190,10 +190,10 @@ const ShaderHint = ({ onDismiss }) => {
         Live shaders
       </p>
       <p className="m-0 mt-2 font-body text-[0.9rem] font-semibold leading-snug text-[#101617] sm:text-base">
-        This scene is painted in real time on your GPU—not a looped video.
+        Fun Fact! This scene is painted in real time on your GPU.
       </p>
       <p className="m-0 mt-1.5 font-body text-[0.84rem] leading-snug text-[#101617]/80 sm:text-[0.92rem]">
-        Move your cursor to reveal the clouds and leave a trail.
+        Move your cursor over the scene to reveal the clouds.
       </p>
       <button
         type="button"
