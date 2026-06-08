@@ -1,16 +1,15 @@
 import React from 'react';
 import * as motion from 'motion/react-client';
 import { useReducedMotion } from 'motion/react';
-import { Briefcase, Calendar, Download, MapPin, UserRound } from 'lucide-react';
 import { createReveal, createStagger, liftHover, softSpring, tapMotion, viewportOnce } from '../lib/motion';
 
 const resumeDownloadUrl = 'https://np69tokggkswfstp.public.blob.vercel-storage.com/website/Luke_Pitstick_Resume.pdf?download=1';
 
 const experiences = [
   {
-    role: "Incoming AI/ML Research Intern",
+    role: "AI/ML Engineer Intern",
     company: "WattByte Nexus",
-    period: "Starts Jun 2026",
+    period: "Present",
     location: "Golden, CO"
   },
   {
@@ -59,12 +58,10 @@ const About = () => {
             initial={false}
             whileInView="show"
             viewport={viewportOnce}
-            className="flex items-center gap-3 mb-8"
+            className="mb-8"
           >
-            <div className="p-3 rounded-xl bg-emerald-100 text-emerald-800 border-2 border-emerald-800 shadow-[4px_4px_0px_0px_rgba(6,78,59,0.3)]">
-              <Briefcase size={24} aria-hidden="true" focusable="false" />
-            </div>
-            <h2 className="text-3xl font-bold text-slate-800 font-heading">Experience</h2>
+            <p className="mb-2 font-mono text-xs font-extrabold uppercase tracking-[0.18em] text-[#ff3a12]">Current path</p>
+            <h2 className="font-heading text-3xl font-bold text-[#101617]">Experience</h2>
           </motion.div>
 
           <motion.ol
@@ -75,7 +72,7 @@ const About = () => {
             className="relative ml-6 space-y-8 pl-8"
           >
             <motion.div
-              className="absolute left-0 top-0 h-full border-l-4 border-dashed border-emerald-800/20"
+              className="absolute left-0 top-0 h-full border-l-4 border-dashed border-[#101617]/25"
               initial={{ scaleY: 1 }}
               whileInView={{ scaleY: 1 }}
               viewport={viewportOnce}
@@ -93,23 +90,17 @@ const About = () => {
               >
                 {/* Timeline Dot */}
                 <motion.span
-                  className="absolute -left-[42px] top-1 h-5 w-5 rounded-full border-4 border-emerald-600 bg-white"
+                  className="absolute -left-[42px] top-1 h-5 w-5 rounded-full border-4 border-[#101617] bg-[#faf9f4] shadow-[3px_3px_0_rgba(255,58,18,0.75)]"
                   variants={createReveal({ scale: 0.7 }, shouldReduceMotion)}
                   transition={{ ...softSpring, delay: shouldReduceMotion ? 0 : index * 0.03 }}
                 />
                 
-                <h3 className="text-xl font-bold text-slate-800 font-heading">{exp.role}</h3>
-                <p className="text-emerald-700 font-bold mb-1">{exp.company}</p>
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-600 font-mono">
-                  <span className="flex items-center gap-1">
-                    <Calendar size={14} aria-hidden="true" focusable="false" />
-                    {exp.period}
-                  </span>
+                <h3 className="font-heading text-xl font-bold text-[#101617]">{exp.role}</h3>
+                <p className="mb-1 font-extrabold text-[#ff3a12]">{exp.company}</p>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-sm font-bold text-[#334044]">
+                  <span>{exp.period}</span>
                   {exp.location && (
-                    <span className="flex items-center gap-1">
-                      <MapPin size={14} aria-hidden="true" focusable="false" />
-                      {exp.location}
-                    </span>
+                    <span className="before:mr-3 before:text-[#ff3a12] before:content-['/']">{exp.location}</span>
                   )}
                 </div>
               </motion.li>
@@ -124,12 +115,10 @@ const About = () => {
             initial={false}
             whileInView="show"
             viewport={viewportOnce}
-            className="flex items-center gap-3 mb-8"
+            className="mb-8"
           >
-            <div className="p-3 rounded-xl bg-sky-100 text-sky-800 border-2 border-sky-800 shadow-[4px_4px_0px_0px_rgba(7,89,133,0.3)]">
-              <UserRound size={24} aria-hidden="true" focusable="false" />
-            </div>
-            <h2 id="about-heading" className="text-3xl font-bold text-slate-800 font-heading">About Me</h2>
+            <p className="mb-2 font-mono text-xs font-extrabold uppercase tracking-[0.18em] text-[#ff3a12]">Profile</p>
+            <h2 id="about-heading" className="font-heading text-3xl font-bold text-[#101617]">About Me</h2>
           </motion.div>
 
           <div className="space-y-6">
@@ -143,11 +132,11 @@ const About = () => {
                 whileHover={shouldReduceMotion ? undefined : liftHover}
                 whileTap={tapMotion}
                 transition={softSpring}
-                className="p-6 bg-white hand-drawn"
+                className="hand-drawn bg-[#faf9f4] p-6"
               >
-                <h3 className="text-xl font-bold text-slate-800 mb-2 font-heading">{edu.school}</h3>
-                <p className="text-sky-700 font-bold mb-2">{edu.degree}</p>
-                <p className="text-sm text-slate-500 font-mono">{edu.period}</p>
+                <h3 className="mb-2 font-heading text-xl font-bold text-[#101617]">{edu.school}</h3>
+                <p className="mb-2 font-extrabold text-[#ff3a12]">{edu.degree}</p>
+                <p className="font-mono text-sm font-bold text-[#334044]">{edu.period}</p>
               </motion.div>
             ))}
 
@@ -159,14 +148,11 @@ const About = () => {
               viewport={viewportOnce}
               whileHover={shouldReduceMotion ? undefined : liftHover}
               transition={softSpring}
-              className="mt-8 p-8 bg-gradient-to-br from-emerald-50 to-sky-50 hand-drawn relative overflow-hidden"
+              className="hand-drawn relative mt-8 overflow-hidden bg-[#faf9f4] p-8"
             >
-              <div className="absolute top-0 right-0 p-4 opacity-10">
-                <Briefcase size={100} aria-hidden="true" focusable="false" />
-              </div>
-              <h3 className="text-lg font-bold text-slate-800 mb-4 font-heading relative z-10">Who am I?</h3>
-              <p className="text-slate-700 leading-relaxed font-body relative z-10 font-medium">
-                I am a CU Boulder student studying <b>Data Science and Political Science</b>, with a focus on building useful AI/ML tools for research, public-sector data, and decision support. I currently work with the National Oceanic and Atmospheric Administration as a junior data manager and will join WattByte Nexus for AI/ML research in June 2026. Outside of work, I am usually outdoors, cooking, exploring restaurants, or looking for excellent coffee.
+              <h3 className="relative z-10 mb-4 font-heading text-lg font-bold text-[#101617]">Who am I?</h3>
+              <p className="relative z-10 font-body font-bold leading-relaxed text-[#273337]">
+                I am a CU Boulder student studying <b>Data Science and Political Science</b>, with a focus on building useful AI/ML tools for research, public-sector data, and decision support. I currently work with the National Oceanic and Atmospheric Administration as a Junior Data Manager and at WattByte Nexus as an AI/ML Engineer Intern. Outside of work, I am usually outdoors, cooking, exploring restaurants, or looking for excellent coffee.
               </p>
               <motion.a
                 href={resumeDownloadUrl}
@@ -174,10 +160,9 @@ const About = () => {
                 whileHover={shouldReduceMotion ? { scale: 1.02 } : { y: -2, scale: 1.02 }}
                 whileTap={tapMotion}
                 transition={softSpring}
-                className="focus-ring relative z-10 mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border-2 border-emerald-800 bg-white px-5 py-3 text-sm font-bold text-emerald-900 shadow-[3px_3px_0_0_rgba(6,78,59,0.35)] transition-[background-color,box-shadow,color,transform] hover:-translate-y-0.5 hover:bg-emerald-50"
+                className="focus-ring relative z-10 mt-6 inline-flex min-h-11 items-center justify-center rounded-lg border-2 border-[#101617] bg-[#faf9f4] px-5 py-3 text-sm font-extrabold text-[#101617] shadow-[4px_4px_0_0_rgba(255,58,18,0.9)] transition-[background-color,box-shadow,color,transform] hover:-translate-y-0.5 hover:bg-[#ffda18] hover:shadow-[6px_6px_0_0_rgba(16,22,23,0.9)]"
               >
                 Download Resume
-                <Download size={17} aria-hidden="true" focusable="false" />
               </motion.a>
             </motion.div>
           </div>

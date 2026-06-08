@@ -8,17 +8,17 @@ import Contact from '../components/Contact.jsx';
 
 <Layout title="Luke Pitstick | Home">
 	<main id="main-content">
-		<div id="home" class="scroll-mt-24">
+		<div id="home" class="scroll-mt-16">
 			<Hero client:load />
 		</div>
-		<div class="relative z-10 bg-white/70 backdrop-blur-sm">
-			<div id="about" class="scroll-mt-24">
+		<div class="relative z-10 border-t-4 border-[#101617] bg-[#f8f7f1]/92 shadow-[0_-10px_0_rgba(255,58,18,0.9)] backdrop-blur-sm">
+			<div id="about" class="scroll-mt-16">
 				<About client:visible />
 			</div>
-			<div id="projects" class="scroll-mt-24">
+			<div id="projects" class="scroll-mt-16">
 				<Projects client:visible />
 			</div>
-			<div id="contact" class="scroll-mt-24">
+			<div id="contact" class="scroll-mt-16">
 				<Contact client:visible />
 			</div>
 		</div>
