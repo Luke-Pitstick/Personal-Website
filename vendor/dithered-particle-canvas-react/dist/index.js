@@ -589,7 +589,7 @@ function Ot(e, t, r, i) {
   if (!o)
     throw new S({
       code: "WEBGL_SHADER_COMPILE_FAILED",
-      fix: "Check browser WebGL2 support and try the Canvas2D backend if shader allocation keeps failing.",
+      fix: "Check browser WebGL2 support and reload if shader allocation keeps failing.",
       problem: `WebGL2 shader "${i}" could not be created.`
     });
   if (e.shaderSource(o, r), e.compileShader(o), !e.getShaderParameter(o, e.COMPILE_STATUS)) {
@@ -616,7 +616,7 @@ function Ut({
   if (!l)
     throw i.deleteShader(c), i.deleteShader(f), new S({
       code: "WEBGL_PROGRAM_LINK_FAILED",
-      fix: "Check browser WebGL2 support and try the Canvas2D backend if program allocation keeps failing.",
+      fix: "Check browser WebGL2 support and reload if program allocation keeps failing.",
       problem: `WebGL2 program "${t}" could not be created.`
     });
   if (i.attachShader(l, c), i.attachShader(l, f), e.forEach((m, b) => {
@@ -655,9 +655,10 @@ void main() {
   outColor = texture(u_texture, vec2(v_uv.x, 1.0 - v_uv.y));
 }
 `, ci = `#version 300 es
-precision mediump float;
+precision highp float;
+precision highp int;
 
-const int MAX_TRAIL_POINTS = 32;
+const int MAX_TRAIL_POINTS = 12;
 const float DUST_FLICKER_SEED_SCALE = 17.17;
 const float DUST_FLICKER_STEP_MS = 80.0;
 const float EDGE_FLICKER_SEED_SCALE = 23.37;
@@ -683,7 +684,18 @@ uniform int u_revealLayer;
 uniform int u_trailCount;
 uniform float u_trailDustFlicker;
 uniform float u_trailDustSize;
-uniform vec4 u_trailPoints[MAX_TRAIL_POINTS];
+uniform vec4 u_trailPoint0;
+uniform vec4 u_trailPoint1;
+uniform vec4 u_trailPoint2;
+uniform vec4 u_trailPoint3;
+uniform vec4 u_trailPoint4;
+uniform vec4 u_trailPoint5;
+uniform vec4 u_trailPoint6;
+uniform vec4 u_trailPoint7;
+uniform vec4 u_trailPoint8;
+uniform vec4 u_trailPoint9;
+uniform vec4 u_trailPoint10;
+uniform vec4 u_trailPoint11;
 uniform float u_trailStrength;
 
 in vec2 v_uv;
@@ -693,15 +705,32 @@ float bayer4(vec2 pixel, float pixelSize) {
   vec2 cell = floor(pixel / max(1.0, pixelSize));
   int x = int(mod(cell.x, 4.0));
   int y = int(mod(cell.y, 4.0));
-  int index = y * 4 + x;
-  float values[16] = float[16](
-    0.0, 8.0, 2.0, 10.0,
-    12.0, 4.0, 14.0, 6.0,
-    3.0, 11.0, 1.0, 9.0,
-    15.0, 7.0, 13.0, 5.0
-  );
 
-  return (values[index] + 0.5) / 16.0;
+  if (y == 0) {
+    if (x == 0) return (0.0 + 0.5) / 16.0;
+    if (x == 1) return (8.0 + 0.5) / 16.0;
+    if (x == 2) return (2.0 + 0.5) / 16.0;
+    return (10.0 + 0.5) / 16.0;
+  }
+
+  if (y == 1) {
+    if (x == 0) return (12.0 + 0.5) / 16.0;
+    if (x == 1) return (4.0 + 0.5) / 16.0;
+    if (x == 2) return (14.0 + 0.5) / 16.0;
+    return (6.0 + 0.5) / 16.0;
+  }
+
+  if (y == 2) {
+    if (x == 0) return (3.0 + 0.5) / 16.0;
+    if (x == 1) return (11.0 + 0.5) / 16.0;
+    if (x == 2) return (1.0 + 0.5) / 16.0;
+    return (9.0 + 0.5) / 16.0;
+  }
+
+  if (x == 0) return (15.0 + 0.5) / 16.0;
+  if (x == 1) return (7.0 + 0.5) / 16.0;
+  if (x == 2) return (13.0 + 0.5) / 16.0;
+  return (5.0 + 0.5) / 16.0;
 }
 
 float dustThreshold(vec2 pixel, float seed, float cellSize) {
@@ -772,6 +801,12 @@ float revealMask(vec2 pixel, vec2 point, float fade) {
   return mask * clamp(u_strength, 0.0, 1.0) * clamp(fade, 0.0, 1.0);
 }
 
+void applyTrailPoint(vec2 pixel, vec4 point, float dustSeedOffset, inout float mask) {
+  if (dustThreshold(pixel, point.w + dustSeedOffset, u_trailDustSize) <= clamp(point.z, 0.0, 1.0)) {
+    mask = max(mask, revealMask(pixel, point.xy, u_trailStrength));
+  }
+}
+
 void main() {
   vec4 background = texture(u_background, v_uv);
   vec4 foreground = texture(u_foreground, v_uv);
@@ -794,17 +829,18 @@ void main() {
     DUST_FLICKER_SEED_SCALE *
     clamp(u_trailDustFlicker, 0.0, 1.0);
 
-  for (int i = 0; i < MAX_TRAIL_POINTS; i += 1) {
-    if (i >= u_trailCount) {
-      break;
-    }
-
-    vec4 point = u_trailPoints[i];
-
-    if (dustThreshold(pixel, point.w + dustSeedOffset, u_trailDustSize) <= clamp(point.z, 0.0, 1.0)) {
-      mask = max(mask, revealMask(pixel, point.xy, u_trailStrength));
-    }
-  }
+  if (u_trailCount > 0) applyTrailPoint(pixel, u_trailPoint0, dustSeedOffset, mask);
+  if (u_trailCount > 1) applyTrailPoint(pixel, u_trailPoint1, dustSeedOffset, mask);
+  if (u_trailCount > 2) applyTrailPoint(pixel, u_trailPoint2, dustSeedOffset, mask);
+  if (u_trailCount > 3) applyTrailPoint(pixel, u_trailPoint3, dustSeedOffset, mask);
+  if (u_trailCount > 4) applyTrailPoint(pixel, u_trailPoint4, dustSeedOffset, mask);
+  if (u_trailCount > 5) applyTrailPoint(pixel, u_trailPoint5, dustSeedOffset, mask);
+  if (u_trailCount > 6) applyTrailPoint(pixel, u_trailPoint6, dustSeedOffset, mask);
+  if (u_trailCount > 7) applyTrailPoint(pixel, u_trailPoint7, dustSeedOffset, mask);
+  if (u_trailCount > 8) applyTrailPoint(pixel, u_trailPoint8, dustSeedOffset, mask);
+  if (u_trailCount > 9) applyTrailPoint(pixel, u_trailPoint9, dustSeedOffset, mask);
+  if (u_trailCount > 10) applyTrailPoint(pixel, u_trailPoint10, dustSeedOffset, mask);
+  if (u_trailCount > 11) applyTrailPoint(pixel, u_trailPoint11, dustSeedOffset, mask);
 
   vec4 revealSource = u_revealLayer == 0 ? background : foreground;
   float foregroundBlendMask = u_revealLayer == 0
@@ -883,7 +919,20 @@ const mi = {
   1,
   1,
   1
-]), zt = 32;
+]), zt = 12, trailUniformNames = [
+  "u_trailPoint0",
+  "u_trailPoint1",
+  "u_trailPoint2",
+  "u_trailPoint3",
+  "u_trailPoint4",
+  "u_trailPoint5",
+  "u_trailPoint6",
+  "u_trailPoint7",
+  "u_trailPoint8",
+  "u_trailPoint9",
+  "u_trailPoint10",
+  "u_trailPoint11"
+];
 var k, I, ke, B, te, re, ve, W, N, ce, ie, Ee, w, de, Be, Ne, g, ft, hr, lt, ur, cr, dr, Je, mt, ee, gt, pt, bt, xt, pe;
 class pi {
   constructor(t = {}) {
@@ -978,7 +1027,7 @@ class pi {
           new S({
             cause: r,
             code: "WEBGL_CONTEXT_RESTORE_FAILED",
-            fix: "Try reloading the page or force the Canvas2D backend for this environment.",
+            fix: "Try reloading the page or use the static hero fallback for this environment.",
             problem: "The WebGL2 rendering context could not be restored."
           })
         );
@@ -1005,7 +1054,7 @@ k = new WeakMap(), I = new WeakMap(), ke = new WeakMap(), B = new WeakMap(), te 
   if (!r)
     throw new S({
       code: "BACKEND_UNAVAILABLE",
-      fix: "Use the Canvas2D backend or enable WebGL2 in this browser.",
+      fix: "Enable WebGL2 in this browser or use the static hero fallback.",
       problem: "WebGL2 is not available for this canvas."
     });
   h(this, B, r), h(this, N, {
@@ -1033,7 +1082,18 @@ k = new WeakMap(), I = new WeakMap(), ke = new WeakMap(), B = new WeakMap(), te 
         "u_trailCount",
         "u_trailDustFlicker",
         "u_trailDustSize",
-        "u_trailPoints",
+        "u_trailPoint0",
+        "u_trailPoint1",
+        "u_trailPoint2",
+        "u_trailPoint3",
+        "u_trailPoint4",
+        "u_trailPoint5",
+        "u_trailPoint6",
+        "u_trailPoint7",
+        "u_trailPoint8",
+        "u_trailPoint9",
+        "u_trailPoint10",
+        "u_trailPoint11",
         "u_trailStrength"
       ],
       vertexLabel: "fullscreen-vertex",
@@ -1055,7 +1115,7 @@ k = new WeakMap(), I = new WeakMap(), ke = new WeakMap(), B = new WeakMap(), te 
   if (!r || !i)
     throw new S({
       code: "BACKEND_UNAVAILABLE",
-      fix: "Use the Canvas2D backend if this browser cannot allocate WebGL2 geometry.",
+      fix: "Lower WebGL pressure or use the static hero fallback if this browser cannot allocate geometry.",
       problem: "WebGL2 fullscreen geometry could not be created."
     });
   h(this, ce, r), h(this, ie, i), t.bindVertexArray(i), t.bindBuffer(t.ARRAY_BUFFER, r), t.bufferData(t.ARRAY_BUFFER, gi, t.STATIC_DRAW);
@@ -1092,16 +1152,18 @@ k = new WeakMap(), I = new WeakMap(), ke = new WeakMap(), B = new WeakMap(), te 
   i.bindFramebuffer(i.FRAMEBUFFER, r.framebuffer), i.viewport(0, 0, r.texture.width, r.texture.height), i.useProgram(o.copy.program), u(this, g, Je).call(this, 0, t.texture), i.uniform1i(o.copy.uniforms.u_texture, 0), u(this, g, mt).call(this), i.bindFramebuffer(i.FRAMEBUFFER, null);
 }, dr = function(t, r) {
   const i = u(this, g, ee).call(this), o = r.revealLayer ?? "background", s = o === "background" ? n(this, te).foreground : n(this, te).background, a = { ...Ie, ...(s == null ? void 0 : s.reveal) || {} }, c = Me(a.trail), f = (n(this, W).trail ?? []).slice(0, zt), l = !!(s != null && s.reveal) && (n(this, W).active || (n(this, W).fade ?? 0) > 0);
-  if (i.uniform2f(t.uniforms.u_pointer, n(this, W).x, n(this, w).height - n(this, W).y), i.uniform1f(t.uniforms.u_pointerActive, l ? 1 : 0), i.uniform1f(t.uniforms.u_pointerFade, n(this, W).fade ?? 1), i.uniform1f(t.uniforms.u_radius, a.radius), i.uniform1f(t.uniforms.u_softness, a.softness), i.uniform1f(t.uniforms.u_strength, a.strength), i.uniform1f(t.uniforms.u_time, r.time), i.uniform1f(t.uniforms.u_edgeDither, a.edgeDither), i.uniform1f(t.uniforms.u_edgeFlicker, Math.max(0, Math.min(1, a.edgeFlicker))), i.uniform1f(t.uniforms.u_edgeNoise, a.edgeNoise), i.uniform1f(t.uniforms.u_foregroundBlend, a.foregroundBlend), i.uniform1f(t.uniforms.u_revealPixelSize, Math.max(1, Math.round(a.pixelSize))), i.uniform1i(t.uniforms.u_revealLayer, o === "background" ? 0 : 1), i.uniform1i(t.uniforms.u_trailCount, c ? f.length : 0), i.uniform1f(
+  i.uniform2f(t.uniforms.u_pointer, n(this, W).x, n(this, w).height - n(this, W).y), i.uniform1f(t.uniforms.u_pointerActive, l ? 1 : 0), i.uniform1f(t.uniforms.u_pointerFade, n(this, W).fade ?? 1), i.uniform1f(t.uniforms.u_radius, a.radius), i.uniform1f(t.uniforms.u_softness, a.softness), i.uniform1f(t.uniforms.u_strength, a.strength), i.uniform1f(t.uniforms.u_time, r.time), i.uniform1f(t.uniforms.u_edgeDither, a.edgeDither), i.uniform1f(t.uniforms.u_edgeFlicker, Math.max(0, Math.min(1, a.edgeFlicker))), i.uniform1f(t.uniforms.u_edgeNoise, a.edgeNoise), i.uniform1f(t.uniforms.u_foregroundBlend, a.foregroundBlend), i.uniform1f(t.uniforms.u_revealPixelSize, Math.max(1, Math.round(a.pixelSize))), i.uniform1i(t.uniforms.u_revealLayer, o === "background" ? 0 : 1), i.uniform1i(t.uniforms.u_trailCount, c ? f.length : 0), i.uniform1f(
     t.uniforms.u_trailDustFlicker,
     c ? Math.max(0, Math.min(1, c.dustFlicker)) : 0
-  ), i.uniform1f(t.uniforms.u_trailDustSize, c ? Math.max(1, c.dustSize) : 1), i.uniform1f(t.uniforms.u_trailStrength, c ? c.strength : 0), c && f.length > 0) {
-    const m = new Float32Array(zt * 4);
-    for (let b = 0; b < f.length; b += 1) {
-      const x = f[b], U = b * 4;
-      m[U] = x.x, m[U + 1] = n(this, w).height - x.y, m[U + 2] = x.fade, m[U + 3] = x.x * 0.37 + x.y * 0.21;
-    }
-    i.uniform4fv(t.uniforms.u_trailPoints, m);
+  ), i.uniform1f(t.uniforms.u_trailDustSize, c ? Math.max(1, c.dustSize) : 1), i.uniform1f(t.uniforms.u_trailStrength, c ? c.strength : 0);
+  const m = new Float32Array(zt * 4);
+  for (let b = 0; b < f.length; b += 1) {
+    const x = f[b], U = b * 4;
+    m[U] = x.x, m[U + 1] = n(this, w).height - x.y, m[U + 2] = x.fade, m[U + 3] = x.x * 0.37 + x.y * 0.21;
+  }
+  for (let b = 0; b < zt; b += 1) {
+    const x = b * 4;
+    i.uniform4f(t.uniforms[trailUniformNames[b]], m[x], m[x + 1], m[x + 2], m[x + 3]);
   }
 }, Je = function(t, r) {
   const i = u(this, g, ee).call(this);
@@ -1624,11 +1686,8 @@ T = new WeakMap(), Se = new WeakMap(), me = new WeakMap(), L = new WeakMap(), $e
   try {
     return r.init(n(this, L), n(this, P)), r;
   } catch (s) {
-    if (t === "canvas2d")
-      throw s;
     (o = (i = n(this, C)).onError) == null || o.call(i, jt(s));
-    const a = n(this, Se).call(this, "canvas2d");
-    return a.init(n(this, L), n(this, P)), a;
+    throw s;
   }
 }, St = function(t) {
   const r = Yt(n(this, L), n(this, C).quality, t);
@@ -1787,13 +1846,18 @@ function Hi(e, t) {
     const s = r.current;
     if (!s)
       return;
-    const a = Ki({
-      canvas: s,
-      props: o.current
-    });
-    return i.current = a, () => {
-      i.current = null, a.dispose();
-    };
+    try {
+      const a = Ki({
+        canvas: s,
+        props: o.current
+      });
+      return i.current = a, () => {
+        i.current = null, a.dispose();
+      };
+    } catch (a) {
+      var c;
+      return (c = o.current.onError) == null || c.call(o.current, jt(a)), void 0;
+    }
   }, []), Ct(() => {
     var s;
     (s = i.current) == null || s.update(o.current);

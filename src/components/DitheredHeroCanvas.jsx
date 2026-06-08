@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DitheredParticleCanvas } from '@dithered-particle-canvas/react';
 
 const HERO_WIDTH = 1280;
@@ -16,7 +16,7 @@ const TRAIL_DURATION_MS = 1550;
 const TRAIL_DUST_FLICKER = 0.72;
 const TRAIL_DUST_SIZE = 7;
 const TRAIL_IDLE_MS = 180;
-const TRAIL_MAX_POINTS = 30;
+const TRAIL_MAX_POINTS = 12;
 const SKY_BACKGROUND_BLUE_BIAS = 112;
 const SKY_BACKGROUND_SATURATION = 2.45;
 const BACKGROUND_REVEAL_SRC = '/background.jpg';
@@ -104,6 +104,11 @@ const DitheredHeroCanvas = ({ onInteractiveChange, onUserInteract }) => {
   const [revealBackground, setRevealBackground] = useState();
   const [mountainBase, setMountainBase] = useState();
   const [useStaticFallback, setUseStaticFallback] = useState(shouldUseStaticFallback);
+
+  const handleRendererError = useCallback((error) => {
+    console.error('Dithered hero WebGL renderer failed.', error);
+    setUseStaticFallback(true);
+  }, []);
 
   useEffect(() => {
     setIdleLayer(createIdleSurfaceImageData(HERO_WIDTH, HERO_HEIGHT));
@@ -273,7 +278,7 @@ const DitheredHeroCanvas = ({ onInteractiveChange, onUserInteract }) => {
           height={HERO_HEIGHT}
           layers={layers}
           motion="full"
-          onError={() => setUseStaticFallback(true)}
+          onError={handleRendererError}
           preset="browserbase"
           quality={QUALITY}
           revealLayer="background"
@@ -294,10 +299,6 @@ const DitheredHeroCanvas = ({ onInteractiveChange, onUserInteract }) => {
 function shouldUseStaticFallback() {
   if (typeof window === 'undefined') {
     return false;
-  }
-
-  if (/Windows/i.test(navigator.userAgent)) {
-    return true;
   }
 
   try {
