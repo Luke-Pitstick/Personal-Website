@@ -3,17 +3,17 @@ import { DitheredParticleCanvas } from '@dithered-particle-canvas/react';
 
 const HERO_WIDTH = 1280;
 const HERO_HEIGHT = 720;
-const LOW_RESOLUTION_SCALE = 0.52;
+const LOW_RESOLUTION_SCALE = 0.64;
 const BASE_RENDER_WIDTH = HERO_WIDTH * LOW_RESOLUTION_SCALE;
 const BASE_RENDER_HEIGHT = HERO_HEIGHT * LOW_RESOLUTION_SCALE;
-const BACKGROUND_PIXEL_SIZE = 3;
+const BACKGROUND_PIXEL_SIZE = 2;
 const FOREGROUND_PIXEL_SIZE = 6;
 const REVEAL_EDGE_NOISE = 0.56;
 const REVEAL_EDGE_DITHER = 0.94;
 const REVEAL_EDGE_FLICKER = 0.78;
 const REVEAL_FOREGROUND_BLEND = 0.9;
 const REVEAL_FADE_MS = 760;
-const REVEAL_RADIUS = 170;
+const REVEAL_RADIUS = 100;
 const TRAIL_DURATION_MS = 1550;
 const TRAIL_DUST_FLICKER = 0.72;
 const TRAIL_DUST_SIZE = 7;
@@ -400,7 +400,7 @@ function useInteractionScale(rootRef) {
       const renderHeight = rect.height * QUALITY.resolutionScale * devicePixelRatio;
       const nextScale = Math.max(
         0.1,
-        Math.min(renderWidth / BASE_RENDER_WIDTH, renderHeight / BASE_RENDER_HEIGHT)
+        Math.min(1, renderWidth / BASE_RENDER_WIDTH, renderHeight / BASE_RENDER_HEIGHT)
       );
 
       setInteractionScale((currentScale) =>
