@@ -11,6 +11,7 @@ const REVEAL_EDGE_DITHER = 0.94;
 const REVEAL_EDGE_FLICKER = 0.78;
 const REVEAL_FOREGROUND_BLEND = 0.9;
 const REVEAL_FADE_MS = 760;
+const REVEAL_RADIUS = 170;
 const TRAIL_DURATION_MS = 1550;
 const TRAIL_DUST_FLICKER = 0.72;
 const TRAIL_DUST_SIZE = 7;
@@ -19,6 +20,7 @@ const TRAIL_MAX_POINTS = 30;
 const SKY_BACKGROUND_BLUE_BIAS = 112;
 const SKY_BACKGROUND_SATURATION = 2.45;
 const BACKGROUND_REVEAL_SRC = '/background.jpg';
+const DITHERED_BACKGROUND_SRC = '/background-dithered.webp';
 const FOREGROUND_MOUNTAINS_SRC = '/chautauqua-flatirons_fg.jpg';
 
 const MOUNTAIN_PALETTE = {
@@ -42,7 +44,7 @@ const LAYER_CONTROLS = {
     revealEdgeNoise: REVEAL_EDGE_NOISE,
     revealFadeMs: REVEAL_FADE_MS,
     revealPixelSize: FOREGROUND_PIXEL_SIZE,
-    revealRadius: 118,
+    revealRadius: REVEAL_RADIUS,
     revealSoftness: 0.58,
     trailDustFlicker: TRAIL_DUST_FLICKER,
     trailDustSize: TRAIL_DUST_SIZE,
@@ -63,7 +65,7 @@ const LAYER_CONTROLS = {
     revealEdgeNoise: REVEAL_EDGE_NOISE,
     revealFadeMs: REVEAL_FADE_MS,
     revealPixelSize: FOREGROUND_PIXEL_SIZE,
-    revealRadius: 118,
+    revealRadius: REVEAL_RADIUS,
     revealSoftness: 0.58,
     trailDustFlicker: TRAIL_DUST_FLICKER,
     trailDustSize: TRAIL_DUST_SIZE,
@@ -85,7 +87,7 @@ const MOUNTAIN_CONTROLS = {
 };
 
 const QUALITY = {
-  backend: 'canvas2d',
+  backend: 'webgl2',
   resolutionScale: LOW_RESOLUTION_SCALE,
   targetFps: 60,
 };
@@ -94,22 +96,26 @@ const AUTO_CURSOR_RESUME_MS = 2400;
 const AUTO_CURSOR_LOOP_MS = 14500;
 const TAU = Math.PI * 2;
 
-const DitheredHeroCanvas = () => {
+const DitheredHeroCanvas = ({ onInteractiveChange }) => {
   const rootRef = useRef(null);
   const mountainCanvasRef = useRef(null);
   const [idleLayer, setIdleLayer] = useState();
   const [revealBackground, setRevealBackground] = useState();
   const [mountainBase, setMountainBase] = useState();
-  const [isFallback, setIsFallback] = useState(false);
+  const [useStaticFallback, setUseStaticFallback] = useState(shouldUseStaticFallback);
 
   useEffect(() => {
+    if (useStaticFallback) {
+      return undefined;
+    }
+
     setIdleLayer(createIdleSurfaceImageData(HERO_WIDTH, HERO_HEIGHT));
-  }, []);
+  }, [useStaticFallback]);
 
   useEffect(() => {
     const root = rootRef.current;
 
-    if (!root) {
+    if (!root || useStaticFallback) {
       return undefined;
     }
 
@@ -144,9 +150,13 @@ const DitheredHeroCanvas = () => {
       root.removeEventListener('pointermove', pauseForUser);
       root.removeEventListener('pointerdown', pauseForUser);
     };
-  }, []);
+  }, [useStaticFallback]);
 
   useEffect(() => {
+    if (useStaticFallback) {
+      return undefined;
+    }
+
     let cancelled = false;
 
     loadSkyRevealBackground(HERO_WIDTH, HERO_HEIGHT)
@@ -157,14 +167,14 @@ const DitheredHeroCanvas = () => {
       })
       .catch(() => {
         if (!cancelled) {
-          setIsFallback(true);
+          setUseStaticFallback(true);
         }
       });
 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [useStaticFallback]);
 
   useEffect(() => {
     let cancelled = false;
@@ -177,7 +187,7 @@ const DitheredHeroCanvas = () => {
       })
       .catch(() => {
         if (!cancelled) {
-          setIsFallback(true);
+          setUseStaticFallback(true);
         }
       });
 
@@ -187,12 +197,18 @@ const DitheredHeroCanvas = () => {
   }, []);
 
   const layers = useMemo(() => {
-    if (!idleLayer) {
+    if (useStaticFallback || !idleLayer) {
       return undefined;
     }
 
     return createHeroLayers(idleLayer, revealBackground);
-  }, [idleLayer, revealBackground]);
+  }, [useStaticFallback, idleLayer, revealBackground]);
+
+  const isInteractive = !useStaticFallback && Boolean(layers);
+
+  useEffect(() => {
+    onInteractiveChange?.(isInteractive);
+  }, [isInteractive, onInteractiveChange]);
 
   const mountains = useMemo(() => {
     if (!mountainBase) {
@@ -216,8 +232,10 @@ const DitheredHeroCanvas = () => {
 
   return (
     <div ref={rootRef} className="dithered-hero">
-      {isFallback ? <img className="dithered-hero-fallback" src={BACKGROUND_REVEAL_SRC} alt="" /> : null}
-      {layers ? (
+      {useStaticFallback ? (
+        <img className="dithered-hero-fallback" src={DITHERED_BACKGROUND_SRC} alt="" />
+      ) : null}
+      {!useStaticFallback && layers ? (
         <DitheredParticleCanvas
           aria-label="Dithered Flatirons reveal background"
           className="dithered-hero-canvas"
@@ -225,7 +243,7 @@ const DitheredHeroCanvas = () => {
           height={HERO_HEIGHT}
           layers={layers}
           motion="full"
-          onError={() => setIsFallback(true)}
+          onError={() => setUseStaticFallback(true)}
           preset="browserbase"
           quality={QUALITY}
           revealLayer="background"
@@ -242,6 +260,23 @@ const DitheredHeroCanvas = () => {
     </div>
   );
 };
+
+function shouldUseStaticFallback() {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
+  if (/Windows/i.test(navigator.userAgent)) {
+    return true;
+  }
+
+  try {
+    const canvas = document.createElement('canvas');
+    return !canvas.getContext('webgl2');
+  } catch {
+    return true;
+  }
+}
 
 function createHeroLayers(idleLayer, revealBackground) {
   return {

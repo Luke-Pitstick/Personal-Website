@@ -1,19 +1,25 @@
-import React, { useRef } from 'react';
-import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } from 'motion/react';
 import DitheredHeroCanvas from './DitheredHeroCanvas';
 import { softSpring, tapMotion } from '../lib/motion';
 
 const emailAddress = 'contact@lukepitstick.com';
 
 const SOCIAL_HIDE_SCROLL_Y = 96;
+const SHADER_HINT_DISMISS_MS = 14000;
 
 const Hero = () => {
-  const [socialsVisible, setSocialsVisible] = React.useState(true);
-  const [arrowPinned, setArrowPinned] = React.useState(false);
-  const [arrowVisible, setArrowVisible] = React.useState(true);
-  const [arrowTop, setArrowTop] = React.useState(80);
+  const [socialsVisible, setSocialsVisible] = useState(true);
+  const [arrowPinned, setArrowPinned] = useState(false);
+  const [arrowVisible, setArrowVisible] = useState(true);
+  const [arrowTop, setArrowTop] = useState(80);
+  const [shaderHintVisible, setShaderHintVisible] = useState(false);
   const shouldReduceMotion = useReducedMotion();
   const ref = useRef(null);
+  const dismissShaderHint = useCallback(() => setShaderHintVisible(false), []);
+  const handleHeroInteractiveChange = useCallback((interactive) => {
+    setShaderHintVisible(interactive);
+  }, []);
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start start", "end start"],
@@ -33,13 +39,46 @@ const Hero = () => {
     });
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
+    if (!shaderHintVisible) {
+      return undefined;
+    }
+
+    const section = ref.current;
+
+    if (!section) {
+      return undefined;
+    }
+
+    const dismissOnInteract = (event) => {
+      if (event.isTrusted) {
+        dismissShaderHint();
+      }
+    };
+
+    const autoDismissTimer = window.setTimeout(dismissShaderHint, SHADER_HINT_DISMISS_MS);
+
+    section.addEventListener('pointermove', dismissOnInteract, { passive: true });
+    section.addEventListener('pointerdown', dismissOnInteract, { passive: true });
+
+    return () => {
+      window.clearTimeout(autoDismissTimer);
+      section.removeEventListener('pointermove', dismissOnInteract);
+      section.removeEventListener('pointerdown', dismissOnInteract);
+    };
+  }, [shaderHintVisible, dismissShaderHint]);
+
+  useEffect(() => {
     const onScroll = () => {
       const scrollY = window.scrollY;
       const home = document.getElementById('home');
       const nav = document.querySelector('nav[aria-label="Primary navigation"]');
       const navBottom = nav?.getBoundingClientRect().bottom ?? 80;
       const homeBottom = home?.getBoundingClientRect().bottom ?? 0;
+
+      if (scrollY >= SOCIAL_HIDE_SCROLL_Y) {
+        setShaderHintVisible(false);
+      }
 
       setSocialsVisible(scrollY < SOCIAL_HIDE_SCROLL_Y);
       setArrowPinned(scrollY >= SOCIAL_HIDE_SCROLL_Y);
@@ -61,7 +100,13 @@ const Hero = () => {
       ref={ref}
       className="relative grid min-h-screen overflow-hidden bg-[#f8f7f1] px-4 text-[#101617]"
     >
-      <DitheredHeroCanvas />
+      <DitheredHeroCanvas onInteractiveChange={handleHeroInteractiveChange} />
+
+      <AnimatePresence>
+        {shaderHintVisible ? (
+          <ShaderHint key="shader-hint" onDismiss={dismissShaderHint} />
+        ) : null}
+      </AnimatePresence>
 
       <motion.div
         style={{
@@ -140,6 +185,43 @@ const Hero = () => {
         </motion.span>
       </motion.button>
     </section>
+  );
+};
+
+const ShaderHint = ({ onDismiss }) => {
+  const shouldReduceMotion = useReducedMotion();
+
+  return (
+    <motion.aside
+      role="note"
+      initial={{ opacity: 0, y: 14, x: -10 }}
+      animate={{ opacity: 1, y: 0, x: 0 }}
+      exit={{ opacity: 0, y: 8, scale: 0.98 }}
+      transition={{
+        duration: shouldReduceMotion ? 0.15 : 0.55,
+        delay: shouldReduceMotion ? 0 : 1.1,
+        ease: [0.22, 1, 0.36, 1],
+      }}
+      className="pointer-events-auto absolute bottom-6 left-4 z-20 max-w-[18rem] rounded-sm border-2 border-[#101617] bg-[#faf9f4]/92 p-3 pr-9 shadow-[5px_5px_0_0_rgba(255,58,18,0.88)] backdrop-blur-sm sm:bottom-8 sm:left-6 sm:max-w-[19rem] sm:p-4 sm:pr-10"
+    >
+      <p className="m-0 font-mono text-[0.62rem] font-extrabold uppercase tracking-[0.16em] text-[#ff3a12]">
+        Live shaders
+      </p>
+      <p className="m-0 mt-1.5 font-body text-[0.82rem] font-semibold leading-snug text-[#101617] sm:text-sm">
+        This scene is painted in real time on your GPU—not a looped video.
+      </p>
+      <p className="m-0 mt-1 font-body text-[0.78rem] leading-snug text-[#101617]/80 sm:text-[0.84rem]">
+        Move your cursor to reveal the mountains and leave a trail.
+      </p>
+      <button
+        type="button"
+        onClick={onDismiss}
+        className="focus-ring absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full border border-[#101617]/30 font-mono text-sm font-bold leading-none text-[#101617]/70 transition-colors hover:border-[#101617] hover:bg-[#ffda18] hover:text-[#101617]"
+        aria-label="Dismiss shader hint"
+      >
+        ×
+      </button>
+    </motion.aside>
   );
 };
 
