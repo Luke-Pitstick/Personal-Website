@@ -4,6 +4,8 @@ import { DitheredParticleCanvas } from '@dithered-particle-canvas/react';
 const HERO_WIDTH = 1280;
 const HERO_HEIGHT = 720;
 const LOW_RESOLUTION_SCALE = 0.52;
+const BASE_RENDER_WIDTH = HERO_WIDTH * LOW_RESOLUTION_SCALE;
+const BASE_RENDER_HEIGHT = HERO_HEIGHT * LOW_RESOLUTION_SCALE;
 const BACKGROUND_PIXEL_SIZE = 3;
 const FOREGROUND_PIXEL_SIZE = 6;
 const REVEAL_EDGE_NOISE = 0.56;
@@ -109,6 +111,7 @@ const DitheredHeroCanvas = ({ onInteractiveChange, onUserInteract }) => {
     console.error('Dithered hero WebGL renderer failed.', error);
     setUseStaticFallback(true);
   }, []);
+  const interactionScale = useInteractionScale(rootRef);
 
   useEffect(() => {
     setIdleLayer(createIdleSurfaceImageData(HERO_WIDTH, HERO_HEIGHT));
@@ -204,8 +207,8 @@ const DitheredHeroCanvas = ({ onInteractiveChange, onUserInteract }) => {
       return undefined;
     }
 
-    return createHeroLayers(idleLayer, revealBackground);
-  }, [useStaticFallback, idleLayer, revealBackground]);
+    return createHeroLayers(idleLayer, revealBackground, interactionScale);
+  }, [useStaticFallback, idleLayer, revealBackground, interactionScale]);
 
   const fallbackSurface = useMemo(() => {
     if (!useStaticFallback) {
@@ -309,14 +312,14 @@ function shouldUseStaticFallback() {
   }
 }
 
-function createHeroLayers(idleLayer, revealBackground) {
+function createHeroLayers(idleLayer, revealBackground, interactionScale = 1) {
   return {
     background: {
       dither: buildDitherConfig(LAYER_CONTROLS.background),
       fit: 'stretch',
       filters: buildFilters(LAYER_CONTROLS.background),
       opacity: LAYER_CONTROLS.background.opacity,
-      reveal: buildRevealConfig(LAYER_CONTROLS.background),
+      reveal: buildRevealConfig(LAYER_CONTROLS.background, interactionScale),
       src: revealBackground ?? idleLayer,
     },
     foreground: {
@@ -324,7 +327,7 @@ function createHeroLayers(idleLayer, revealBackground) {
       fit: 'stretch',
       filters: buildFilters(LAYER_CONTROLS.foreground),
       opacity: LAYER_CONTROLS.foreground.opacity,
-      reveal: buildRevealConfig(LAYER_CONTROLS.foreground),
+      reveal: buildRevealConfig(LAYER_CONTROLS.foreground, interactionScale),
       src: idleLayer,
     },
   };
@@ -357,27 +360,71 @@ function buildDitherConfig(controls) {
   };
 }
 
-function buildRevealConfig(controls) {
+function buildRevealConfig(controls, interactionScale = 1) {
   return {
     edgeDither: controls.revealEdgeDither,
     edgeFlicker: controls.revealEdgeFlicker,
     edgeNoise: controls.revealEdgeNoise,
     fadeMs: controls.revealFadeMs,
     foregroundBlend: REVEAL_FOREGROUND_BLEND,
-    pixelSize: controls.revealPixelSize,
-    radius: controls.revealRadius,
+    pixelSize: scaleInteractionValue(controls.revealPixelSize, interactionScale),
+    radius: controls.revealRadius * interactionScale,
     softness: controls.revealSoftness,
     strength: 1,
     trail: {
       dustFlicker: controls.trailDustFlicker,
-      dustSize: controls.trailDustSize,
+      dustSize: scaleInteractionValue(controls.trailDustSize, interactionScale),
       durationMs: controls.trailDurationMs,
       idleMs: controls.trailIdleMs,
       maxPoints: TRAIL_MAX_POINTS,
-      spacing: controls.trailSpacing,
+      spacing: scaleInteractionValue(controls.trailSpacing, interactionScale),
       strength: controls.trailStrength,
     },
   };
+}
+
+function useInteractionScale(rootRef) {
+  const [interactionScale, setInteractionScale] = useState(1);
+
+  useEffect(() => {
+    const root = rootRef.current;
+
+    if (!root || typeof window === 'undefined') {
+      return undefined;
+    }
+
+    const updateScale = () => {
+      const rect = root.getBoundingClientRect();
+      const devicePixelRatio = window.devicePixelRatio || 1;
+      const renderWidth = rect.width * QUALITY.resolutionScale * devicePixelRatio;
+      const renderHeight = rect.height * QUALITY.resolutionScale * devicePixelRatio;
+      const nextScale = Math.max(
+        0.1,
+        Math.min(renderWidth / BASE_RENDER_WIDTH, renderHeight / BASE_RENDER_HEIGHT)
+      );
+
+      setInteractionScale((currentScale) =>
+        Math.abs(currentScale - nextScale) < 0.01 ? currentScale : nextScale
+      );
+    };
+
+    updateScale();
+
+    const resizeObserver = new ResizeObserver(updateScale);
+    resizeObserver.observe(root);
+    window.addEventListener('resize', updateScale);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', updateScale);
+    };
+  }, [rootRef]);
+
+  return interactionScale;
+}
+
+function scaleInteractionValue(value, interactionScale) {
+  return Math.max(1, Math.round(value * interactionScale));
 }
 
 function applyMountainColorFilters(source, controls) {
