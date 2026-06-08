@@ -152,7 +152,7 @@ const About = () => {
             >
               <h3 className="relative z-10 mb-4 font-heading text-lg font-bold text-[#101617]">Who am I?</h3>
               <p className="relative z-10 font-body font-bold leading-relaxed text-[#273337]">
-                I am a CU Boulder student studying <b>Data Science and Political Science</b>, with a focus on building useful AI/ML tools for research, public-sector data, and decision support. I currently work with the National Oceanic and Atmospheric Administration as a Junior Data Manager and at WattByte Nexus as an AI/ML Engineer Intern. Outside of work, I am usually outdoors, cooking, exploring restaurants, or looking for excellent coffee.
+                I am a CU Boulder student studying <b>Data Science and Political Science</b>, with a focus on building useful AI/ML tools for research, public-sector data, and decision support. I currently work with the National Oceanic and Atmospheric Administration as a Junior Data Manager and at WattByte Nexus as an AI/ML Engineer Intern. Outside of work, I am usually outdoors, cooking, exploring restaurants, or trying new coffee places.
               </p>
               <motion.a
                 href={resumeDownloadUrl}

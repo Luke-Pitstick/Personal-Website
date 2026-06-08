@@ -173,21 +173,21 @@ const ShaderHint = ({ onDismiss }) => {
         delay: shouldReduceMotion ? 0 : 1.1,
         ease: [0.22, 1, 0.36, 1],
       }}
-      className="pointer-events-auto absolute bottom-6 left-4 z-20 max-w-[18rem] rounded-sm border-2 border-[#101617] bg-[#faf9f4]/92 p-3 pr-9 shadow-[5px_5px_0_0_rgba(255,58,18,0.88)] backdrop-blur-sm sm:bottom-8 sm:left-6 sm:max-w-[19rem] sm:p-4 sm:pr-10"
+      className="pointer-events-auto absolute bottom-6 left-4 z-20 max-w-[20rem] rounded-sm border-2 border-[#101617] bg-[#faf9f4]/92 p-4 pr-10 shadow-[6px_6px_0_0_rgba(255,58,18,0.88)] backdrop-blur-sm sm:bottom-8 sm:left-6 sm:max-w-[22rem] sm:p-5 sm:pr-11"
     >
-      <p className="m-0 font-mono text-[0.62rem] font-extrabold uppercase tracking-[0.16em] text-[#ff3a12]">
+      <p className="m-0 font-mono text-[0.68rem] font-extrabold uppercase tracking-[0.16em] text-[#ff3a12] sm:text-xs">
         Live shaders
       </p>
-      <p className="m-0 mt-1.5 font-body text-[0.82rem] font-semibold leading-snug text-[#101617] sm:text-sm">
+      <p className="m-0 mt-2 font-body text-[0.9rem] font-semibold leading-snug text-[#101617] sm:text-base">
         This scene is painted in real time on your GPU—not a looped video.
       </p>
-      <p className="m-0 mt-1 font-body text-[0.78rem] leading-snug text-[#101617]/80 sm:text-[0.84rem]">
+      <p className="m-0 mt-1.5 font-body text-[0.84rem] leading-snug text-[#101617]/80 sm:text-[0.92rem]">
         Move your cursor to reveal the clouds and leave a trail.
       </p>
       <button
         type="button"
         onClick={onDismiss}
-        className="focus-ring absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full border border-[#101617]/30 font-mono text-sm font-bold leading-none text-[#101617]/70 transition-colors hover:border-[#101617] hover:bg-[#ffda18] hover:text-[#101617]"
+        className="focus-ring absolute right-2.5 top-2.5 flex h-7 w-7 items-center justify-center rounded-full border border-[#101617]/30 font-mono text-base font-bold leading-none text-[#101617]/70 transition-colors hover:border-[#101617] hover:bg-[#ffda18] hover:text-[#101617]"
         aria-label="Dismiss shader hint"
       >
         ×

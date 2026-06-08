@@ -140,7 +140,6 @@ body::before {
 
 .dithered-hero-fallback {
   z-index: 0;
-  object-fit: cover;
   image-rendering: pixelated;
 }
 

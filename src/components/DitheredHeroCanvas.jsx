@@ -20,8 +20,8 @@ const TRAIL_MAX_POINTS = 30;
 const SKY_BACKGROUND_BLUE_BIAS = 112;
 const SKY_BACKGROUND_SATURATION = 2.45;
 const BACKGROUND_REVEAL_SRC = '/background.jpg';
-const DITHERED_BACKGROUND_SRC = '/background-dithered.webp';
 const FOREGROUND_MOUNTAINS_SRC = '/chautauqua-flatirons_fg.jpg';
+const FALLBACK_BLUE_TINT = 22;
 
 const MOUNTAIN_PALETTE = {
   black: [8, 12, 14],
@@ -98,6 +98,7 @@ const TAU = Math.PI * 2;
 
 const DitheredHeroCanvas = ({ onInteractiveChange, onUserInteract }) => {
   const rootRef = useRef(null);
+  const fallbackCanvasRef = useRef(null);
   const mountainCanvasRef = useRef(null);
   const [idleLayer, setIdleLayer] = useState();
   const [revealBackground, setRevealBackground] = useState();
@@ -105,12 +106,8 @@ const DitheredHeroCanvas = ({ onInteractiveChange, onUserInteract }) => {
   const [useStaticFallback, setUseStaticFallback] = useState(shouldUseStaticFallback);
 
   useEffect(() => {
-    if (useStaticFallback) {
-      return undefined;
-    }
-
     setIdleLayer(createIdleSurfaceImageData(HERO_WIDTH, HERO_HEIGHT));
-  }, [useStaticFallback]);
+  }, []);
 
   useEffect(() => {
     const root = rootRef.current;
@@ -205,6 +202,14 @@ const DitheredHeroCanvas = ({ onInteractiveChange, onUserInteract }) => {
     return createHeroLayers(idleLayer, revealBackground);
   }, [useStaticFallback, idleLayer, revealBackground]);
 
+  const fallbackSurface = useMemo(() => {
+    if (!useStaticFallback) {
+      return undefined;
+    }
+
+    return createIdleSurfaceImageData(HERO_WIDTH, HERO_HEIGHT, { blueTint: FALLBACK_BLUE_TINT });
+  }, [useStaticFallback]);
+
   const isInteractive = !useStaticFallback && Boolean(layers) && Boolean(revealBackground);
 
   useEffect(() => {
@@ -226,6 +231,18 @@ const DitheredHeroCanvas = ({ onInteractiveChange, onUserInteract }) => {
   }, [mountainBase]);
 
   useEffect(() => {
+    const canvas = fallbackCanvasRef.current;
+
+    if (!canvas || !fallbackSurface) {
+      return;
+    }
+
+    canvas.width = fallbackSurface.width;
+    canvas.height = fallbackSurface.height;
+    canvas.getContext('2d')?.putImageData(fallbackSurface, 0, 0);
+  }, [fallbackSurface]);
+
+  useEffect(() => {
     const canvas = mountainCanvasRef.current;
 
     if (!canvas || !mountains) {
@@ -239,8 +256,14 @@ const DitheredHeroCanvas = ({ onInteractiveChange, onUserInteract }) => {
 
   return (
     <div ref={rootRef} className="dithered-hero">
-      {useStaticFallback ? (
-        <img className="dithered-hero-fallback" src={DITHERED_BACKGROUND_SRC} alt="" />
+      {fallbackSurface ? (
+        <canvas
+          ref={fallbackCanvasRef}
+          aria-hidden="true"
+          className="dithered-hero-fallback"
+          height={HERO_HEIGHT}
+          width={HERO_WIDTH}
+        />
       ) : null}
       {!useStaticFallback && layers ? (
         <DitheredParticleCanvas
@@ -535,7 +558,7 @@ function enhanceSkyBackground(image) {
   }
 }
 
-function createIdleSurfaceImageData(width, height) {
+function createIdleSurfaceImageData(width, height, { blueTint = 0 } = {}) {
   const image = new ImageData(width, height);
 
   for (let y = 0; y < height; y += 1) {
@@ -545,9 +568,9 @@ function createIdleSurfaceImageData(width, height) {
       const grain = (((x * 17 + y * 31) % 19) - 9) * 0.8;
       const paper = Math.sin(x / 120) * 3 + Math.cos((x + y) / 180) * 4 + grain;
 
-      image.data[index] = clampByte(228 + vertical * 12 + paper);
-      image.data[index + 1] = clampByte(232 + vertical * 8 + paper);
-      image.data[index + 2] = clampByte(220 + vertical * 5 + paper);
+      image.data[index] = clampByte(228 + vertical * 12 + paper - blueTint * 0.55);
+      image.data[index + 1] = clampByte(232 + vertical * 8 + paper + blueTint * 0.2);
+      image.data[index + 2] = clampByte(220 + vertical * 5 + paper + blueTint * 0.85);
       image.data[index + 3] = 255;
     }
   }
