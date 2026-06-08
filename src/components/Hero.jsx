@@ -165,12 +165,24 @@ const ShaderHint = ({ onDismiss }) => {
     <motion.aside
       role="note"
       initial={{ opacity: 0, y: 14, x: -10 }}
-      animate={{ opacity: 1, y: 0, x: 0 }}
-      exit={{ opacity: 0, y: 8, scale: 0.98 }}
-      transition={{
-        duration: shouldReduceMotion ? 0.15 : 0.55,
-        delay: shouldReduceMotion ? 0 : 1.1,
-        ease: [0.22, 1, 0.36, 1],
+      animate={{
+        opacity: 1,
+        y: 0,
+        x: 0,
+        transition: {
+          duration: shouldReduceMotion ? 0.15 : 0.55,
+          delay: shouldReduceMotion ? 0 : 1.1,
+          ease: [0.22, 1, 0.36, 1],
+        },
+      }}
+      exit={{
+        opacity: 0,
+        y: 8,
+        scale: 0.98,
+        transition: {
+          duration: shouldReduceMotion ? 0.1 : 0.16,
+          ease: 'easeOut',
+        },
       }}
       className="pointer-events-auto absolute bottom-6 left-4 z-20 max-w-[20rem] rounded-sm border-2 border-[#101617] bg-[#faf9f4]/92 p-4 pr-10 shadow-[6px_6px_0_0_rgba(255,58,18,0.88)] backdrop-blur-sm sm:bottom-8 sm:left-6 sm:max-w-[22rem] sm:p-5 sm:pr-11"
     >
