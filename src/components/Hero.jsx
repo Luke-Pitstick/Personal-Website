@@ -85,7 +85,7 @@ const Hero = () => {
         }}
         className="pointer-events-none relative z-30 mx-auto grid min-h-screen w-full max-w-6xl content-start justify-items-center pt-[clamp(7.5rem,16vh,11rem)] text-center"
       >
-        <motion.div className="grid w-full justify-items-center gap-6">
+        <motion.div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-8 md:gap-10">
           <div className="hero-identity motion-reveal [--motion-delay:0.18s] [--reveal-scale:0.98] [--reveal-y:16px]">
             <motion.figure className="hero-profile-frame m-0">
               <img
@@ -97,12 +97,12 @@ const Hero = () => {
               />
             </motion.figure>
 
-            <motion.h1 className="dithered-hero-title m-0 max-w-[9ch] font-heading font-bold">
+            <motion.h1 className="dithered-hero-title m-0 max-w-[9ch] text-center font-heading font-bold md:text-left">
               Luke Pitstick
             </motion.h1>
           </div>
 
-          <motion.p className="motion-reveal mx-auto max-w-2xl bg-[#101617] px-3 py-2 font-body text-base font-extrabold leading-relaxed text-[#f5f0d8] shadow-[8px_8px_0_rgba(255,58,18,0.9)] sm:text-xl md:text-2xl [--motion-delay:0.38s] [--reveal-y:12px]">
+          <motion.p className="motion-reveal w-full bg-[#101617] px-3 py-2 font-body text-base font-extrabold leading-relaxed text-[#f5f0d8] shadow-[8px_8px_0_rgba(255,58,18,0.9)] sm:text-xl md:text-2xl [--motion-delay:0.38s] [--reveal-y:12px]">
             AI/ML research and software development for practical, human-centered tools.
           </motion.p>
 
@@ -113,7 +113,7 @@ const Hero = () => {
               y: socialsVisible ? 0 : 12,
             }}
             transition={{ duration: shouldReduceMotion ? 0.15 : 0.3, ease: 'easeOut' }}
-            className="pointer-events-auto flex flex-wrap justify-center gap-4 pt-2 sm:gap-5"
+            className="pointer-events-auto flex w-full flex-wrap justify-center gap-4 pt-2 sm:gap-5"
             style={{ pointerEvents: socialsVisible ? 'auto' : 'none' }}
             aria-hidden={!socialsVisible}
           >

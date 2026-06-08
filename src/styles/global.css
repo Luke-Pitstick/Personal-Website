@@ -167,15 +167,19 @@ body::before {
   align-items: center;
   justify-content: center;
   gap: clamp(0.85rem, 2.4vw, 1.35rem);
-  width: min(672px, 100%);
+  width: fit-content;
+  max-width: 100%;
+  margin-top: -22px;
+  margin-bottom: -22px;
   padding-left: 0;
   padding-right: 0;
   text-align: center;
 }
 
 .hero-profile-frame {
-  width: clamp(7.25rem, 18vw, 12rem);
+  width: clamp(7.25rem, 21.27vw, 14.625rem);
   aspect-ratio: 1;
+  flex-shrink: 0;
   overflow: hidden;
   border: 3px solid #101617;
   border-radius: 999px;
@@ -186,18 +190,30 @@ body::before {
   transform: rotate(-2deg);
 }
 
+.hero-profile-frame img {
+  padding-left: 0;
+  padding-right: 0;
+}
+
 @media (min-width: 768px) {
   .hero-identity {
     display: grid;
     grid-template-columns: auto minmax(0, max-content);
-    align-items: center;
+    align-items: start;
     justify-content: center;
     gap: clamp(1.25rem, 3vw, 2rem);
     text-align: left;
   }
 
   .hero-profile-frame {
-    flex: 0 0 auto;
+    margin-top: 0.12em;
+  }
+
+  .dithered-hero-title {
+    margin-top: 1.35rem;
+    padding-top: 14px;
+    line-height: 0.92;
+    min-height: 150px;
   }
 }
 
