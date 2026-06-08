@@ -1,5 +1,3 @@
-import { ExternalLink, Github } from 'lucide-react';
-
 const projectImages = {
   renewably: 'https://np69tokggkswfstp.public.blob.vercel-storage.com/website/projects/renewably.png',
   brickme: 'https://np69tokggkswfstp.public.blob.vercel-storage.com/website/projects/brickme.png',
@@ -79,20 +77,20 @@ const projects = [
 
 const accents = {
   emerald: {
-    chip: 'border-emerald-800/30 bg-emerald-50 text-emerald-800',
-    wash: 'from-emerald-100 via-sky-50 to-white',
+    chip: 'border-[#101617] bg-[#faf9f4] text-[#101617]',
+    wash: 'from-[#faf9f4] via-[#f8f7f1] to-[#faf9f4]',
   },
   cyan: {
-    chip: 'border-cyan-800/30 bg-cyan-50 text-cyan-800',
-    wash: 'from-cyan-100 via-sky-50 to-white',
+    chip: 'border-[#101617] bg-[#faf9f4] text-[#101617]',
+    wash: 'from-[#faf9f4] via-[#f8f7f1] to-[#faf9f4]',
   },
   sky: {
-    chip: 'border-sky-800/30 bg-sky-50 text-sky-800',
-    wash: 'from-sky-100 via-emerald-50 to-white',
+    chip: 'border-[#101617] bg-[#faf9f4] text-[#101617]',
+    wash: 'from-[#faf9f4] via-[#f8f7f1] to-[#faf9f4]',
   },
   amber: {
-    chip: 'border-amber-800/30 bg-amber-50 text-amber-800',
-    wash: 'from-amber-100 via-emerald-50 to-white',
+    chip: 'border-[#101617] bg-[#faf9f4] text-[#101617]',
+    wash: 'from-[#faf9f4] via-[#f8f7f1] to-[#faf9f4]',
   },
 };
 
@@ -105,10 +103,10 @@ const sizeClasses = {
 const Projects = () => (
   <section className="relative mx-auto max-w-6xl overflow-hidden px-4 py-16 md:py-20" aria-labelledby="projects-heading">
     <div className="relative mb-8">
-      <h2 id="projects-heading" className="mb-4 font-heading text-3xl font-bold text-slate-800 md:text-4xl">
-        Featured <span className="text-emerald-700">Projects</span>
+      <h2 id="projects-heading" className="mb-4 font-heading text-3xl font-bold text-[#101617] md:text-4xl">
+        Featured <span className="bg-[#101617] px-2 text-[#f5f0d8] shadow-[5px_5px_0_rgba(255,58,18,0.9)]">Projects</span>
       </h2>
-      <p className="max-w-2xl text-base leading-relaxed text-slate-600 font-body">
+      <p className="max-w-2xl font-body text-base font-bold leading-relaxed text-[#334044]">
         Some of the projects I am proud of, spanning renewable energy, forecasting, robotics, AI agents, and creative tools.
       </p>
     </div>
@@ -129,7 +127,7 @@ const ProjectTile = ({ project }) => {
 
   return (
     <article
-      className={`project-tile hand-drawn group relative min-h-[390px] overflow-hidden bg-slate-950 ${sizeClasses[project.size]}`}
+      className={`project-tile hand-drawn group relative min-h-[390px] overflow-hidden bg-[#101617] ${sizeClasses[project.size]}`}
       aria-labelledby={titleId}
     >
       {project.image ? (
@@ -146,21 +144,22 @@ const ProjectTile = ({ project }) => {
         <div className={`absolute inset-0 bg-gradient-to-br ${accent.wash}`} />
       )}
 
-      <div className={`absolute inset-0 ${project.image ? 'bg-gradient-to-t from-slate-950/95 via-slate-950/60 to-slate-950/10' : ''}`} />
+      <div className={`absolute inset-0 ${project.image ? 'bg-gradient-to-t from-[#101617]/95 via-[#101617]/62 to-[#101617]/8' : ''}`} />
+      {project.image ? <div className="absolute inset-0 bg-[radial-gradient(rgba(250,249,244,0.16)_1px,transparent_1px)] bg-[length:14px_14px] opacity-40 mix-blend-overlay" aria-hidden="true" /> : null}
 
       {!project.image && (
-        <div className="absolute inset-4 rounded-lg border-2 border-dashed border-emerald-800/20" />
+        <div className="absolute inset-4 rounded-lg border-2 border-dashed border-[#101617]/30" />
       )}
 
       <div className="relative z-20 flex min-h-[390px] flex-col justify-between p-5 sm:p-6">
         <div className="flex shrink-0 items-start justify-between gap-3">
-          <div className={`rounded-full border px-3 py-1 text-xs font-bold shadow-sm ${accent.chip}`}>
+          <div className={`rounded-full border-2 px-3 py-1 text-xs font-extrabold shadow-[3px_3px_0_rgba(16,22,23,0.45)] ${accent.chip}`}>
             <span>{project.eyebrow}</span>
           </div>
           <ProjectLinks project={project} />
         </div>
         <div className={isFlagship ? 'max-w-2xl' : ''}>
-          <p className={`project-tile-metric font-mono font-bold uppercase tracking-wider ${isCompact ? 'mb-2 text-[11px]' : 'mb-2 text-xs'}`}>{project.metric}</p>
+          <p className={`project-tile-metric font-mono font-extrabold uppercase tracking-wider text-[#ffda18] ${isCompact ? 'mb-2 text-[11px]' : 'mb-2 text-xs'}`}>{project.metric}</p>
           <h3
             id={titleId}
             className={`font-heading font-bold leading-tight ${
@@ -176,7 +175,7 @@ const ProjectTile = ({ project }) => {
             {project.tags.map((tag) => (
               <span
                 key={tag}
-                className={`project-tile-tag rounded-full border border-white/30 bg-white/15 font-bold backdrop-blur-sm ${
+                className={`project-tile-tag rounded-full border border-[#faf9f4]/40 bg-[#faf9f4]/15 font-extrabold backdrop-blur-sm ${
                   isCompact ? 'px-2 py-0.5 text-[10px]' : 'px-2.5 py-1 text-[11px]'
                 }`}
               >
@@ -197,15 +196,13 @@ const ProjectLinks = ({ project }) => {
           href: project.github,
           label: 'GitHub',
           ariaLabel: `${project.title} on GitHub`,
-          icon: Github,
         }
       : null,
     project.link && project.link !== project.github
       ? {
           href: project.link,
-          label: 'Project link',
+          label: 'Live',
           ariaLabel: `Open ${project.title}`,
-          icon: ExternalLink,
         }
       : null,
   ].filter(Boolean);
@@ -219,21 +216,17 @@ const ProjectLinks = ({ project }) => {
   );
 };
 
-const ProjectLink = ({ link }) => {
-  const Icon = link.icon;
-
-  return (
+const ProjectLink = ({ link }) => (
     <a
       href={link.href}
       target="_blank"
       rel="noopener noreferrer"
-      className="focus-ring rounded-full border border-white/70 bg-white/90 p-1.5 text-slate-600 shadow-sm transition-[background-color,border-color,color,transform] hover:-translate-y-0.5 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800"
+      className="focus-ring rounded-full border-2 border-[#101617] bg-[#faf9f4] px-3 py-1 font-mono text-[11px] font-extrabold uppercase tracking-[0.12em] text-[#101617] shadow-[3px_3px_0_rgba(255,58,18,0.9)] transition-[background-color,border-color,color,transform] hover:-translate-y-0.5 hover:bg-[#ffda18] hover:shadow-[4px_4px_0_rgba(16,22,23,0.9)]"
       aria-label={link.ariaLabel}
       title={link.label}
     >
-      <Icon size={18} aria-hidden="true" focusable="false" />
+      {link.label}
     </a>
-  );
-};
+);
 
 export default Projects;

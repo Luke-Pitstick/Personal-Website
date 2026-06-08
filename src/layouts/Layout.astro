@@ -16,7 +16,7 @@ const { title, description = "Luke Pitstick - Developer & Student" } = Astro.pro
 		<meta charset="UTF-8" />
 		<meta name="description" content={description} />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<meta name="theme-color" content="#f5fbf8" />
+		<meta name="theme-color" content="#f8f7f1" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<link rel="apple-touch-icon" href="/favicon.svg" />
 		<meta name="generator" content={Astro.generator} />
@@ -28,11 +28,11 @@ const { title, description = "Luke Pitstick - Developer & Student" } = Astro.pro
 
 		<title>{title}</title>
 	</head>
-	<body class="relative min-h-screen selection:bg-green-200 selection:text-green-900">
-		<a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[999] focus:rounded-lg focus:border-2 focus:border-emerald-900 focus:bg-white focus:px-4 focus:py-2 focus:font-bold focus:text-emerald-950 focus:shadow-lg">
+	<body class="relative min-h-screen selection:bg-[#ffda18] selection:text-[#101617]">
+		<a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[999] focus:rounded-lg focus:border-2 focus:border-[#101617] focus:bg-[#faf9f4] focus:px-4 focus:py-2 focus:font-bold focus:text-[#101617] focus:shadow-[4px_4px_0_0_rgba(255,58,18,0.9)]">
 			Skip to Content
 		</a>
-		<div class="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-b from-blue-50 to-green-50/50"></div>
+		<div class="pointer-events-none fixed inset-0 -z-10 bg-[#f8f7f1]"></div>
 		<Navbar client:load />
 		<slot />
 	</body>
