@@ -189,7 +189,7 @@ const ShaderHint = ({ autoOnly, onDismiss }) => {
           ease: 'easeOut',
         },
       }}
-      className="pointer-events-auto absolute bottom-6 left-4 z-20 max-w-[20rem] rounded-sm border-2 border-[#101617] bg-[#faf9f4]/92 p-4 pr-10 shadow-[6px_6px_0_0_rgba(255,58,18,0.88)] backdrop-blur-sm sm:bottom-8 sm:left-6 sm:max-w-[22rem] sm:p-5 sm:pr-11"
+      className="pointer-events-auto absolute bottom-6 left-4 right-4 z-20 mx-auto max-w-[20rem] rounded-sm border-2 border-[#101617] bg-[#faf9f4]/92 p-4 pr-10 shadow-[6px_6px_0_0_rgba(255,58,18,0.88)] backdrop-blur-sm sm:bottom-8 sm:left-6 sm:right-auto sm:mx-0 sm:max-w-[22rem] sm:p-5 sm:pr-11"
     >
       <p className="m-0 font-mono text-[0.68rem] font-extrabold uppercase tracking-[0.16em] text-[#ff3a12] sm:text-xs">
         Live shaders
