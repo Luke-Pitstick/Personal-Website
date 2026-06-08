@@ -70,7 +70,6 @@ const Hero = () => {
     >
       <DitheredHeroCanvas
         onInteractiveChange={handleHeroInteractiveChange}
-        onUserInteract={dismissShaderHint}
       />
 
       <AnimatePresence>
