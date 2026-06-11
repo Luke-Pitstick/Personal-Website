@@ -1,16 +1,38 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Hero from '../components/Hero.jsx';
+import HeroContent from '../components/HeroContent.astro';
 import About from '../components/About.jsx';
 import Projects from '../components/Projects.jsx';
 import Contact from '../components/Contact.jsx';
+
+const portraitSizes = '(min-width: 1100px) 234px, (min-width: 768px) 21vw, 116px';
+const portraitAvifSrcSet =
+	'/pictureofme-256.avif 256w, /pictureofme-384.avif 384w, /pictureofme-512.avif 512w, /pictureofme-768.avif 768w';
 ---
 
 <Layout title="Luke Pitstick | Home">
+	<link
+		slot="head"
+		rel="preload"
+		as="image"
+		type="image/avif"
+		href="/pictureofme-384.avif"
+		imagesrcset={portraitAvifSrcSet}
+		imagesizes={portraitSizes}
+		fetchpriority="high"
+	/>
 	<main id="main-content">
-		<div id="home" class="scroll-mt-16">
-			<Hero client:load />
-		</div>
+		<section
+			id="home"
+			class="scroll-mt-16 relative grid min-h-screen overflow-hidden bg-[#f8f7f1] px-4 text-[#101617]"
+		>
+			<div class="dithered-hero dithered-hero--static" aria-hidden="true">
+				<div class="dithered-hero-shade"></div>
+			</div>
+			<HeroContent />
+			<Hero client:idle />
+		</section>
 		<div class="relative z-10 border-t-4 border-[#101617] bg-[#f8f7f1]/92 shadow-[0_-10px_0_rgba(255,58,18,0.9)] backdrop-blur-sm">
 			<div id="about" class="scroll-mt-16">
 				<About client:visible />

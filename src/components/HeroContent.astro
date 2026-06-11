@@ -1,0 +1,77 @@
+---
+const emailAddress = 'contact@lukepitstick.com';
+const portraitSizes = '(min-width: 1100px) 234px, (min-width: 768px) 21vw, 116px';
+const portraitAvifSrcSet =
+  '/pictureofme-256.avif 256w, /pictureofme-384.avif 384w, /pictureofme-512.avif 512w, /pictureofme-768.avif 768w';
+const portraitWebpSrcSet =
+  '/pictureofme-256.webp 256w, /pictureofme-384.webp 384w, /pictureofme-512.webp 512w, /pictureofme-768.webp 768w';
+const portraitJpgSrcSet =
+  '/pictureofme-256.jpg 256w, /pictureofme-384.jpg 384w, /pictureofme-512.jpg 512w, /pictureofme-768.jpg 768w';
+---
+
+<div
+  class="hero-content-parallax pointer-events-none relative z-30 mx-auto grid min-h-screen w-full max-w-6xl content-start justify-items-center pt-[clamp(7.5rem,16vh,11rem)] text-center"
+>
+  <div class="mx-auto flex w-full max-w-2xl flex-col items-center gap-8 md:gap-10">
+    <div class="hero-identity motion-reveal [--motion-delay:0.18s] [--reveal-scale:0.98] [--reveal-y:16px]">
+      <figure class="hero-profile-frame m-0">
+        <picture>
+          <source type="image/avif" srcset={portraitAvifSrcSet} sizes={portraitSizes} />
+          <source type="image/webp" srcset={portraitWebpSrcSet} sizes={portraitSizes} />
+          <img
+            src="/pictureofme-512.jpg"
+            srcset={portraitJpgSrcSet}
+            sizes={portraitSizes}
+            alt="Luke Pitstick"
+            class="h-full w-full object-cover object-[50%_24%]"
+            width="512"
+            height="512"
+            decoding="async"
+            fetchpriority="high"
+          />
+        </picture>
+      </figure>
+
+      <h1 class="dithered-hero-title m-0 max-w-[9ch] text-center font-heading font-bold md:text-left">
+        Luke Pitstick
+      </h1>
+    </div>
+
+    <p
+      class="motion-reveal w-full bg-[#101617] px-3 py-2 font-body text-base font-extrabold leading-relaxed text-[#f5f0d8] shadow-[8px_8px_0_rgba(255,58,18,0.9)] sm:text-xl md:text-2xl [--motion-delay:0.38s] [--reveal-y:12px]"
+    >
+      AI/ML research and software development for practical, human-centered tools.
+    </p>
+
+    <div
+      id="hero-socials"
+      class="pointer-events-auto flex w-full flex-wrap justify-center gap-4 pt-2 transition-[opacity,transform] duration-300 ease-out sm:gap-5 translate-y-0 opacity-100"
+    >
+      <a
+        href="https://github.com/Luke-Pitstick"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="focus-ring motion-reveal rounded-full border-2 border-[#101617] bg-[#faf9f4] px-4 py-2 font-mono text-xs font-extrabold uppercase tracking-[0.14em] text-[#101617] shadow-[3px_3px_0_0_rgba(16,22,23,0.85)] transition-[background-color,box-shadow,color,transform] duration-300 hover:-translate-y-1 hover:bg-[#ffda18] hover:shadow-[5px_5px_0_0_rgba(255,58,18,0.95)] [--reveal-scale:0.92] [--reveal-y:12px] [--motion-delay:0.62s]"
+        aria-label="GitHub"
+      >
+        GitHub
+      </a>
+      <a
+        href="https://www.linkedin.com/in/luke-pitstick"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="focus-ring motion-reveal rounded-full border-2 border-[#101617] bg-[#faf9f4] px-4 py-2 font-mono text-xs font-extrabold uppercase tracking-[0.14em] text-[#101617] shadow-[3px_3px_0_0_rgba(16,22,23,0.85)] transition-[background-color,box-shadow,color,transform] duration-300 hover:-translate-y-1 hover:bg-[#ffda18] hover:shadow-[5px_5px_0_0_rgba(255,58,18,0.95)] [--reveal-scale:0.92] [--reveal-y:12px] [--motion-delay:0.69s]"
+        aria-label="LinkedIn"
+      >
+        LinkedIn
+      </a>
+      <a
+        href={`mailto:${emailAddress}`}
+        class="focus-ring motion-reveal rounded-full border-2 border-[#101617] bg-[#faf9f4] px-4 py-2 font-mono text-xs font-extrabold uppercase tracking-[0.14em] text-[#101617] shadow-[3px_3px_0_0_rgba(16,22,23,0.85)] transition-[background-color,box-shadow,color,transform] duration-300 hover:-translate-y-1 hover:bg-[#ffda18] hover:shadow-[5px_5px_0_0_rgba(255,58,18,0.95)] [--reveal-scale:0.92] [--reveal-y:12px] [--motion-delay:0.76s]"
+        aria-label="Email"
+      >
+        Email
+      </a>
+    </div>
+  </div>
+</div>

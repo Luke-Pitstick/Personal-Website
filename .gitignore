@@ -35,3 +35,7 @@ firebase-debug.log
 public/*
 !public/favicon.svg
 !public/background-dithered.webp
+!public/pictureofme.jpg
+!public/pictureofme-*.avif
+!public/pictureofme-*.webp
+!public/pictureofme-*.jpg

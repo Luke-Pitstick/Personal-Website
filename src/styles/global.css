@@ -112,7 +112,11 @@ body::before {
   z-index: 0;
   overflow: hidden;
   isolation: isolate;
-  background: #d9f0f4;
+  background-color: #d9f0f4;
+  background-image: url('/background-dithered.webp');
+  background-position: center;
+  background-size: cover;
+  image-rendering: pixelated;
 }
 
 .dithered-hero--auto-only {
@@ -176,8 +180,8 @@ body::before {
 
 .dithered-hero-title {
   color: #101617;
-  font-size: clamp(3.5rem, 8vw, 7.25rem);
-  line-height: 0.88;
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  line-height: 0.95;
 }
 
 .hero-identity {
@@ -189,7 +193,7 @@ body::before {
   width: fit-content;
   max-width: 100%;
   margin-top: -22px;
-  margin-bottom: -22px;
+  margin-bottom: 0;
   padding-left: 0;
   padding-right: 0;
   text-align: center;
@@ -231,8 +235,8 @@ body::before {
   .dithered-hero-title {
     margin-top: 1.35rem;
     padding-top: 14px;
-    line-height: 0.92;
-    min-height: 150px;
+    line-height: 0.95;
+    min-height: 0;
   }
 }
 
