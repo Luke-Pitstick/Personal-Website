@@ -160,7 +160,7 @@ export const AboutIntro = () => {
   const shouldReduceMotion = useReducedMotion();
 
   return (
-    <section className={`about-intro ${SITE_SHELL} pb-16 pt-12 md:pb-20 md:pt-16`} aria-labelledby="about-heading">
+    <section className={`about-intro ${SITE_SHELL} pb-12 pt-10 md:pb-16 md:pt-12`} aria-labelledby="about-heading">
       <MachadoSectionHeader
         title="About Me"
         titleId="about-heading"
@@ -232,7 +232,7 @@ export const ExperienceSection = () => {
   const shouldReduceMotion = useReducedMotion();
 
   return (
-    <section className={`experience-section ${SITE_SHELL} py-[13px]`} aria-labelledby="experience-heading">
+    <section className={`experience-section ${SITE_SHELL} py-2`} aria-labelledby="experience-heading">
       <MachadoSectionHeader
         title="Experience"
         titleId="experience-heading"

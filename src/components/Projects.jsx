@@ -110,7 +110,7 @@ const ProjectCard = ({ project, index, shouldReduceMotion }) => {
       height="675"
       loading={index === 0 ? 'eager' : 'lazy'}
       decoding="async"
-      className={`h-full w-full object-cover object-top transition-[transform,filter] duration-500 group-hover/card:scale-[1.04] group-hover/card:brightness-[1.05] group-hover/card:saturate-110 ${project.imageClass ?? ''}`}
+      className={`h-full w-full object-cover object-top transition-[filter] duration-500 group-hover/card:brightness-[1.05] group-hover/card:saturate-110 ${project.imageClass ?? ''}`}
     />
   );
 
@@ -144,7 +144,7 @@ const ProjectCard = ({ project, index, shouldReduceMotion }) => {
         />
       </div>
 
-      <div className="flex flex-1 flex-col pt-5">
+      <div className="flex flex-1 flex-col pt-4">
         <h3
           id={titleId}
           className="font-heading text-xl font-bold leading-snug text-[#101617] transition-colors duration-300 group-hover/card:text-[#ff3a12] sm:text-2xl"
@@ -172,7 +172,7 @@ const Projects = () => {
   const shouldReduceMotion = useReducedMotion();
 
   return (
-    <section className={`${SITE_SHELL} py-16 md:py-20`} aria-labelledby="projects-heading">
+    <section className={`${SITE_SHELL} py-12 md:py-16`} aria-labelledby="projects-heading">
       <MachadoSectionHeader
         title="Projects"
         titleId="projects-heading"

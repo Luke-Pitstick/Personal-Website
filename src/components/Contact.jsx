@@ -21,11 +21,11 @@ const Contact = () => {
       initial={false}
       whileInView="show"
       viewport={viewportOnce}
-      className={`${SITE_SHELL} py-4`}
+      className={`${SITE_SHELL} py-3`}
     >
       <motion.div
         variants={createStagger(0.05, 0.07)}
-        className="flex flex-col items-center justify-between gap-8 md:flex-row"
+        className="flex flex-col items-center justify-between gap-6 md:flex-row"
       >
         <motion.div variants={createReveal({ y: 10 }, shouldReduceMotion)} className="text-center md:text-left">
           <h3 className="font-heading text-2xl font-bold text-[#101617] md:text-3xl">
@@ -62,7 +62,7 @@ const Contact = () => {
 
       <motion.div
         variants={createReveal({ y: 8 }, shouldReduceMotion)}
-        className="mt-12 text-center font-body text-sm font-bold text-[#334044]"
+        className="mt-8 text-center font-body text-sm font-bold text-[#334044]"
       >
         © {new Date().getFullYear()} Luke Pitstick. Built with Astro & React.
       </motion.div>

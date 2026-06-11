@@ -98,7 +98,7 @@ const Navbar = () => {
 
   const navSurfaceClass =
     scrolled || isOpen
-      ? 'border-[#101617] bg-[#faf9f4]/92 shadow-[0_5px_0_rgba(255,58,18,0.8)] backdrop-blur-md'
+      ? 'border-[#101617] bg-[#faf9f4]/92 backdrop-blur-md'
       : 'border-transparent bg-transparent shadow-none';
 
   return (
