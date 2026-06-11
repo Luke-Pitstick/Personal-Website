@@ -1,14 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import * as motion from 'motion/react-client';
 import { AnimatePresence, useReducedMotion } from 'motion/react';
 
 import { createReveal, createStagger, softSpring, tapMotion } from '../lib/motion';
+import { scrollToSection } from '../lib/scroll';
+import { SITE_SHELL } from './SectionChrome';
+
+const SECTION_IDS = ['home', 'about', 'projects', 'contact'];
+const SCROLL_LOCK_MS = 900;
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [activeHref, setActiveHref] = useState('/#home');
   const [hoveredHref, setHoveredHref] = useState(null);
+  const scrollLockRef = useRef(null);
   const shouldReduceMotion = useReducedMotion();
 
   const navLinks = [
@@ -18,10 +24,53 @@ const Navbar = () => {
     { name: 'Contact', href: '/#contact' },
   ];
 
+  const handleNavClick = useCallback(
+    (event, href) => {
+      event.preventDefault();
+      const sectionId = href.split('#')[1] ?? 'home';
+
+      scrollLockRef.current = href;
+      window.setTimeout(() => {
+        if (scrollLockRef.current === href) {
+          scrollLockRef.current = null;
+        }
+      }, SCROLL_LOCK_MS);
+
+      setActiveHref(href);
+      setScrolled(sectionId !== 'home');
+      setIsOpen(false);
+
+      scrollToSection(sectionId, {
+        behavior: shouldReduceMotion ? 'auto' : 'smooth',
+      });
+    },
+    [shouldReduceMotion],
+  );
+
+  useEffect(() => {
+    const hash = window.location.hash.slice(1);
+    if (hash && SECTION_IDS.includes(hash)) {
+      requestAnimationFrame(() => {
+        scrollLockRef.current = `/#${hash}`;
+        setActiveHref(`/#${hash}`);
+        setScrolled(hash !== 'home');
+        scrollToSection(hash, { behavior: 'auto' });
+        window.setTimeout(() => {
+          scrollLockRef.current = null;
+        }, SCROLL_LOCK_MS);
+      });
+    }
+  }, []);
+
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 50);
-      const currentSection = ['home', 'about', 'projects', 'contact'].reduce((current, id) => {
+
+      if (scrollLockRef.current) {
+        return;
+      }
+
+      const currentSection = SECTION_IDS.reduce((current, id) => {
         const section = document.getElementById(id);
         return section && section.getBoundingClientRect().top <= 140 ? id : current;
       }, 'home');
@@ -30,6 +79,7 @@ const Navbar = () => {
         setActiveHref(`/#${currentSection}`);
       }
     };
+
     handleScroll();
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
@@ -46,16 +96,20 @@ const Navbar = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  const navSurfaceClass =
+    scrolled || isOpen
+      ? 'border-[#101617] bg-[#faf9f4]/92 shadow-[0_5px_0_rgba(255,58,18,0.8)] backdrop-blur-md'
+      : 'border-transparent bg-transparent shadow-none';
+
   return (
     <nav
-      className={`fixed left-0 top-0 z-50 w-full transition-[background-color,box-shadow,padding,backdrop-filter] duration-300 ${
-        scrolled || isOpen ? 'border-b-2 border-[#101617] bg-[#faf9f4]/92 py-2 shadow-[0_5px_0_rgba(255,58,18,0.8)] backdrop-blur-md' : 'bg-transparent py-4'
-      }`}
+      className={`fixed left-0 top-0 z-50 w-full border-b-2 py-3 transition-[background-color,box-shadow,backdrop-filter,border-color] duration-300 ${navSurfaceClass}`}
       aria-label="Primary navigation"
     >
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4">
+      <div className={`${SITE_SHELL} flex items-center justify-between`}>
         <motion.a
           href="/#home"
+          onClick={(event) => handleNavClick(event, '/#home')}
           whileHover={shouldReduceMotion ? { opacity: 0.82 } : { y: -1 }}
           whileTap={tapMotion}
           transition={softSpring}
@@ -71,29 +125,29 @@ const Navbar = () => {
             const isHighlighted = (hoveredHref || activeHref) === link.href;
 
             return (
-            <motion.a
-              key={link.name}
-              href={link.href}
-              onMouseEnter={() => setHoveredHref(link.href)}
-              onMouseLeave={() => setHoveredHref(null)}
-              onFocus={() => setHoveredHref(link.href)}
-              onBlur={() => setHoveredHref(null)}
-              onClick={() => setActiveHref(link.href)}
-              whileHover={shouldReduceMotion ? undefined : { y: -1 }}
-              whileTap={tapMotion}
-              transition={softSpring}
-              className="focus-ring relative rounded-lg px-1 text-sm font-extrabold text-[#101617] transition-colors hover:text-[#ff3a12] lg:text-base"
-              aria-current={activeHref === link.href ? 'page' : undefined}
-            >
-              <span>{link.name}</span>
-              {isHighlighted && (
-                <motion.span
-                  layoutId="nav-underline"
-                  className="absolute -bottom-1 left-0 h-[3px] w-full rounded-full bg-[#ff3a12]"
-                  transition={softSpring}
-                />
-              )}
-            </motion.a>
+              <motion.a
+                key={link.name}
+                href={link.href}
+                onMouseEnter={() => setHoveredHref(link.href)}
+                onMouseLeave={() => setHoveredHref(null)}
+                onFocus={() => setHoveredHref(link.href)}
+                onBlur={() => setHoveredHref(null)}
+                onClick={(event) => handleNavClick(event, link.href)}
+                whileHover={shouldReduceMotion ? undefined : { y: -1 }}
+                whileTap={tapMotion}
+                transition={softSpring}
+                className="focus-ring relative rounded-lg px-1 text-sm font-extrabold text-[#101617] transition-colors hover:text-[#ff3a12] lg:text-base"
+                aria-current={activeHref === link.href ? 'page' : undefined}
+              >
+                <span>{link.name}</span>
+                {isHighlighted && (
+                  <motion.span
+                    layoutId="nav-underline"
+                    className="absolute -bottom-1 left-0 h-[3px] w-full rounded-full bg-[#ff3a12]"
+                    transition={softSpring}
+                  />
+                )}
+              </motion.a>
             );
           })}
         </div>
@@ -115,7 +169,7 @@ const Navbar = () => {
         {/* Mobile Dropdown */}
         <AnimatePresence>
           {isOpen && (
-            <motion.div 
+            <motion.div
               variants={createStagger(0.05, 0.06)}
               initial="hidden"
               animate="show"
@@ -124,24 +178,19 @@ const Navbar = () => {
               id="mobile-menu"
             >
               <div className="flex flex-col gap-2 p-4">
-                {navLinks.map((link) => {
-                  return (
+                {navLinks.map((link) => (
                   <motion.a
-                    key={link.name} 
-                    href={link.href} 
+                    key={link.name}
+                    href={link.href}
                     variants={createReveal({ y: -10 }, shouldReduceMotion)}
                     whileTap={tapMotion}
                     className="focus-ring rounded-lg p-3 font-extrabold text-[#101617] transition-colors hover:bg-[#ffda18]"
                     aria-current={activeHref === link.href ? 'page' : undefined}
-                    onClick={() => {
-                      setActiveHref(link.href);
-                      setIsOpen(false);
-                    }}
+                    onClick={(event) => handleNavClick(event, link.href)}
                   >
                     <span>{link.name}</span>
                   </motion.a>
-                  );
-                })}
+                ))}
               </div>
             </motion.div>
           )}

@@ -184,7 +184,7 @@ const ShaderHint = ({ autoOnly, onDismiss }) => {
       <button
         type="button"
         onClick={onDismiss}
-        className="focus-ring absolute right-2.5 top-2.5 flex h-7 w-7 items-center justify-center rounded-full border border-[#101617]/30 font-mono text-base font-bold leading-none text-[#101617]/70 transition-colors hover:border-[#101617] hover:bg-[#ffda18] hover:text-[#101617]"
+        className="focus-ring absolute right-2.5 top-2.5 flex h-7 w-7 items-center justify-center rounded-full border-2 border-[#101617] font-mono text-base font-bold leading-none text-[#101617] transition-colors hover:bg-[#ffda18]"
         aria-label="Dismiss shader hint"
       >
         ×

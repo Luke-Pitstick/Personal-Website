@@ -21,6 +21,7 @@ body {
   font-family: var(--font-body);
   overflow-x: hidden;
   scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
   -webkit-tap-highlight-color: rgba(255, 58, 18, 0.18);
   touch-action: manipulation;
 }
@@ -181,7 +182,8 @@ body::before {
 .dithered-hero-title {
   color: #101617;
   font-size: clamp(2.5rem, 6vw, 5rem);
-  line-height: 0.95;
+  line-height: 1;
+  text-wrap: nowrap;
 }
 
 .hero-identity {
@@ -192,51 +194,128 @@ body::before {
   gap: clamp(0.85rem, 2.4vw, 1.35rem);
   width: fit-content;
   max-width: 100%;
-  margin-top: -22px;
+  margin-top: 0;
   margin-bottom: 0;
   padding-left: 0;
   padding-right: 0;
   text-align: center;
 }
 
-.hero-profile-frame {
-  width: clamp(7.25rem, 21.27vw, 14.625rem);
-  aspect-ratio: 1;
-  flex-shrink: 0;
-  overflow: hidden;
-  border: 3px solid #101617;
-  border-radius: 999px;
-  background: #faf9f4;
-  box-shadow:
-    7px 7px 0 0 rgba(255, 58, 18, 0.88),
-    0 18px 42px rgba(16, 22, 23, 0.16);
-  transform: rotate(-2deg);
+.experience-index-row {
+  border-left: 2px solid transparent;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
-.hero-profile-frame img {
-  padding-left: 0;
-  padding-right: 0;
+.experience-index-row:hover {
+  border-left-color: var(--color-accent);
+  background-color: rgba(255, 58, 18, 0.04);
+}
+
+.about-profile-frame {
+  aspect-ratio: 3 / 4;
+  border: 2px solid var(--color-text);
+  border-radius: 8px;
+  box-shadow: 6px 6px 0 0 rgba(255, 58, 18, 0.88);
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    transform 0.25s ease;
+}
+
+.about-profile-frame:hover {
+  box-shadow: 8px 8px 0 0 rgba(16, 22, 23, 0.88);
+  transform: translate(-2px, -2px);
+}
+
+.about-profile-frame img {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+.about-intro .experience-header {
+  margin-bottom: 1.5rem;
+}
+
+.section-index-band {
+  padding-top: 0;
+}
+
+.about-intro-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: minmax(0, 1fr);
+  padding-top: 1.5rem;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .about-intro-grid {
+    align-items: center;
+    column-gap: 2rem;
+    grid-template-columns: minmax(240px, 280px) minmax(0, 1fr) minmax(340px, 380px);
+  }
+}
+
+@media (min-width: 1024px) {
+  .about-intro-grid {
+    column-gap: 2.5rem;
+    grid-template-columns: 280px minmax(0, 1fr) 380px;
+  }
+}
+
+.about-now-board {
+  border: 2px solid var(--color-text);
+  border-radius: 8px;
+  background-color: #faf9f4;
+  box-shadow: 6px 6px 0 0 rgba(255, 58, 18, 0.88);
+}
+
+.about-intro-action {
+  box-shadow: 6px 6px 0 0 rgba(255, 58, 18, 0.88);
+}
+
+.about-intro-action:hover {
+  box-shadow: 8px 8px 0 0 rgba(16, 22, 23, 0.88);
+}
+
+.about-now-row {
+  transition: background-color 0.15s ease;
+}
+
+.about-now-row:hover {
+  background-color: rgba(255, 58, 18, 0.04);
+}
+
+@media (min-width: 768px) {
+  .about-intro .experience-header {
+    margin-bottom: 2rem;
+  }
+
+  .about-intro-grid {
+    padding-top: 1.75rem;
+  }
+}
+
+.experience-section .experience-header {
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .experience-section .experience-header {
+    margin-bottom: 2rem;
+  }
 }
 
 @media (min-width: 768px) {
   .hero-identity {
-    display: grid;
-    grid-template-columns: auto minmax(0, max-content);
-    align-items: start;
-    justify-content: center;
-    gap: clamp(1.25rem, 3vw, 2rem);
-    text-align: left;
-  }
-
-  .hero-profile-frame {
-    margin-top: 0.12em;
+    display: block;
+    text-align: center;
   }
 
   .dithered-hero-title {
-    margin-top: 1.35rem;
-    padding-top: 14px;
-    line-height: 0.95;
-    min-height: 0;
+    margin-top: 0;
+    padding-top: 0;
   }
 }
 
@@ -299,6 +378,15 @@ h1, h2, h3, h4, h5, h6 {
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .about-now-board:hover {
+    box-shadow: 6px 6px 0 0 rgba(255, 58, 18, 0.88);
+    transform: none;
+  }
+
+  .about-intro-action:hover {
+    transform: none;
   }
 
   .hand-drawn:hover {

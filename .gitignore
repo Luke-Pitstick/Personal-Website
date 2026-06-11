@@ -39,3 +39,4 @@ public/*
 !public/pictureofme-*.avif
 !public/pictureofme-*.webp
 !public/pictureofme-*.jpg
+.gstack/
