@@ -5,7 +5,10 @@ import {
   hasSpotifyPlaybackCredentials,
 } from '../../src/lib/spotify.server.js';
 
-const json = (res, statusCode, payload, cacheControl = 'public, s-maxage=20, stale-while-revalidate=60') => {
+const LIVE_PLAYBACK_CACHE = 'public, max-age=15, s-maxage=30, stale-while-revalidate=120';
+const RECENT_PLAYBACK_CACHE = 'public, max-age=60, s-maxage=180, stale-while-revalidate=600';
+
+const json = (res, statusCode, payload, cacheControl = LIVE_PLAYBACK_CACHE) => {
   res.setHeader('Cache-Control', cacheControl);
   return res.status(statusCode).json(payload);
 };
@@ -53,15 +56,20 @@ export default async function handler(req, res) {
           ...recentTrack,
           recentTracks,
         },
-        'public, s-maxage=120, stale-while-revalidate=300',
+        RECENT_PLAYBACK_CACHE,
       );
     }
 
-    return json(res, 200, {
-      status: 'idle',
-      isPlaying: false,
-      recentTracks: [],
-    });
+    return json(
+      res,
+      200,
+      {
+        status: 'idle',
+        isPlaying: false,
+        recentTracks: [],
+      },
+      RECENT_PLAYBACK_CACHE,
+    );
   } catch (error) {
     return json(
       res,

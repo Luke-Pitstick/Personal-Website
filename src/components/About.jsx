@@ -68,6 +68,50 @@ const initialSpotifyState = {
   recentTracks: [],
 };
 
+const spotifyCacheKey = 'lukepitstick.spotify-listening.v1';
+const spotifyCacheMaxAgeMs = 30 * 60 * 1000;
+const transientSpotifyStatuses = new Set(['loading', 'unconfigured', 'error']);
+
+const shouldCacheSpotify = (spotify) =>
+  spotify && !transientSpotifyStatuses.has(spotify.status) && (spotify.title || spotify.recentTracks?.length);
+
+const readCachedSpotify = () => {
+  try {
+    const cached = window.localStorage.getItem(spotifyCacheKey);
+    if (!cached) return null;
+
+    const parsed = JSON.parse(cached);
+    if (!parsed?.cachedAt || Date.now() - parsed.cachedAt > spotifyCacheMaxAgeMs) {
+      window.localStorage.removeItem(spotifyCacheKey);
+      return null;
+    }
+
+    return {
+      ...parsed.spotify,
+      isCached: true,
+      recentTracks: parsed.spotify?.recentTracks || [],
+    };
+  } catch {
+    return null;
+  }
+};
+
+const writeCachedSpotify = (spotify) => {
+  if (!shouldCacheSpotify(spotify)) return;
+
+  try {
+    window.localStorage.setItem(
+      spotifyCacheKey,
+      JSON.stringify({
+        cachedAt: Date.now(),
+        spotify,
+      }),
+    );
+  } catch {
+    // localStorage can be unavailable in private or restricted browser contexts.
+  }
+};
+
 const getTrackInitials = (track) => {
   if (!track?.title) return 'SP';
 
@@ -165,6 +209,11 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
 
   useEffect(() => {
     const controller = new AbortController();
+    const cachedSpotify = readCachedSpotify();
+
+    if (cachedSpotify) {
+      setSpotify(cachedSpotify);
+    }
 
     const loadSpotify = async () => {
       try {
@@ -179,11 +228,15 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
         const data = await response.json();
         setSpotify({
           ...data,
+          isCached: false,
           recentTracks: data.recentTracks || [],
         });
+        writeCachedSpotify(data);
       } catch (error) {
         if (error.name !== 'AbortError') {
-          setSpotify({ status: 'error', isPlaying: false, recentTracks: [] });
+          setSpotify((currentSpotify) =>
+            currentSpotify.isCached ? currentSpotify : { status: 'error', isPlaying: false, recentTracks: [] },
+          );
         }
       }
     };
@@ -194,9 +247,11 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
   }, []);
 
   const footerState =
-    spotify.status === 'playing' || spotify.status === 'paused' || spotify.status === 'recent'
-      ? 'Live'
-      : spotifyStatusLabels[spotify.status];
+    spotify.isCached
+      ? 'Refreshing'
+      : spotify.status === 'playing' || spotify.status === 'paused' || spotify.status === 'recent'
+        ? 'Live'
+        : spotifyStatusLabels[spotify.status];
 
   return (
     <motion.aside
