@@ -35,7 +35,7 @@ const projects = [
     metric: 'Rent forecasting',
   },
   {
-    title: 'InfraDrone',
+    title: 'InfraDrone (WIP)',
     eyebrow: 'Robotics',
     description:
       'Autonomous drone and ground-station system for offline road damage surveys with YOLO segmentation and GPS-temporal analysis.',
@@ -177,7 +177,7 @@ const Projects = () => {
       <MachadoSectionHeader
         title="Projects"
         titleId="projects-heading"
-        description="Renewable energy, forecasting, robotics, AI agents, and creative tools I am proud of."
+        description="A couple of projects I'm proud of. Mostly AI/ML applications for unique problems."
         shouldReduceMotion={shouldReduceMotion}
       />
 

@@ -40,3 +40,4 @@ public/*
 !public/pictureofme-*.webp
 !public/pictureofme-*.jpg
 .gstack/
+.env*.local

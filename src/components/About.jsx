@@ -13,35 +13,53 @@ const experiences = [
     company: 'WattByte Nexus',
     period: 'May 2026 - Present',
     location: 'Golden, CO',
-    highlights: [],
+    highlights: [
+      'Designing digital and simulation systems for modeling power line dynamics to help prevent wildfires.',
+      'Using AI/ML to model complex physical dynamics, speed up simulations, and reduce costs.',
+      'Building with AWS and Redis for continuous-loop simulations.',
+    ],
   },
   {
     role: 'Junior Data Manager',
     company: 'National Oceanic and Atmospheric Administration',
     period: 'Oct 2025 — Present',
     location: 'Boulder, CO',
-    highlights: [],
+    highlights: [
+      'Managing and cleaning oceanographic datasets for research teams.',
+      'Building Python pipelines to automate data validation and reporting.',
+      'Currently processing over 10 TB a week of oceanographic data.',
+    ],
   },
   {
     role: 'Data Science Intern',
     company: 'Ranked Choice Voting for Longmont',
     period: 'Aug 2025 — Dec 2026',
     location: 'Boulder, CO',
-    highlights: [],
+    highlights: [
+      'Made charts and visualizations to support targeted campaign efforts.',
+      'Modeled voting patterns and preferences to inform campaign strategy using fixed-effect linear regression.',
+    ],
   },
   {
     role: 'Student Software Developer',
     company: 'University of Colorado Boulder',
     period: 'Aug 2024 — Jun 2025',
     location: 'Boulder, CO',
-    highlights: [],
+    highlights: [
+      'Made tools to support the automatic handling of student data.',
+      'Used Selenium and C# to automate website operations.',
+    ],
   },
   {
     role: 'Software Developer Intern',
     company: 'B-Secur',
     period: 'Jul 2024 — Aug 2024',
     location: 'Remote',
-    highlights: [],
+    highlights: [
+      'First software development internship.',
+      'Built internal tools to support CI/CD operations.',
+      'Learned a bit of Java.',
+    ],
   },
 ];
 
@@ -454,11 +472,15 @@ export const AboutIntro = () => {
           className="about-intro-copy flex min-w-0 flex-col gap-6 text-center md:col-start-2 md:row-start-1 md:text-left"
         >
           <p className="mx-auto max-w-[52ch] font-body text-base font-bold leading-relaxed text-[#273337] md:mx-0 md:max-w-none md:text-[1.05rem] lg:text-[1.08rem] lg:leading-[1.75]">
-            I am a CU Boulder student studying <b>Data Science and Political Science</b>, with a focus on building
-            useful AI/ML tools for research, public-sector data, and decision support. I currently work with the
+            Hey I'm Luke! I'm currently at CU Boulder studying <b>Computer Science and Political Science</b>, with a
+            focus on building useful AI/ML tools that solve deep technical problems, simulate complex systems, and
+            improve the world through science. I currently work with the
             National Oceanic and Atmospheric Administration as a Junior Data Manager and at WattByte Nexus as an
             AI/ML Engineer Intern. Outside of work, I am usually outdoors, cooking, exploring restaurants, or trying
             new coffee places.
+          </p>
+          <p className="mx-auto max-w-[52ch] font-body text-base font-bold leading-relaxed text-[#273337] md:mx-0 md:max-w-none md:text-[1.05rem] lg:text-[1.08rem] lg:leading-[1.75]">
+            Feel free to reach out! I'm always looking for new opportunities.
           </p>
 
           <motion.a
@@ -490,7 +512,7 @@ export const ExperienceSection = () => {
       <MachadoSectionHeader
         title="Experience"
         titleId="experience-heading"
-        description="AI/ML and public-sector data work across research, forecasting, and decision support."
+        description="AI/ML and data engineering work across startups, governmental organizations, and fast software teams."
         shouldReduceMotion={shouldReduceMotion}
       />
 
