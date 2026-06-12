@@ -37,7 +37,7 @@ export const MachadoSectionHeader = ({
       </h2>
     </div>
     {description ? (
-      <p className="max-w-none font-body text-sm font-bold leading-relaxed text-[#334044] md:max-w-md md:shrink-0 md:text-right lg:max-w-xl xl:max-w-2xl">
+      <p className="max-w-none font-body text-sm font-bold leading-relaxed text-[#334044] md:shrink-0 md:text-right md:whitespace-nowrap">
         {description}
       </p>
     ) : null}

@@ -2,7 +2,6 @@ import React from 'react';
 import * as motion from 'motion/react-client';
 import { useReducedMotion } from 'motion/react';
 import { createReveal, createStagger, softSpring, tapMotion, viewportOnce } from '../lib/motion';
-import { scrollToSection } from '../lib/scroll';
 import { EXPERIENCE_ROW_GRID, MachadoSectionHeader, SECTION_INDEX_BAND, SITE_SHELL } from './SectionChrome';
 
 const resumeDownloadUrl = 'https://np69tokggkswfstp.public.blob.vercel-storage.com/website/Luke_Pitstick_Resume.pdf?download=1';
@@ -13,35 +12,53 @@ const experiences = [
     company: 'WattByte Nexus',
     period: 'May 2026 - Present',
     location: 'Golden, CO',
-    highlights: [],
+    highlights: [
+      'Working on desinging digital/simulation systems for modeling power line dynamics to prevent wildfires.',
+      'Using AI/ML to model complex physical dynamics for speeding up simulations and reducing costs.',
+      'Building with AWS and Redis for continuous loop based simulations.'
+    ],
   },
   {
     role: 'Junior Data Manager',
     company: 'National Oceanic and Atmospheric Administration',
     period: 'Oct 2025 — Present',
     location: 'Boulder, CO',
-    highlights: [],
+    highlights: [
+      'Managing and cleaning oceanographic datasets for research teams.',
+      'Building Python pipelines to automate data validation and reporting.',
+      'Currently processing over 10tb a week of oceanographic data.'
+    ],
   },
   {
     role: 'Data Science Intern',
     company: 'Ranked Choice Voting for Longmont',
     period: 'Aug 2025 — Dec 2026',
     location: 'Boulder, CO',
-    highlights: [],
+    highlights: [
+      'Made charts and visualizations to support targeted campaign efforts.',
+      'Modeled voting patterns and preferences to inform campaign strategies using fixed effect linear regression.'
+    ],
   },
   {
     role: 'Student Software Developer',
     company: 'University of Colorado Boulder',
     period: 'Aug 2024 — Jun 2025',
     location: 'Boulder, CO',
-    highlights: [],
+    highlights: [
+      'Made tools to support the automatic handling of student data',
+      'Interestingly used Selenium + C# to automate website operations'
+    ],
   },
   {
     role: 'Software Developer Intern',
     company: 'B-Secur',
     period: 'Jul 2024 — Aug 2024',
     location: 'Remote',
-    highlights: [],
+    highlights: [
+      'First ever software development internship!',
+      'Built some internel tools to support CI/CD operations.',
+      'Learned a bit of Java.'
+    ],
   },
 ];
 
@@ -53,84 +70,114 @@ const portraitWebpSrcSet =
 const portraitJpgSrcSet =
   '/pictureofme-256.jpg 256w, /pictureofme-384.jpg 384w, /pictureofme-512.jpg 512w, /pictureofme-768.jpg 768w';
 
-const nowBoardItems = [
-  {
-    label: 'Status',
-    value: 'Intern at WattByte Nexus',
-  },
-  { label: 'Location', value: 'Boulder, CO' },
-  { label: 'Focus', value: 'AI/ML · Digital Twins · Spatial Data Science' },
-  { label: 'Stack', value: 'Python · Typescript · SQL' },
+/** Mock Spotify data — replace with live API when wired up. */
+const nowPlaying = {
+  title: 'Motion Picture Soundtrack',
+  artist: 'Radiohead',
+  album: 'Kid A',
+  accent: '#8b9da8',
+};
+
+const recentTracks = [
+  { title: 'Flashing Lights', artist: 'Kanye West', accent: '#c4a35a' },
+  { title: 'Holocene', artist: 'Bon Iver', accent: '#6b8f71' },
+  { title: 'Bags', artist: 'Clairo', accent: '#d4a5a5' },
 ];
 
-const AboutNowBoard = ({ shouldReduceMotion, className = '' }) => {
-  const handleRowClick = (item, event) => {
-    if (!item.action) return;
-    event.preventDefault();
-    scrollToSection(item.action, { behavior: shouldReduceMotion ? 'auto' : 'smooth' });
-  };
+const AlbumThumb = ({ accent, label, size = 'md' }) => {
+  const sizeClass = size === 'lg' ? 'h-11 w-11' : 'h-8 w-8';
 
   return (
-    <motion.aside
-      variants={createReveal({ y: 12 }, shouldReduceMotion)}
+    <span
+      className={`${sizeClass} shrink-0 rounded border-2 border-[#101617] shadow-[2px_2px_0_0_rgba(16,22,23,0.35)]`}
+      style={{ backgroundColor: accent }}
+      aria-hidden="true"
+    >
+      <span className="flex h-full w-full items-center justify-center font-mono text-[0.55rem] font-extrabold uppercase tracking-[0.06em] text-[#101617]/70">
+        {label}
+      </span>
+    </span>
+  );
+};
+
+const AboutListeningBoard = ({ shouldReduceMotion, className = '' }) => (
+  <motion.aside
+    variants={createReveal({ y: 12 }, shouldReduceMotion)}
+    initial={false}
+    whileInView="show"
+    viewport={viewportOnce}
+    className={`about-now-board about-listening-board w-full min-w-0 ${className}`}
+    aria-label="Listening history"
+  >
+    <p className="border-b-2 border-[#101617] px-3 py-2 font-mono text-[0.68rem] font-extrabold uppercase tracking-[0.14em] text-[#ff3a12] sm:px-4 sm:py-2.5 sm:text-xs">
+      Currently Listening
+    </p>
+
+    <motion.div
+      variants={createStagger(0.04, 0.06)}
       initial={false}
       whileInView="show"
       viewport={viewportOnce}
-      className={`about-now-board w-full min-w-0 ${className}`}
-      aria-label="Current status"
     >
-      <p className="border-b-2 border-[#101617] px-3 py-2 font-mono text-[0.68rem] font-extrabold uppercase tracking-[0.14em] text-[#ff3a12] sm:px-4 sm:py-2.5 sm:text-xs">
-        Now
+      <motion.div
+        variants={createReveal({ y: 6 }, shouldReduceMotion)}
+        className="about-now-row about-listening-now grid grid-cols-1 gap-2 px-4 py-3 md:grid-cols-[5.75rem_minmax(0,1fr)] md:items-center md:gap-x-4 md:py-3.5"
+      >
+        <span className="font-mono text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-[#334044]">
+          Now
+        </span>
+
+        <div className="flex min-w-0 items-center gap-3">
+          <AlbumThumb accent={nowPlaying.accent} label="KA" size="lg" />
+          <div className="min-w-0">
+            <p className="truncate font-body text-sm font-extrabold leading-snug text-[#101617]">
+              {nowPlaying.title}
+            </p>
+            <p className="mt-0.5 truncate text-xs font-extrabold text-[#334044]">
+              {nowPlaying.artist}
+              <span className="text-[#ff3a12]"> · </span>
+              {nowPlaying.album}
+            </p>
+            <p className="about-listening-live mt-1.5 flex items-center gap-1.5 font-mono text-[0.62rem] font-extrabold uppercase tracking-[0.1em] text-[#1db954]">
+              <span className="about-listening-live-dot h-1.5 w-1.5 rounded-full bg-[#1db954]" aria-hidden="true" />
+              Playing
+            </p>
+          </div>
+        </div>
+      </motion.div>
+
+      <p className="border-y border-[#101617]/15 px-3 py-1.5 font-mono text-[0.62rem] font-extrabold uppercase tracking-[0.12em] text-[#334044]/80 sm:px-4">
+        Recently played
       </p>
 
-      <motion.ol
-        variants={createStagger(0.04, 0.06)}
-        initial={false}
-        whileInView="show"
-        viewport={viewportOnce}
-        className="list-none"
-      >
-        {nowBoardItems.map((item) => {
-          const rowClassName =
-            'about-now-row grid grid-cols-1 gap-0.5 px-4 py-2.5 md:grid-cols-[5.75rem_minmax(0,1fr)] md:items-baseline md:gap-x-4 md:py-3';
+      <motion.ol className="list-none" variants={createStagger(0.03, 0.05)} initial={false} whileInView="show" viewport={viewportOnce}>
+        {recentTracks.map((track) => (
+          <motion.li
+            key={`${track.artist}-${track.title}`}
+            variants={createReveal({ y: 6 }, shouldReduceMotion)}
+            className="about-now-row about-listening-row grid grid-cols-1 gap-2 px-4 py-2.5 md:grid-cols-[5.75rem_minmax(0,1fr)] md:items-center md:gap-x-4 md:py-2.5"
+          >
+            <span className="hidden font-mono text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-transparent md:block" aria-hidden="true">
+              —
+            </span>
 
-          const valueClassName = 'font-body text-sm font-extrabold leading-snug text-[#101617]';
-
-          if (item.href) {
-            return (
-              <motion.li key={item.label} variants={createReveal({ y: 6 }, shouldReduceMotion)}>
-                <a
-                  href={item.href}
-                  onClick={(event) => handleRowClick(item, event)}
-                  className={`${rowClassName} focus-ring group block transition-colors hover:bg-[#ff3a12]/[0.04]`}
-                >
-                  <span className="font-mono text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-[#334044]">
-                    {item.label}
-                  </span>
-                  <span className={`${valueClassName} text-[#ff3a12] transition-colors group-hover:text-[#101617]`}>
-                    {item.value}
-                    <span className="ml-1.5 inline-block transition-transform group-hover:translate-x-0.5" aria-hidden="true">
-                      →
-                    </span>
-                  </span>
-                </a>
-              </motion.li>
-            );
-          }
-
-          return (
-            <motion.li key={item.label} variants={createReveal({ y: 6 }, shouldReduceMotion)} className={rowClassName}>
-              <span className="font-mono text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-[#334044]">
-                {item.label}
-              </span>
-              <span className={valueClassName}>{item.value}</span>
-            </motion.li>
-          );
-        })}
+            <div className="flex min-w-0 items-center gap-2.5">
+              <AlbumThumb accent={track.accent} label={track.title.slice(0, 2)} />
+              <div className="min-w-0">
+                <p className="truncate font-body text-sm font-extrabold leading-snug text-[#101617]">{track.title}</p>
+                <p className="truncate text-xs font-extrabold text-[#334044]">{track.artist}</p>
+              </div>
+            </div>
+          </motion.li>
+        ))}
       </motion.ol>
-    </motion.aside>
-  );
-};
+
+      <p className="border-t border-[#101617]/15 px-3 py-2 font-mono text-[0.58rem] font-extrabold uppercase tracking-[0.1em] text-[#334044]/65 sm:px-4">
+        Spotify · mock data
+      </p>
+    </motion.div>
+  </motion.aside>
+);
 
 const ExperienceHighlights = ({ highlights, shouldReduceMotion }) => {
   if (!highlights?.length) return null;
@@ -200,11 +247,14 @@ export const AboutIntro = () => {
           className="about-intro-copy flex min-w-0 flex-col gap-6 text-center md:col-start-2 md:row-start-1 md:text-left"
         >
           <p className="mx-auto max-w-[52ch] font-body text-base font-bold leading-relaxed text-[#273337] md:mx-0 md:max-w-none md:text-[1.05rem] lg:text-[1.08rem] lg:leading-[1.75]">
-            I am a CU Boulder student studying <b>Data Science and Political Science</b>, with a focus on building
-            useful AI/ML tools for research, public-sector data, and decision support. I currently work with the
+            Hey I'm Luke! I'm currently at CU Boulder studying <b>Computer Science and Political Science</b>, with a focus on building
+            useful AI/ML tools that solve deep technical problems, simulate complex systems, and improve the world through science. I currently work with the
             National Oceanic and Atmospheric Administration as a Junior Data Manager and at WattByte Nexus as an
             AI/ML Engineer Intern. Outside of work, I am usually outdoors, cooking, exploring restaurants, or trying
-            new coffee places.
+            new coffee places. 
+          </p>
+          <p className="mx-auto max-w-[52ch] font-body text-base font-bold leading-relaxed text-[#273337] md:mx-0 md:max-w-none md:text-[1.05rem] lg:text-[1.08rem] lg:leading-[1.75]">
+            Feel free to reach out! I'm always looking for new opportunities.
           </p>
 
           <motion.a
@@ -219,9 +269,9 @@ export const AboutIntro = () => {
           </motion.a>
         </motion.div>
 
-        <AboutNowBoard
+        <AboutListeningBoard
           shouldReduceMotion={shouldReduceMotion}
-          className="mx-auto max-w-md md:col-start-3 md:row-start-1 md:mx-0 md:max-w-none"
+          className="mx-auto w-max max-w-full md:col-start-3 md:row-start-1 md:mx-0"
         />
       </div>
     </section>
@@ -236,7 +286,7 @@ export const ExperienceSection = () => {
       <MachadoSectionHeader
         title="Experience"
         titleId="experience-heading"
-        description="AI/ML and public-sector data work across research, forecasting, and decision support."
+        description="AI/ML and Data Engineering work across startups, governmental organizations, and fast software teams."
         shouldReduceMotion={shouldReduceMotion}
       />
 
@@ -259,8 +309,7 @@ export const ExperienceSection = () => {
             </div>
 
             <div className="min-w-0">
-              <h3 className="flex items-baseline gap-2.5 font-body text-base font-extrabold text-[#101617] md:text-lg">
-                <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[#ff3a12]" aria-hidden="true" />
+              <h3 className="font-body text-base font-extrabold text-[#101617] md:text-lg">
                 {exp.role}
               </h3>
               <p className="mt-1.5 text-sm font-extrabold text-[#334044] md:text-base">
