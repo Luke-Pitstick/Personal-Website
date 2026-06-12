@@ -1,8 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import * as motion from 'motion/react-client';
 import { useReducedMotion } from 'motion/react';
 import { createReveal, createStagger, softSpring, tapMotion, viewportOnce } from '../lib/motion';
-import { scrollToSection } from '../lib/scroll';
 import { EXPERIENCE_ROW_GRID, MachadoSectionHeader, SECTION_INDEX_BAND, SITE_SHELL } from './SectionChrome';
 
 const resumeDownloadUrl = 'https://np69tokggkswfstp.public.blob.vercel-storage.com/website/Luke_Pitstick_Resume.pdf?download=1';
@@ -53,22 +52,151 @@ const portraitWebpSrcSet =
 const portraitJpgSrcSet =
   '/pictureofme-256.jpg 256w, /pictureofme-384.jpg 384w, /pictureofme-512.jpg 512w, /pictureofme-768.jpg 768w';
 
-const nowBoardItems = [
-  {
-    label: 'Status',
-    value: 'Intern at WattByte Nexus',
-  },
-  { label: 'Location', value: 'Boulder, CO' },
-  { label: 'Focus', value: 'AI/ML · Digital Twins · Spatial Data Science' },
-  { label: 'Stack', value: 'Python · Typescript · SQL' },
-];
+const spotifyStatusLabels = {
+  loading: 'Checking Spotify',
+  playing: 'Playing',
+  paused: 'Paused',
+  recent: 'Last played',
+  idle: 'Nothing playing',
+  unconfigured: 'Setup pending',
+  error: 'Spotify unavailable',
+};
 
-const AboutNowBoard = ({ shouldReduceMotion, className = '' }) => {
-  const handleRowClick = (item, event) => {
-    if (!item.action) return;
-    event.preventDefault();
-    scrollToSection(item.action, { behavior: shouldReduceMotion ? 'auto' : 'smooth' });
-  };
+const initialSpotifyState = {
+  status: 'loading',
+  isPlaying: false,
+  recentTracks: [],
+};
+
+const getTrackInitials = (track) => {
+  if (!track?.title) return 'SP';
+
+  return track.title
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0])
+    .join('')
+    .toUpperCase();
+};
+
+const SpotifyTrackArt = ({ track, className = '' }) =>
+  track?.image ? (
+    <img src={track.image} alt="" className={`spotify-card-art ${className}`} loading="lazy" decoding="async" />
+  ) : (
+    <span className={`spotify-card-art spotify-card-art--empty ${className}`} aria-hidden="true">
+      {getTrackInitials(track)}
+    </span>
+  );
+
+const SpotifyStatus = ({ spotify }) => {
+  const label = spotifyStatusLabels[spotify.status] || spotifyStatusLabels.error;
+
+  return (
+    <span className={`spotify-card-status ${spotify.status === 'playing' ? 'spotify-card-status--live' : ''}`}>
+      <span aria-hidden="true" />
+      {label}
+    </span>
+  );
+};
+
+const SpotifyCurrentTrack = ({ spotify }) => {
+  const title =
+    spotify.title ||
+    (spotify.status === 'loading'
+      ? 'Checking Spotify'
+      : spotify.status === 'unconfigured'
+        ? 'Spotify setup pending'
+        : 'No track right now');
+  const fallbackSubtitle =
+    spotify.status === 'loading'
+      ? 'Loading your latest track'
+      : spotify.status === 'unconfigured'
+        ? 'Add the refresh token in Vercel'
+        : 'Check back when music is playing';
+
+  return (
+    <div className="spotify-card-current">
+      <div className="spotify-card-section-label">Now</div>
+      <a
+        href={spotify.url || undefined}
+        target={spotify.url ? '_blank' : undefined}
+        rel={spotify.url ? 'noreferrer' : undefined}
+        className={`spotify-card-current-track ${spotify.url ? 'focus-ring' : ''}`}
+        aria-label={spotify.url ? `Open ${title} on Spotify` : undefined}
+      >
+        <SpotifyTrackArt track={spotify} />
+        <span className="spotify-card-copy">
+          <span className="spotify-card-title">{title}</span>
+          <span className="spotify-card-subtitle">
+            {spotify.artist && spotify.album ? (
+              <>
+                {spotify.artist} <span aria-hidden="true">·</span> {spotify.album}
+              </>
+            ) : (
+              fallbackSubtitle
+            )}
+          </span>
+          <SpotifyStatus spotify={spotify} />
+        </span>
+      </a>
+    </div>
+  );
+};
+
+const SpotifyRecentTrack = ({ track, index }) => (
+  <a
+    href={track.url || undefined}
+    target={track.url ? '_blank' : undefined}
+    rel={track.url ? 'noreferrer' : undefined}
+    className={`spotify-card-recent-track ${track.url ? 'focus-ring' : ''}`}
+    aria-label={track.url ? `Open ${track.title} on Spotify` : undefined}
+  >
+    <SpotifyTrackArt track={track} className={`spotify-card-art--tone-${index + 1}`} />
+    <span className="spotify-card-copy">
+      <span className="spotify-card-title">{track.title}</span>
+      <span className="spotify-card-subtitle">{track.artist}</span>
+    </span>
+  </a>
+);
+
+const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
+  const [spotify, setSpotify] = useState(initialSpotifyState);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const loadSpotify = async () => {
+      try {
+        const response = await fetch('/api/spotify/currently-playing', {
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error('Spotify request failed.');
+        }
+
+        const data = await response.json();
+        setSpotify({
+          ...data,
+          recentTracks: data.recentTracks || [],
+        });
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          setSpotify({ status: 'error', isPlaying: false, recentTracks: [] });
+        }
+      }
+    };
+
+    loadSpotify();
+
+    return () => controller.abort();
+  }, []);
+
+  const footerState =
+    spotify.status === 'playing' || spotify.status === 'paused' || spotify.status === 'recent'
+      ? 'Live'
+      : spotifyStatusLabels[spotify.status];
 
   return (
     <motion.aside
@@ -76,58 +204,28 @@ const AboutNowBoard = ({ shouldReduceMotion, className = '' }) => {
       initial={false}
       whileInView="show"
       viewport={viewportOnce}
-      className={`about-now-board w-full min-w-0 ${className}`}
-      aria-label="Current status"
+      className={`spotify-listening-card w-full min-w-0 ${className}`}
+      aria-label="Currently listening"
     >
-      <p className="border-b-2 border-[#101617] px-3 py-2 font-mono text-[0.68rem] font-extrabold uppercase tracking-[0.14em] text-[#ff3a12] sm:px-4 sm:py-2.5 sm:text-xs">
-        Now
-      </p>
-
-      <motion.ol
-        variants={createStagger(0.04, 0.06)}
-        initial={false}
-        whileInView="show"
-        viewport={viewportOnce}
-        className="list-none"
-      >
-        {nowBoardItems.map((item) => {
-          const rowClassName =
-            'about-now-row grid grid-cols-1 gap-0.5 px-4 py-2.5 md:grid-cols-[5.75rem_minmax(0,1fr)] md:items-baseline md:gap-x-4 md:py-3';
-
-          const valueClassName = 'font-body text-sm font-extrabold leading-snug text-[#101617]';
-
-          if (item.href) {
-            return (
-              <motion.li key={item.label} variants={createReveal({ y: 6 }, shouldReduceMotion)}>
-                <a
-                  href={item.href}
-                  onClick={(event) => handleRowClick(item, event)}
-                  className={`${rowClassName} focus-ring group block transition-colors hover:bg-[#ff3a12]/[0.04]`}
-                >
-                  <span className="font-mono text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-[#334044]">
-                    {item.label}
-                  </span>
-                  <span className={`${valueClassName} text-[#ff3a12] transition-colors group-hover:text-[#101617]`}>
-                    {item.value}
-                    <span className="ml-1.5 inline-block transition-transform group-hover:translate-x-0.5" aria-hidden="true">
-                      →
-                    </span>
-                  </span>
-                </a>
-              </motion.li>
-            );
-          }
-
-          return (
-            <motion.li key={item.label} variants={createReveal({ y: 6 }, shouldReduceMotion)} className={rowClassName}>
-              <span className="font-mono text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-[#334044]">
-                {item.label}
-              </span>
-              <span className={valueClassName}>{item.value}</span>
-            </motion.li>
-          );
-        })}
-      </motion.ol>
+      <header className="spotify-card-header">Currently Listening</header>
+      <SpotifyCurrentTrack spotify={spotify} />
+      <section className="spotify-card-recent" aria-labelledby="spotify-recent-heading">
+        <h3 id="spotify-recent-heading">Recently Played</h3>
+        {spotify.recentTracks.length ? (
+          <div className="spotify-card-recent-list">
+            {spotify.recentTracks.slice(0, 3).map((track, index) => (
+              <SpotifyRecentTrack key={`${track.title}-${track.playedAt || index}`} track={track} index={index} />
+            ))}
+          </div>
+        ) : (
+          <p className="spotify-card-empty">Recent tracks appear after Spotify is connected.</p>
+        )}
+      </section>
+      <footer className="spotify-card-footer">
+        <span>Spotify</span>
+        <span aria-hidden="true">·</span>
+        <span>{footerState}</span>
+      </footer>
     </motion.aside>
   );
 };
@@ -219,7 +317,7 @@ export const AboutIntro = () => {
           </motion.a>
         </motion.div>
 
-        <AboutNowBoard
+        <SpotifyListeningBoard
           shouldReduceMotion={shouldReduceMotion}
           className="mx-auto max-w-md md:col-start-3 md:row-start-1 md:mx-0 md:max-w-none"
         />
