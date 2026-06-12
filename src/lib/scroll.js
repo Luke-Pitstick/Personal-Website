@@ -1,3 +1,5 @@
+const ABOUT_SCROLL_GAP = 24;
+
 export function getNavHeight() {
   const nav = document.querySelector('nav[aria-label="Primary navigation"]');
   return nav?.getBoundingClientRect().height ?? 72;
@@ -16,7 +18,8 @@ export function scrollToSection(sectionId, { behavior = 'smooth' } = {}) {
   if (sectionId === 'about') {
     const home = document.getElementById('home');
     if (home) {
-      const top = home.getBoundingClientRect().bottom + window.scrollY;
+      const top =
+        home.getBoundingClientRect().bottom + window.scrollY - getNavHeight() - ABOUT_SCROLL_GAP;
       window.scrollTo({ top: Math.max(0, top), behavior });
       return;
     }

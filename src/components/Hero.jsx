@@ -1,5 +1,7 @@
 import React, { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
 
+import { scrollToSection } from '../lib/scroll';
+
 const SOCIAL_HIDE_SCROLL_Y = 96;
 const HERO_CANVAS_IDLE_TIMEOUT = 1800;
 const HERO_CANVAS_MIN_DELAY = 900;
@@ -23,14 +25,7 @@ const Hero = () => {
   const showShaderHint = heroShaderActive && !shaderHintDismissed;
 
   const scrollPastHero = () => {
-    const home = document.getElementById('home');
-    if (!home) return;
-
-    const top = home.getBoundingClientRect().bottom + window.scrollY;
-    window.scrollTo({
-      top,
-      behavior: shouldReduceMotion ? 'auto' : 'smooth',
-    });
+    scrollToSection('about', { behavior: shouldReduceMotion ? 'auto' : 'smooth' });
   };
 
   useEffect(() => {
