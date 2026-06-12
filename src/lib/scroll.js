@@ -1,4 +1,4 @@
-const SECTION_SCROLL_GAP = 56;
+const SECTION_SCROLL_GAP = 32;
 
 export function getNavHeight() {
   const nav = document.querySelector('nav[aria-label="Primary navigation"]');
