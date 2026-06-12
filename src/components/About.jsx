@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import * as motion from 'motion/react-client';
 import { useReducedMotion } from 'motion/react';
+import { RefreshCw } from 'lucide-react';
 import { createReveal, createStagger, softSpring, tapMotion, viewportOnce } from '../lib/motion';
 import { EXPERIENCE_ROW_GRID, MachadoSectionHeader, SECTION_INDEX_BAND, SITE_SHELL } from './SectionChrome';
 
@@ -68,6 +69,7 @@ const initialSpotifyState = {
   recentTracks: [],
 };
 
+const spotifyEndpoint = '/api/spotify/currently-playing';
 const spotifyCacheKey = 'lukepitstick.spotify-listening.v1';
 const spotifyCacheMaxAgeMs = 30 * 60 * 1000;
 const transientSpotifyStatuses = new Set(['loading', 'unconfigured', 'error']);
@@ -112,6 +114,12 @@ const writeCachedSpotify = (spotify) => {
   }
 };
 
+const normalizeSpotifyPayload = (spotify, isCached = false) => ({
+  ...spotify,
+  isCached,
+  recentTracks: spotify?.recentTracks || [],
+});
+
 const getTrackInitials = (track) => {
   if (!track?.title) return 'SP';
 
@@ -144,6 +152,18 @@ const SpotifyStatus = ({ spotify }) => {
   );
 };
 
+const SpotifyProgress = ({ spotify }) => {
+  if (!spotify.durationMs || spotify.progressMs == null || spotify.status === 'recent') return null;
+
+  const progress = Math.max(0, Math.min(100, (spotify.progressMs / spotify.durationMs) * 100));
+
+  return (
+    <span className="spotify-card-progress" aria-hidden="true">
+      <span style={{ width: `${progress}%` }} />
+    </span>
+  );
+};
+
 const SpotifyCurrentTrack = ({ spotify }) => {
   const title =
     spotify.title ||
@@ -166,7 +186,7 @@ const SpotifyCurrentTrack = ({ spotify }) => {
         href={spotify.url || undefined}
         target={spotify.url ? '_blank' : undefined}
         rel={spotify.url ? 'noreferrer' : undefined}
-        className={`spotify-card-current-track ${spotify.url ? 'focus-ring' : ''}`}
+        className={`spotify-card-current-track ${spotify.url ? 'spotify-card-track--interactive focus-ring' : ''}`}
         aria-label={spotify.url ? `Open ${title} on Spotify` : undefined}
       >
         <SpotifyTrackArt track={spotify} />
@@ -182,6 +202,7 @@ const SpotifyCurrentTrack = ({ spotify }) => {
             )}
           </span>
           <SpotifyStatus spotify={spotify} />
+          <SpotifyProgress spotify={spotify} />
         </span>
       </a>
     </div>
@@ -193,7 +214,7 @@ const SpotifyRecentTrack = ({ track, index }) => (
     href={track.url || undefined}
     target={track.url ? '_blank' : undefined}
     rel={track.url ? 'noreferrer' : undefined}
-    className={`spotify-card-recent-track ${track.url ? 'focus-ring' : ''}`}
+    className={`spotify-card-recent-track ${track.url ? 'spotify-card-track--interactive focus-ring' : ''}`}
     aria-label={track.url ? `Open ${track.title} on Spotify` : undefined}
   >
     <SpotifyTrackArt track={track} className={`spotify-card-art--tone-${index + 1}`} />
@@ -206,6 +227,37 @@ const SpotifyRecentTrack = ({ track, index }) => (
 
 const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
   const [spotify, setSpotify] = useState(initialSpotifyState);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const loadSpotify = useCallback(async ({ signal, force = false, showRefresh = false } = {}) => {
+    if (showRefresh) {
+      setIsRefreshing(true);
+    }
+
+    try {
+      const response = await fetch(force ? `${spotifyEndpoint}?refresh=${Date.now()}` : spotifyEndpoint, {
+        signal,
+      });
+
+      if (!response.ok) {
+        throw new Error('Spotify request failed.');
+      }
+
+      const data = normalizeSpotifyPayload(await response.json());
+      setSpotify(data);
+      writeCachedSpotify(data);
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        setSpotify((currentSpotify) =>
+          currentSpotify.isCached ? currentSpotify : { status: 'error', isPlaying: false, recentTracks: [] },
+        );
+      }
+    } finally {
+      if (showRefresh && !signal?.aborted) {
+        setIsRefreshing(false);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -215,36 +267,10 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
       setSpotify(cachedSpotify);
     }
 
-    const loadSpotify = async () => {
-      try {
-        const response = await fetch('/api/spotify/currently-playing', {
-          signal: controller.signal,
-        });
-
-        if (!response.ok) {
-          throw new Error('Spotify request failed.');
-        }
-
-        const data = await response.json();
-        setSpotify({
-          ...data,
-          isCached: false,
-          recentTracks: data.recentTracks || [],
-        });
-        writeCachedSpotify(data);
-      } catch (error) {
-        if (error.name !== 'AbortError') {
-          setSpotify((currentSpotify) =>
-            currentSpotify.isCached ? currentSpotify : { status: 'error', isPlaying: false, recentTracks: [] },
-          );
-        }
-      }
-    };
-
-    loadSpotify();
+    loadSpotify({ signal: controller.signal });
 
     return () => controller.abort();
-  }, []);
+  }, [loadSpotify]);
 
   const footerState =
     spotify.isCached
@@ -262,7 +288,19 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
       className={`spotify-listening-card w-full min-w-0 ${className}`}
       aria-label="Currently listening"
     >
-      <header className="spotify-card-header">Currently Listening</header>
+      <header className="spotify-card-header">
+        <span>Currently Listening</span>
+        <button
+          type="button"
+          className="spotify-card-refresh focus-ring"
+          onClick={() => loadSpotify({ force: true, showRefresh: true })}
+          disabled={isRefreshing}
+          aria-label="Refresh Spotify listening status"
+          title="Refresh Spotify"
+        >
+          <RefreshCw size={17} strokeWidth={2.6} aria-hidden="true" />
+        </button>
+      </header>
       <SpotifyCurrentTrack spotify={spotify} />
       <section className="spotify-card-recent" aria-labelledby="spotify-recent-heading">
         <h3 id="spotify-recent-heading">Recently Played</h3>
