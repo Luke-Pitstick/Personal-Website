@@ -246,7 +246,6 @@ const SpotifyCurrentTrack = ({ spotify, shouldReduceMotion }) => {
     <div className="spotify-card-current">
       <div className="spotify-card-current-label">
         <div className="spotify-card-section-label">Now</div>
-        <SpotifyWaveIndicator isActive={shouldAnimateWave} shouldReduceMotion={shouldReduceMotion} />
       </div>
       <a
         href={spotify.url || undefined}
@@ -270,6 +269,7 @@ const SpotifyCurrentTrack = ({ spotify, shouldReduceMotion }) => {
           <SpotifyStatus spotify={spotify} />
           <SpotifyProgress spotify={spotify} />
         </span>
+        <SpotifyWaveIndicator isActive={shouldAnimateWave} shouldReduceMotion={shouldReduceMotion} />
       </a>
     </div>
   );
