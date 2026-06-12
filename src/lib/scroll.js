@@ -1,6 +1,13 @@
+const SECTION_SCROLL_GAP = 56;
+
 export function getNavHeight() {
   const nav = document.querySelector('nav[aria-label="Primary navigation"]');
   return nav?.getBoundingClientRect().height ?? 72;
+}
+
+function scrollToElement(element, { behavior = 'smooth', gap = SECTION_SCROLL_GAP } = {}) {
+  const top = element.getBoundingClientRect().top + window.scrollY - getNavHeight() - gap;
+  window.scrollTo({ top: Math.max(0, top), behavior });
 }
 
 export function scrollToSection(sectionId, { behavior = 'smooth' } = {}) {
@@ -14,10 +21,15 @@ export function scrollToSection(sectionId, { behavior = 'smooth' } = {}) {
   }
 
   if (sectionId === 'about') {
-    const home = document.getElementById('home');
-    if (home) {
-      const top = home.getBoundingClientRect().bottom + window.scrollY;
-      window.scrollTo({ top: Math.max(0, top), behavior });
+    const heading = document.getElementById('about-heading');
+    if (heading) {
+      scrollToElement(heading, { behavior });
+      return;
+    }
+
+    const target = document.getElementById('about');
+    if (target) {
+      scrollToElement(target, { behavior });
       return;
     }
   }
