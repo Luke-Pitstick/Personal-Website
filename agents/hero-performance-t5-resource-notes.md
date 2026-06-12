@@ -2,7 +2,7 @@
 
 ## Before
 - `Projects` is below the hero and hydrated with `client:visible`, but Astro still includes project image tags in the initial HTML.
-- The flagship project image used `loading="eager"`, allowing a remote project image to compete with hero resources during the initial and idle window.
+- The first project image used `loading="eager"`, allowing a remote project image to compete with hero resources during the initial and idle window.
 - Non-flagship project images used `loading="lazy"` and all project images already used `decoding="async"`.
 
 ## After
@@ -11,5 +11,5 @@
 - Hero preload and hero source files were not changed.
 
 ## Validation
-- `npm run astro -- build` passed on 2026-06-11.
-- Full `npm run build` was not run because it regenerates hero portrait assets under `public/`, which is outside the T5 owned write scope.
+- Parent integration reapplied the same resource scheduling change to the current `ProjectCard`/`motion.img` implementation on 2026-06-11.
+- Parent validation: `npm run astro -- build` passed on 2026-06-11 after integration.

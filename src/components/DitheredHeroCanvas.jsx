@@ -114,6 +114,7 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
   const rootRef = useRef(null);
   const fallbackCanvasRef = useRef(null);
   const mountainCanvasRef = useRef(null);
+  const rendererRef = useRef(null);
   const [idleLayer, setIdleLayer] = useState();
   const [revealBackground, setRevealBackground] = useState();
   const [mountainBase, setMountainBase] = useState();
@@ -138,9 +139,125 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
     }
 
     let frame = 0;
+    let rectFrame = 0;
     let pauseUntil = 0;
     let lastAutoRevealTime = performance.now();
+    let canvas;
+    let canvasRect;
+    let observedCanvas;
+    let isDocumentVisible = document.visibilityState !== 'hidden';
+    let isHeroIntersecting = true;
     const autoRevealBalls = createAutoRevealBalls();
+
+    const canRender = () => isDocumentVisible && isHeroIntersecting;
+
+    const cancelRectRefresh = () => {
+      if (rectFrame) {
+        window.cancelAnimationFrame(rectFrame);
+        rectFrame = 0;
+      }
+    };
+
+    const observeCanvas = (nextCanvas) => {
+      if (observedCanvas === nextCanvas) {
+        return;
+      }
+
+      if (observedCanvas) {
+        rectResizeObserver.unobserve(observedCanvas);
+      }
+
+      observedCanvas = nextCanvas;
+
+      if (observedCanvas) {
+        rectResizeObserver.observe(observedCanvas);
+      }
+    };
+
+    const getCachedCanvas = () => {
+      if (canvas?.isConnected && root.contains(canvas)) {
+        return canvas;
+      }
+
+      if (canvas) {
+        observeCanvas(undefined);
+        canvas = undefined;
+        canvasRect = undefined;
+      }
+
+      return undefined;
+    };
+
+    const discoverCanvas = () => {
+      const nextCanvas = root.querySelector('.dithered-hero-canvas canvas') ?? undefined;
+
+      if (nextCanvas !== canvas) {
+        canvas = nextCanvas;
+        canvasRect = undefined;
+        observeCanvas(canvas);
+      }
+
+      return canvas;
+    };
+
+    const refreshCanvasRect = () => {
+      const currentCanvas = getCachedCanvas() ?? discoverCanvas();
+
+      if (!currentCanvas) {
+        canvasRect = undefined;
+        return;
+      }
+
+      canvasRect = currentCanvas.getBoundingClientRect();
+    };
+
+    const scheduleCanvasRectRefresh = () => {
+      if (!canRender()) {
+        canvasRect = undefined;
+        cancelRectRefresh();
+        return;
+      }
+
+      if (rectFrame) {
+        return;
+      }
+
+      rectFrame = window.requestAnimationFrame(() => {
+        rectFrame = 0;
+        refreshCanvasRect();
+      });
+    };
+
+    const cancelAnimation = () => {
+      if (frame) {
+        window.cancelAnimationFrame(frame);
+        frame = 0;
+      }
+    };
+
+    const startAnimation = () => {
+      if (frame) {
+        return;
+      }
+
+      lastAutoRevealTime = performance.now();
+      frame = window.requestAnimationFrame(animate);
+    };
+
+    const syncAnimation = () => {
+      if (canRender()) {
+        rendererRef.current?.resume?.();
+      } else {
+        rendererRef.current?.pause?.();
+      }
+
+      if (canRender() && getCachedCanvas()) {
+        startAnimation();
+        return;
+      }
+
+      cancelAnimation();
+    };
 
     const pauseForUser = (event) => {
       if (autoOnly) {
@@ -154,14 +271,29 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
     };
 
     const animate = (time) => {
-      const canvas = root.querySelector('.dithered-hero-canvas canvas');
+      frame = 0;
 
-      if (canvas && time >= pauseUntil) {
-        const rect = canvas.getBoundingClientRect();
+      if (!canRender()) {
+        syncAnimation();
+        return;
+      }
+
+      const currentCanvas = getCachedCanvas();
+
+      if (!currentCanvas) {
+        syncAnimation();
+        return;
+      }
+
+      if (!canvasRect) {
+        refreshCanvasRect();
+      }
+
+      if (canvasRect && time >= pauseUntil) {
         const deltaMs = Math.min(64, Math.max(0, time - lastAutoRevealTime));
 
         stepAutoRevealBalls(autoRevealBalls, deltaMs);
-        dispatchAutoPointers(canvas, rect, autoRevealBalls);
+        dispatchAutoPointers(currentCanvas, canvasRect, autoRevealBalls);
         lastAutoRevealTime = time;
       }
 
@@ -170,10 +302,53 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
 
     root.addEventListener('pointermove', pauseForUser, { passive: true });
     root.addEventListener('pointerdown', pauseForUser, { passive: true });
-    frame = window.requestAnimationFrame(animate);
+
+    const handleRectInvalidation = () => {
+      canvasRect = undefined;
+      scheduleCanvasRectRefresh();
+    };
+
+    const handleVisibilityChange = () => {
+      isDocumentVisible = document.visibilityState !== 'hidden';
+      handleRectInvalidation();
+      syncAnimation();
+    };
+
+    const handleIntersectionChange = ([entry]) => {
+      isHeroIntersecting = entry?.isIntersecting ?? true;
+      handleRectInvalidation();
+      syncAnimation();
+    };
+
+    const rectResizeObserver = new ResizeObserver(handleRectInvalidation);
+    const mutationObserver = new MutationObserver(() => {
+      discoverCanvas();
+      handleRectInvalidation();
+      syncAnimation();
+    });
+    const intersectionObserver = new IntersectionObserver(handleIntersectionChange);
+    const scrollListenerOptions = { capture: true, passive: true };
+
+    rectResizeObserver.observe(root);
+    mutationObserver.observe(root, { childList: true, subtree: true });
+    intersectionObserver.observe(root);
+    window.addEventListener('resize', handleRectInvalidation);
+    window.addEventListener('scroll', handleRectInvalidation, scrollListenerOptions);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    discoverCanvas();
+    refreshCanvasRect();
+    syncAnimation();
 
     return () => {
-      window.cancelAnimationFrame(frame);
+      cancelAnimation();
+      cancelRectRefresh();
+      rectResizeObserver.disconnect();
+      mutationObserver.disconnect();
+      intersectionObserver.disconnect();
+      window.removeEventListener('resize', handleRectInvalidation);
+      window.removeEventListener('scroll', handleRectInvalidation, scrollListenerOptions);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       root.removeEventListener('pointermove', pauseForUser);
       root.removeEventListener('pointerdown', pauseForUser);
     };
@@ -300,6 +475,7 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
       ) : null}
       {!useStaticFallback && layers ? (
         <DitheredParticleCanvas
+          ref={rendererRef}
           aria-label="Dithered Flatirons reveal background"
           className="dithered-hero-canvas"
           fallback="Dithered hero"
@@ -418,7 +594,10 @@ function useInteractionScale(rootRef) {
       return undefined;
     }
 
+    let frame = 0;
+
     const updateScale = () => {
+      frame = 0;
       const rect = root.getBoundingClientRect();
       const devicePixelRatio = window.devicePixelRatio || 1;
       const renderWidth = rect.width * QUALITY.resolutionScale * devicePixelRatio;
@@ -433,15 +612,27 @@ function useInteractionScale(rootRef) {
       );
     };
 
+    const scheduleUpdateScale = () => {
+      if (frame) {
+        return;
+      }
+
+      frame = window.requestAnimationFrame(updateScale);
+    };
+
     updateScale();
 
-    const resizeObserver = new ResizeObserver(updateScale);
+    const resizeObserver = new ResizeObserver(scheduleUpdateScale);
     resizeObserver.observe(root);
-    window.addEventListener('resize', updateScale);
+    window.addEventListener('resize', scheduleUpdateScale);
 
     return () => {
+      if (frame) {
+        window.cancelAnimationFrame(frame);
+      }
+
       resizeObserver.disconnect();
-      window.removeEventListener('resize', updateScale);
+      window.removeEventListener('resize', scheduleUpdateScale);
     };
   }, [rootRef]);
 

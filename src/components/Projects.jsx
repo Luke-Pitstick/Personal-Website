@@ -108,7 +108,8 @@ const ProjectCard = ({ project, index, shouldReduceMotion }) => {
       alt={`${project.title} preview`}
       width="1200"
       height="675"
-      loading={index === 0 ? 'eager' : 'lazy'}
+      loading="lazy"
+      fetchPriority="low"
       decoding="async"
       className={`h-full w-full object-cover object-top transition-[filter] duration-500 group-hover/card:brightness-[1.05] group-hover/card:saturate-110 ${project.imageClass ?? ''}`}
     />
