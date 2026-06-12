@@ -244,9 +244,6 @@ const SpotifyCurrentTrack = ({ spotify, shouldReduceMotion }) => {
 
   return (
     <div className="spotify-card-current">
-      <div className="spotify-card-current-label">
-        <div className="spotify-card-section-label">Now</div>
-      </div>
       <a
         href={spotify.url || undefined}
         target={spotify.url ? '_blank' : undefined}

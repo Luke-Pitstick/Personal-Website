@@ -309,7 +309,6 @@ body::before {
 
 .spotify-card-header,
 .spotify-card-footer,
-.spotify-card-section-label,
 .spotify-card-recent h3,
 .spotify-card-status {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
@@ -380,29 +379,6 @@ body::before {
   border-bottom: 1px solid rgba(16, 22, 23, 0.15);
   background-color: rgba(255, 58, 18, 0.035);
   padding: 1rem 1.05rem 1.2rem 1.25rem;
-}
-
-.spotify-card-section-label {
-  display: inline-flex;
-  width: max-content;
-  align-items: center;
-  border: 2px solid rgba(16, 22, 23, 0.9);
-  border-radius: 999px;
-  background-color: #faf9f4;
-  padding: 0.34rem 0.52rem 0.3rem;
-  color: #334044;
-  font-size: 0.74rem;
-  line-height: 1;
-  box-shadow: 2px 2px 0 0 rgba(16, 22, 23, 0.82);
-}
-
-.spotify-card-current-label {
-  display: inline-flex;
-  width: max-content;
-  max-width: 100%;
-  align-items: center;
-  gap: 0.65rem;
-  margin-left: -1rem;
 }
 
 .spotify-card-wave {
