@@ -244,6 +244,7 @@ const SpotifyCurrentTrack = ({ spotify, shouldReduceMotion }) => {
 
   return (
     <div className="spotify-card-current">
+      <SpotifyWaveIndicator isActive={shouldAnimateWave} shouldReduceMotion={shouldReduceMotion} />
       <a
         href={spotify.url || undefined}
         target={spotify.url ? '_blank' : undefined}
@@ -266,7 +267,6 @@ const SpotifyCurrentTrack = ({ spotify, shouldReduceMotion }) => {
           <SpotifyStatus spotify={spotify} />
           <SpotifyProgress spotify={spotify} />
         </span>
-        <SpotifyWaveIndicator isActive={shouldAnimateWave} shouldReduceMotion={shouldReduceMotion} />
       </a>
     </div>
   );
