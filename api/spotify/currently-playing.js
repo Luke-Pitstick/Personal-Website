@@ -71,6 +71,8 @@ export default async function handler(req, res) {
       RECENT_PLAYBACK_CACHE,
     );
   } catch (error) {
+    console.error('Spotify currently-playing request failed:', error.message || error);
+
     return json(
       res,
       200,
