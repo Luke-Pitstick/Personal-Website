@@ -418,14 +418,13 @@ body::before {
   height: 0.48rem;
   border: 1px solid rgba(16, 22, 23, 0.75);
   border-radius: 999px;
-  background-color: #8ecdd3;
+  background-color: #ff3a12;
   box-shadow: 1px 1px 0 0 rgba(16, 22, 23, 0.68);
-  opacity: 0.55;
+  opacity: 0.64;
   transform-origin: center;
 }
 
 .spotify-card-wave--active span {
-  background-color: #86dc9d;
   opacity: 1;
   animation: spotify-wave 780ms ease-in-out infinite;
 }
@@ -449,7 +448,7 @@ body::before {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  opacity: 0.42;
+  opacity: 0.72;
   transform: translateY(0.02rem);
   transition:
     opacity 160ms ease,
