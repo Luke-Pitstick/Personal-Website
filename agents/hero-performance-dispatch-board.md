@@ -26,7 +26,7 @@ Generated: 2026-06-11
 | T2 precompute deterministic hero image work | partially complete as T2A | Raw helper ImageData capture, generated candidate assets, and asset-size comparison still needed before T3. |
 | T3 simplify `DitheredHeroCanvas` runtime | pending | T2 recommendation/adopted assets; staged consume-first/remove-helpers-second integration |
 | T4 implementation | complete | T1R baseline; safe strategy captured in `agents/hero-performance-t4-investigation.md` |
-| T6 validate visual equivalence and performance gains | pending | Requires a fresh post-T4/T5/T2A comparison pass and completed T2/T3 deterministic asset work. |
+| T6 validate visual equivalence and performance gains | post-T4/T5 validation complete with concerns | Full pass still depends on completed T2/T3 deterministic asset work. |
 
 ## Integration Rules
 - Do not allow simultaneous code edits to `src/components/DitheredHeroCanvas.jsx`.
