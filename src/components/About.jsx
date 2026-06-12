@@ -622,6 +622,7 @@ export const ExperienceSection = () => {
         title="Experience"
         titleId="experience-heading"
         description="AI/ML and data engineering work across startups, governmental organizations, and fast software teams."
+        descriptionClassName="xl:max-w-none xl:whitespace-nowrap"
         shouldReduceMotion={shouldReduceMotion}
       />
 

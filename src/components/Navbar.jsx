@@ -6,7 +6,7 @@ import { createReveal, createStagger, softSpring, tapMotion } from '../lib/motio
 import { scrollToSection } from '../lib/scroll';
 import { SITE_SHELL } from './SectionChrome';
 
-const SECTION_IDS = ['home', 'about', 'projects', 'contact'];
+const SECTION_IDS = ['home', 'about', 'projects', 'experience', 'contact'];
 const SCROLL_LOCK_MS = 900;
 
 const Navbar = () => {
@@ -21,6 +21,7 @@ const Navbar = () => {
     { name: 'Home', href: '/#home' },
     { name: 'About', href: '/#about' },
     { name: 'Projects', href: '/#projects' },
+    { name: 'Experience', href: '/#experience' },
     { name: 'Contact', href: '/#contact' },
   ];
 
