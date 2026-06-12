@@ -5,7 +5,7 @@ Generated: 2026-06-11
 ## Parent Coordination
 - Plan source: `agents/hero-performance-subtasks.md`
 - Parent-owned work: sequencing, integration review, final validation, and any commits after accepted results.
-- Commit status: T5 and T2A are committed; T4 is accepted after review/smoke and ready for checkpoint.
+- Commit status: T5, T1R, T2A, and T4 are committed.
 
 ## Active Agents
 | Task | Agent | Status | Write Scope | Commit Status | Notes |
@@ -17,7 +17,7 @@ Generated: 2026-06-11
 | T4 investigate | Hooke (`019eb47f-f8eb-7350-8c00-fb22799a3e5e`) | complete, integrated as notes | read-only | not applicable | Keep synthetic events; optimize wrapper loop/lifecycle only. |
 | REVIEW-T5 | Heisenberg (`019eb9a0-e01b-70b1-899b-560b6c2ebadd`) | complete, clean | read-only | not applicable | No issues found; minor residual fast-scroll image-latency risk noted. |
 | T2A references | Bohr (`019eb9ab-896a-7211-8489-78f87eaa1f07`) | partial, parent-accepted as reference evidence | `agents/hero-performance-t2-precompute-notes.md`, `agents/hero-performance-t2-reference-assets/` | committed `1df7e69` | Captured browser-produced mountain/WebGL references and build-path notes; not ready for T3 consumption. |
-| T4 implementation | Hooke (`019eb9ab-c6a9-76e3-9339-6899f061f173`) | complete, parent-accepted after review/smoke | `src/components/DitheredHeroCanvas.jsx`, `agents/hero-performance-t4-implementation-notes.md`, `agents/hero-performance-t4-assets/` | ready for checkpoint | Build, diff check, read-only review, and browser smoke passed. |
+| T4 implementation | Hooke (`019eb9ab-c6a9-76e3-9339-6899f061f173`) | complete, parent-accepted after review/smoke | `src/components/DitheredHeroCanvas.jsx`, `agents/hero-performance-t4-implementation-notes.md`, `agents/hero-performance-t4-assets/` | committed `afdc71b` | Build, diff check, read-only review, and browser smoke passed. |
 | REVIEW-T4 | Kuhn (`019eb9b6-9e41-7051-9edc-d468219ef2b4`) | complete, clean | read-only | not applicable | No code findings; noted vendor synthetic pointer path still needs profiling for exact layout-work reduction. |
 
 ## Pending Tasks
@@ -25,7 +25,7 @@ Generated: 2026-06-11
 | --- | --- | --- |
 | T2 precompute deterministic hero image work | partially complete as T2A | Raw helper ImageData capture, generated candidate assets, and asset-size comparison still needed before T3. |
 | T3 simplify `DitheredHeroCanvas` runtime | pending | T2 recommendation/adopted assets; staged consume-first/remove-helpers-second integration |
-| T4 implementation | complete, ready for checkpoint | T1R baseline; safe strategy captured in `agents/hero-performance-t4-investigation.md` |
+| T4 implementation | complete | T1R baseline; safe strategy captured in `agents/hero-performance-t4-investigation.md` |
 | T6 validate visual equivalence and performance gains | pending | Requires a fresh post-T4/T5/T2A comparison pass and completed T2/T3 deterministic asset work. |
 
 ## Integration Rules
