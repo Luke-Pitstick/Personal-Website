@@ -164,6 +164,15 @@ const SpotifyProgress = ({ spotify }) => {
   );
 };
 
+const SpotifyWaveIndicator = ({ isActive }) => (
+  <span className={`spotify-card-wave ${isActive ? 'spotify-card-wave--active' : ''}`} aria-hidden="true">
+    <span />
+    <span />
+    <span />
+    <span />
+  </span>
+);
+
 const SpotifyCurrentTrack = ({ spotify }) => {
   const title =
     spotify.title ||
@@ -181,7 +190,10 @@ const SpotifyCurrentTrack = ({ spotify }) => {
 
   return (
     <div className="spotify-card-current">
-      <div className="spotify-card-section-label">Now</div>
+      <div className="spotify-card-current-label">
+        <div className="spotify-card-section-label">Now</div>
+        <SpotifyWaveIndicator isActive={spotify.status === 'playing'} />
+      </div>
       <a
         href={spotify.url || undefined}
         target={spotify.url ? '_blank' : undefined}
