@@ -442,6 +442,34 @@ body::before {
   animation-delay: 270ms;
 }
 
+.spotify-card-wave-lottie {
+  display: inline-flex;
+  width: 3.4rem;
+  height: 1.35rem;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  opacity: 0.42;
+  transform: translateY(0.02rem);
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+.spotify-card-wave-lottie--active {
+  opacity: 1;
+}
+
+.spotify-card-wave-lottie-frame {
+  display: block;
+  width: 3.4rem;
+  height: 1.1rem;
+}
+
+.spotify-card-wave-lottie svg {
+  display: block;
+}
+
 .spotify-card-current-track,
 .spotify-card-recent-track {
   display: grid;

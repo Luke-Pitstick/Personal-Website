@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import * as motion from 'motion/react-client';
 import { useReducedMotion } from 'motion/react';
 import { RefreshCw } from 'lucide-react';
@@ -72,6 +72,7 @@ const initialSpotifyState = {
 const spotifyEndpoint = '/api/spotify/currently-playing';
 const spotifyCacheKey = 'lukepitstick.spotify-listening.v1';
 const spotifyCacheMaxAgeMs = 30 * 60 * 1000;
+const spotifyWaveAnimationPath = '/spotify-now-wave-orange.json';
 const transientSpotifyStatuses = new Set(['loading', 'unconfigured', 'error']);
 
 const shouldCacheSpotify = (spotify) =>
@@ -164,16 +165,67 @@ const SpotifyProgress = ({ spotify }) => {
   );
 };
 
-const SpotifyWaveIndicator = ({ isActive }) => (
-  <span className={`spotify-card-wave ${isActive ? 'spotify-card-wave--active' : ''}`} aria-hidden="true">
-    <span />
-    <span />
-    <span />
-    <span />
-  </span>
-);
+const SpotifyWaveIndicator = ({ isActive, shouldReduceMotion }) => {
+  const containerRef = useRef(null);
 
-const SpotifyCurrentTrack = ({ spotify }) => {
+  useEffect(() => {
+    if (shouldReduceMotion || !containerRef.current) return undefined;
+
+    let animation = null;
+    let isMounted = true;
+
+    const loadAnimation = async () => {
+      const module = await import('lottie-web/build/player/lottie_light');
+      const lottie = module.default || module;
+
+      if (!isMounted || !containerRef.current) return;
+
+      animation = lottie.loadAnimation({
+        autoplay: isActive,
+        container: containerRef.current,
+        loop: true,
+        path: spotifyWaveAnimationPath,
+        renderer: 'svg',
+        rendererSettings: {
+          preserveAspectRatio: 'xMidYMid meet',
+        },
+      });
+
+      if (!isActive) {
+        animation.goToAndStop(0, true);
+      }
+    };
+
+    loadAnimation();
+
+    return () => {
+      isMounted = false;
+      animation?.destroy();
+    };
+  }, [isActive, shouldReduceMotion]);
+
+  if (shouldReduceMotion) {
+    return (
+      <span className={`spotify-card-wave ${isActive ? 'spotify-card-wave--active' : ''}`} aria-hidden="true">
+        <span />
+        <span />
+        <span />
+        <span />
+      </span>
+    );
+  }
+
+  return (
+    <span
+      className={`spotify-card-wave-lottie ${isActive ? 'spotify-card-wave-lottie--active' : ''}`}
+      aria-hidden="true"
+    >
+      <span ref={containerRef} className="spotify-card-wave-lottie-frame" />
+    </span>
+  );
+};
+
+const SpotifyCurrentTrack = ({ spotify, shouldReduceMotion }) => {
   const title =
     spotify.title ||
     (spotify.status === 'loading'
@@ -192,7 +244,7 @@ const SpotifyCurrentTrack = ({ spotify }) => {
     <div className="spotify-card-current">
       <div className="spotify-card-current-label">
         <div className="spotify-card-section-label">Now</div>
-        <SpotifyWaveIndicator isActive={spotify.status === 'playing'} />
+        <SpotifyWaveIndicator isActive={spotify.status === 'playing'} shouldReduceMotion={shouldReduceMotion} />
       </div>
       <a
         href={spotify.url || undefined}
@@ -313,7 +365,7 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
           <RefreshCw size={17} strokeWidth={2.6} aria-hidden="true" />
         </button>
       </header>
-      <SpotifyCurrentTrack spotify={spotify} />
+      <SpotifyCurrentTrack spotify={spotify} shouldReduceMotion={shouldReduceMotion} />
       <section className="spotify-card-recent" aria-labelledby="spotify-recent-heading">
         <h3 id="spotify-recent-heading">Recently Played</h3>
         {spotify.recentTracks.length ? (
