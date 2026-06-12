@@ -12,6 +12,7 @@
   
   --font-heading: 'Lora', serif;
   --font-body: 'Nunito', sans-serif;
+  --type-bump: 0.15625rem;
 }
 
 html,
@@ -40,6 +41,7 @@ body {
     radial-gradient(circle at 82% 18%, rgba(255, 218, 24, 0.22), transparent 20rem),
     radial-gradient(circle at 76% 72%, rgba(255, 58, 18, 0.11), transparent 24rem);
   background-size: 28px 28px, 28px 28px, auto, auto, auto;
+  font-size: calc(1rem + var(--type-bump));
 }
 
 body::before {
@@ -181,7 +183,7 @@ body::before {
 
 .dithered-hero-title {
   color: #101617;
-  font-size: clamp(2.5rem, 6vw, 5rem);
+  font-size: clamp(calc(2.5rem + var(--type-bump)), calc(6vw + var(--type-bump)), calc(5rem + var(--type-bump)));
   line-height: 1;
   text-wrap: nowrap;
 }
@@ -331,6 +333,116 @@ body::before {
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
   color: var(--color-text);
+}
+
+.text-\[10px\] {
+  font-size: calc(0.625rem + var(--type-bump));
+}
+
+.text-\[0\.68rem\] {
+  font-size: calc(0.68rem + var(--type-bump));
+}
+
+.text-\[0\.84rem\] {
+  font-size: calc(0.84rem + var(--type-bump));
+}
+
+.text-\[0\.9rem\] {
+  font-size: calc(0.9rem + var(--type-bump));
+}
+
+.text-xs {
+  font-size: calc(0.75rem + var(--type-bump));
+}
+
+.text-sm {
+  font-size: calc(0.875rem + var(--type-bump));
+}
+
+.text-base {
+  font-size: calc(1rem + var(--type-bump));
+}
+
+.text-lg {
+  font-size: calc(1.125rem + var(--type-bump));
+}
+
+.text-xl {
+  font-size: calc(1.25rem + var(--type-bump));
+}
+
+.text-2xl {
+  font-size: calc(1.5rem + var(--type-bump));
+}
+
+.text-3xl {
+  font-size: calc(1.875rem + var(--type-bump));
+}
+
+.text-4xl {
+  font-size: calc(2.25rem + var(--type-bump));
+}
+
+@media (min-width: 640px) {
+  .sm\:text-\[0\.92rem\] {
+    font-size: calc(0.92rem + var(--type-bump));
+  }
+
+  .sm\:text-xs {
+    font-size: calc(0.75rem + var(--type-bump));
+  }
+
+  .sm\:text-base {
+    font-size: calc(1rem + var(--type-bump));
+  }
+
+  .sm\:text-xl {
+    font-size: calc(1.25rem + var(--type-bump));
+  }
+
+  .sm\:text-2xl {
+    font-size: calc(1.5rem + var(--type-bump));
+  }
+}
+
+@media (min-width: 768px) {
+  .md\:text-\[1\.05rem\] {
+    font-size: calc(1.05rem + var(--type-bump));
+  }
+
+  .md\:text-base {
+    font-size: calc(1rem + var(--type-bump));
+  }
+
+  .md\:text-lg {
+    font-size: calc(1.125rem + var(--type-bump));
+  }
+
+  .md\:text-2xl {
+    font-size: calc(1.5rem + var(--type-bump));
+  }
+
+  .md\:text-3xl {
+    font-size: calc(1.875rem + var(--type-bump));
+  }
+
+  .md\:text-4xl {
+    font-size: calc(2.25rem + var(--type-bump));
+  }
+}
+
+@media (min-width: 1024px) {
+  .lg\:text-\[1\.08rem\] {
+    font-size: calc(1.08rem + var(--type-bump));
+  }
+
+  .lg\:text-\[2\.75rem\] {
+    font-size: calc(2.75rem + var(--type-bump));
+  }
+
+  .lg\:text-base {
+    font-size: calc(1rem + var(--type-bump));
+  }
 }
 
 .project-title-on-image {
