@@ -443,13 +443,14 @@ body::before {
 
 .spotify-card-wave-lottie {
   display: inline-flex;
-  width: clamp(4.25rem, 18cqi, 6.5rem);
-  height: 1.6rem;
+  width: clamp(5.35rem, 24cqi, 8rem);
+  height: 2rem;
   align-items: center;
   justify-content: center;
+  justify-self: start;
   overflow: hidden;
   opacity: 0.72;
-  transform: translateY(0.02rem);
+  transform: translate(-0.18rem, 0.02rem);
   transition:
     opacity 160ms ease,
     transform 160ms ease;
@@ -462,7 +463,7 @@ body::before {
 .spotify-card-wave-lottie-frame {
   display: block;
   width: 100%;
-  height: 1.35rem;
+  height: 1.7rem;
 }
 
 .spotify-card-wave-lottie svg {
@@ -473,7 +474,6 @@ body::before {
 .spotify-card-recent-track {
   display: grid;
   align-items: center;
-  gap: 0.9rem;
   min-width: 0;
   color: inherit;
   text-decoration: none;
@@ -483,11 +483,13 @@ body::before {
 }
 
 .spotify-card-current-track {
-  grid-template-columns: 3.7rem minmax(0, 1fr) minmax(4.25rem, 0.32fr);
+  grid-template-columns: 3.7rem minmax(0, 1fr) minmax(5.35rem, max-content);
+  gap: 0.72rem;
 }
 
 .spotify-card-recent-track {
   grid-template-columns: 3.7rem minmax(0, 1fr);
+  gap: 0.9rem;
 }
 
 .spotify-card-current-track {
@@ -696,8 +698,8 @@ body::before {
 
 @container (max-width: 24rem) {
   .spotify-card-current-track {
-    grid-template-columns: 3.25rem minmax(0, 1fr) minmax(3.4rem, 0.25fr);
-    gap: 0.7rem;
+    grid-template-columns: 3.25rem minmax(0, 1fr) minmax(4.25rem, max-content);
+    gap: 0.58rem;
   }
 
   .spotify-card-recent-track {
@@ -722,7 +724,13 @@ body::before {
   }
 
   .spotify-card-wave-lottie {
-    width: 3.4rem;
+    width: 4.25rem;
+    height: 1.7rem;
+    transform: translate(-0.1rem, 0.02rem);
+  }
+
+  .spotify-card-wave-lottie-frame {
+    height: 1.45rem;
   }
 }
 
