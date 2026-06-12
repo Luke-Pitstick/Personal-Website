@@ -402,7 +402,7 @@ body::before {
   max-width: 100%;
   align-items: center;
   gap: 0.65rem;
-  margin-left: -0.62rem;
+  margin-left: -1rem;
 }
 
 .spotify-card-wave {
