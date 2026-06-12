@@ -5,8 +5,8 @@ import {
   hasSpotifyPlaybackCredentials,
 } from '../../src/lib/spotify.server.js';
 
-const LIVE_PLAYBACK_CACHE = 'public, max-age=15, s-maxage=30, stale-while-revalidate=120';
-const RECENT_PLAYBACK_CACHE = 'public, max-age=60, s-maxage=180, stale-while-revalidate=600';
+const LIVE_PLAYBACK_CACHE = 'private, max-age=0, no-cache';
+const RECENT_PLAYBACK_CACHE = 'public, max-age=30, s-maxage=60, stale-while-revalidate=120';
 
 const json = (res, statusCode, payload, cacheControl = LIVE_PLAYBACK_CACHE) => {
   res.setHeader('Cache-Control', cacheControl);

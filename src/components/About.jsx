@@ -89,9 +89,12 @@ const initialSpotifyState = {
 
 const spotifyEndpoint = '/api/spotify/currently-playing';
 const spotifyCacheKey = 'lukepitstick.spotify-listening.v1';
-const spotifyCacheMaxAgeMs = 30 * 60 * 1000;
+const spotifyObservedHistoryKey = 'lukepitstick.spotify-observed-history.v1';
+const spotifyCacheMaxAgeMs = 2 * 60 * 1000;
 const spotifyWaveAnimationPath = '/spotify-now-wave-orange.json';
 const transientSpotifyStatuses = new Set(['loading', 'unconfigured', 'error']);
+const spotifyRecentTrackLimit = 3;
+const spotifyObservedRecentLimit = 5;
 
 const shouldCacheSpotify = (spotify) =>
   spotify && !transientSpotifyStatuses.has(spotify.status) && (spotify.title || spotify.recentTracks?.length);
@@ -138,6 +141,113 @@ const normalizeSpotifyPayload = (spotify, isCached = false) => ({
   isCached,
   recentTracks: spotify?.recentTracks || [],
 });
+
+const getSpotifyTrackKey = (track) => {
+  if (!track?.title) return null;
+
+  return (
+    track.url ||
+    [track.title, track.artist, track.album]
+      .filter(Boolean)
+      .join('::')
+      .toLowerCase()
+  );
+};
+
+const pickSpotifyTrack = (track) => {
+  if (!track?.title) return null;
+
+  return {
+    title: track.title,
+    artist: track.artist || '',
+    album: track.album || '',
+    image: track.image || null,
+    url: track.url || null,
+    durationMs: track.durationMs || null,
+    progressMs: track.progressMs ?? null,
+    status: track.status || 'recent',
+    isPlaying: Boolean(track.isPlaying),
+  };
+};
+
+const toRecentSpotifyTrack = (track) => {
+  const pickedTrack = pickSpotifyTrack(track);
+  if (!pickedTrack) return null;
+
+  return {
+    ...pickedTrack,
+    status: 'recent',
+    isPlaying: false,
+    progressMs: null,
+    playedAt: track.playedAt || new Date().toISOString(),
+  };
+};
+
+const mergeSpotifyRecentTracks = (tracks, limit = spotifyRecentTrackLimit) => {
+  const seen = new Set();
+
+  return tracks
+    .filter(Boolean)
+    .filter((track) => {
+      const key = getSpotifyTrackKey(track);
+      if (!key || seen.has(key)) return false;
+
+      seen.add(key);
+      return true;
+    })
+    .slice(0, limit);
+};
+
+const readObservedSpotifyHistory = () => {
+  try {
+    const cached = window.localStorage.getItem(spotifyObservedHistoryKey);
+    if (!cached) return { currentTrack: null, recentTracks: [] };
+
+    const parsed = JSON.parse(cached);
+    return {
+      currentTrack: parsed?.currentTrack || null,
+      recentTracks: parsed?.recentTracks || [],
+    };
+  } catch {
+    return { currentTrack: null, recentTracks: [] };
+  }
+};
+
+const writeObservedSpotifyHistory = (history) => {
+  try {
+    window.localStorage.setItem(spotifyObservedHistoryKey, JSON.stringify(history));
+  } catch {
+    // localStorage can be unavailable in private or restricted browser contexts.
+  }
+};
+
+const mergeObservedSpotifyHistory = (spotify) => {
+  if (!shouldCacheSpotify(spotify)) return normalizeSpotifyPayload(spotify);
+
+  const observedHistory = readObservedSpotifyHistory();
+  const currentTrack = ['playing', 'paused'].includes(spotify.status) ? pickSpotifyTrack(spotify) : null;
+  const currentKey = getSpotifyTrackKey(currentTrack);
+  const previousCurrentTrack = observedHistory.currentTrack;
+  const previousCurrentKey = getSpotifyTrackKey(previousCurrentTrack);
+  let observedRecentTracks = observedHistory.recentTracks || [];
+
+  if (currentTrack && previousCurrentTrack && previousCurrentKey && previousCurrentKey !== currentKey) {
+    observedRecentTracks = mergeSpotifyRecentTracks(
+      [toRecentSpotifyTrack(previousCurrentTrack), ...observedRecentTracks],
+      spotifyObservedRecentLimit,
+    );
+  }
+
+  writeObservedSpotifyHistory({
+    currentTrack: currentTrack || previousCurrentTrack || null,
+    recentTracks: observedRecentTracks,
+  });
+
+  return {
+    ...spotify,
+    recentTracks: mergeSpotifyRecentTracks([...observedRecentTracks, ...(spotify.recentTracks || [])]),
+  };
+};
 
 const getTrackInitials = (track) => {
   if (!track?.title) return 'SP';
@@ -324,7 +434,7 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
         throw new Error('Spotify request failed.');
       }
 
-      const data = normalizeSpotifyPayload(await response.json());
+      const data = mergeObservedSpotifyHistory(normalizeSpotifyPayload(await response.json()));
       setSpotify(data);
       writeCachedSpotify(data);
     } catch (error) {
