@@ -645,8 +645,7 @@ export const ExperienceSection = () => {
             </div>
 
             <div className="min-w-0">
-              <h3 className="flex items-baseline gap-2.5 font-body text-base font-extrabold text-[#101617] md:text-lg">
-                <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[#ff3a12]" aria-hidden="true" />
+              <h3 className="font-body text-base font-extrabold text-[#101617] md:text-lg">
                 {exp.role}
               </h3>
               <p className="mt-1.5 text-sm font-extrabold text-[#334044] md:text-base">
