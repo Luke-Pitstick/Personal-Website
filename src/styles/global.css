@@ -397,10 +397,11 @@ body::before {
 }
 
 .spotify-card-current-label {
-  display: inline-flex;
-  width: max-content;
+  display: flex;
+  width: 100%;
   max-width: 100%;
   align-items: center;
+  justify-content: space-between;
   gap: 0.65rem;
 }
 
@@ -443,8 +444,8 @@ body::before {
 
 .spotify-card-wave-lottie {
   display: inline-flex;
-  width: 3.4rem;
-  height: 1.35rem;
+  width: clamp(4.5rem, 34%, 7rem);
+  height: 1.6rem;
   align-items: center;
   justify-content: center;
   overflow: hidden;
@@ -461,8 +462,8 @@ body::before {
 
 .spotify-card-wave-lottie-frame {
   display: block;
-  width: 3.4rem;
-  height: 1.1rem;
+  width: 100%;
+  height: 1.35rem;
 }
 
 .spotify-card-wave-lottie svg {

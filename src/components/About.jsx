@@ -181,7 +181,7 @@ const SpotifyWaveIndicator = ({ isActive, shouldReduceMotion }) => {
       if (!isMounted || !containerRef.current) return;
 
       animation = lottie.loadAnimation({
-        autoplay: isActive,
+        autoplay: true,
         container: containerRef.current,
         loop: true,
         path: spotifyWaveAnimationPath,
@@ -239,12 +239,14 @@ const SpotifyCurrentTrack = ({ spotify, shouldReduceMotion }) => {
       : spotify.status === 'unconfigured'
         ? 'Add the refresh token in Vercel'
         : 'Check back when music is playing';
+  const hasListeningData = Boolean(spotify.title || spotify.recentTracks?.length);
+  const shouldAnimateWave = hasListeningData && !['loading', 'unconfigured', 'error', 'idle'].includes(spotify.status);
 
   return (
     <div className="spotify-card-current">
       <div className="spotify-card-current-label">
         <div className="spotify-card-section-label">Now</div>
-        <SpotifyWaveIndicator isActive={spotify.status === 'playing'} shouldReduceMotion={shouldReduceMotion} />
+        <SpotifyWaveIndicator isActive={shouldAnimateWave} shouldReduceMotion={shouldReduceMotion} />
       </div>
       <a
         href={spotify.url || undefined}
