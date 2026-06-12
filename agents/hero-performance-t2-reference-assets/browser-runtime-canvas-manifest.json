@@ -1,0 +1,90 @@
+{
+  "capturedAt": "2026-06-12T02:37:14.911Z",
+  "url": "http://127.0.0.1:4321/",
+  "title": "Luke Pitstick | Home",
+  "viewport": {
+    "width": 1200,
+    "height": 952,
+    "devicePixelRatio": 1
+  },
+  "canvasCount": 2,
+  "heroClassCandidates": [
+    "dithered-hero dithered-hero--static",
+    "dithered-hero"
+  ],
+  "mountainCanvas": {
+    "selector": ".dithered-hero-mountains",
+    "width": 1280,
+    "height": 720,
+    "cssRect": {
+      "x": -246.22265625,
+      "y": 0,
+      "width": 1692.4453125,
+      "height": 952
+    },
+    "file": "desktop-mountain-canvas-raw.png",
+    "bytes": 174292
+  },
+  "webglCanvas": {
+    "selector": ".dithered-hero-canvas canvas",
+    "width": 1083,
+    "height": 609,
+    "cssRect": {
+      "x": -246.22265625,
+      "y": 0,
+      "width": 1692.4453125,
+      "height": 952
+    },
+    "file": "desktop-webgl-canvas-raw-toDataURL.png",
+    "bytes": 15365
+  },
+  "resources": [
+    {
+      "name": "http://127.0.0.1:4321/_astro/DitheredHeroCanvas.DNYtEjnG.js",
+      "startTime": 1147.2,
+      "responseEnd": 1151.6,
+      "transferSize": 62449
+    },
+    {
+      "name": "http://127.0.0.1:4321/background.jpg",
+      "startTime": 1476.8,
+      "responseEnd": 1480.1,
+      "transferSize": 88283
+    },
+    {
+      "name": "http://127.0.0.1:4321/chautauqua-flatirons_fg.jpg",
+      "startTime": 1476.9,
+      "responseEnd": 1481.7,
+      "transferSize": 675886
+    }
+  ],
+  "consoleNote": "Captured through mcp__playwright.browser_evaluate against built dist without source edits.",
+  "decodedPngs": [
+    {
+      "key": "mountainCanvas",
+      "file": "desktop-mountain-canvas-raw.png",
+      "bytes": 174292,
+      "width": 1280,
+      "height": 720,
+      "cssRect": {
+        "x": -246.22265625,
+        "y": 0,
+        "width": 1692.4453125,
+        "height": 952
+      }
+    },
+    {
+      "key": "webglCanvas",
+      "file": "desktop-webgl-canvas-raw-toDataURL.png",
+      "bytes": 15365,
+      "width": 1083,
+      "height": 609,
+      "cssRect": {
+        "x": -246.22265625,
+        "y": 0,
+        "width": 1692.4453125,
+        "height": 952
+      }
+    }
+  ]
+}

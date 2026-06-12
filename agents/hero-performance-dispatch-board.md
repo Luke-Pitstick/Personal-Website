@@ -16,13 +16,15 @@ Generated: 2026-06-11
 | T5 resources | Ampere (`019eb47f-b96b-78d1-b60b-4a845e0ed1bc`) | complete, parent-integrated for current file shape | `src/components/Projects.jsx`, optional `agents/hero-performance-t5-resource-notes.md` | committed `0e5a08b` | Parent reapplied the resource scheduling change to current `ProjectCard`/`motion.img`; `npm run astro -- build` passed. |
 | T4 investigate | Hooke (`019eb47f-f8eb-7350-8c00-fb22799a3e5e`) | complete, integrated as notes | read-only | not applicable | Keep synthetic events; optimize wrapper loop/lifecycle only. |
 | REVIEW-T5 | Heisenberg (`019eb9a0-e01b-70b1-899b-560b6c2ebadd`) | complete, clean | read-only | not applicable | No issues found; minor residual fast-scroll image-latency risk noted. |
+| T2A references | Bohr (`019eb9ab-896a-7211-8489-78f87eaa1f07`) | partial, parent-accepted as reference evidence | `agents/hero-performance-t2-precompute-notes.md`, `agents/hero-performance-t2-reference-assets/` | ready to commit | Captured browser-produced mountain/WebGL references and build-path notes; not ready for T3 consumption. |
+| T4 implementation | Hooke (`019eb9ab-c6a9-76e3-9339-6899f061f173`) | partial, needs parent review/browser smoke | `src/components/DitheredHeroCanvas.jsx`, optional `agents/hero-performance-t4-implementation-notes.md` | not ready | Build passed; behavior/profile checks still needed before integration. |
 
 ## Pending Tasks
 | Task | Status | Dependency |
 | --- | --- | --- |
-| T2 precompute deterministic hero image work | pending | T1R baseline, raw browser-produced reference artifacts, and generated-asset build-path decision |
+| T2 precompute deterministic hero image work | partially complete as T2A | Raw helper ImageData capture, generated candidate assets, and asset-size comparison still needed before T3. |
 | T3 simplify `DitheredHeroCanvas` runtime | pending | T2 recommendation/adopted assets; staged consume-first/remove-helpers-second integration |
-| T4 implementation | pending | T1 baseline; safe strategy captured in `agents/hero-performance-t4-investigation.md` |
+| T4 implementation | in progress | T1R baseline; safe strategy captured in `agents/hero-performance-t4-investigation.md` |
 | T6 validate visual equivalence and performance gains | pending | T2/T3 and any accepted T4/T5 changes |
 
 ## Integration Rules
