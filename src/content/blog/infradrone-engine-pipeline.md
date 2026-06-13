@@ -135,18 +135,6 @@ Each final result becomes a `Damage` object. The record includes:
 
 The severity field is currently set to zero. The planned direction is to combine measured damage geometry with road-class stress information and fatigue-growth modeling.
 
-## Severity Direction
-
-Eventuall the project will have a severity layer based on fatigue crack growth. The intended model is based on Paris' Law, which relates crack growth rate to stress-intensity range:
-
-```text
-da / dN = C(delta K)^m
-```
-
-In the engine, the `StressRange` enum gives a first pass at road class, from residential roads up through freeways.
-
-The idea is that the same observed crack should not always mean the same priority. A crack on a low-traffic residential road and a similar crack on a freeway should be treated differently because the expected stress cycles and consequences are different.
-
 ## Current Limitations
 
 The current pipeline works as an end-to-end analysis path, but a few areas still need to be tightened:
