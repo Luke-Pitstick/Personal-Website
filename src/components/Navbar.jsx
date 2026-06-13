@@ -22,11 +22,20 @@ const Navbar = () => {
     { name: 'About', href: '/#about' },
     { name: 'Projects', href: '/#projects' },
     { name: 'Experience', href: '/#experience' },
+    { name: 'Blogs', href: '/blog/' },
     { name: 'Contact', href: '/#contact' },
   ];
 
   const handleNavClick = useCallback(
     (event, href) => {
+      const isSectionLink = href.startsWith('/#');
+      const isHomePage = window.location.pathname === '/';
+
+      if (!isSectionLink || !isHomePage) {
+        setIsOpen(false);
+        return;
+      }
+
       event.preventDefault();
       const sectionId = href.split('#')[1] ?? 'home';
 
@@ -49,6 +58,14 @@ const Navbar = () => {
   );
 
   useEffect(() => {
+    const isBlogPage = window.location.pathname.startsWith('/blog');
+
+    if (isBlogPage) {
+      setActiveHref('/blog/');
+      setScrolled(true);
+      return;
+    }
+
     const hash = window.location.hash.slice(1);
     if (hash && SECTION_IDS.includes(hash)) {
       requestAnimationFrame(() => {
@@ -65,6 +82,12 @@ const Navbar = () => {
 
   useEffect(() => {
     const handleScroll = () => {
+      if (window.location.pathname !== '/') {
+        setScrolled(true);
+        setActiveHref(window.location.pathname.startsWith('/blog') ? '/blog/' : '/#home');
+        return;
+      }
+
       setScrolled(window.scrollY > 50);
 
       if (scrollLockRef.current) {
@@ -121,7 +144,7 @@ const Navbar = () => {
         </motion.a>
 
         {/* Desktop Menu */}
-        <div className="hidden items-center gap-5 md:flex lg:gap-7">
+        <div className="hidden items-center gap-4 md:flex lg:gap-6">
           {navLinks.map((link) => {
             const isHighlighted = (hoveredHref || activeHref) === link.href;
 

@@ -1,0 +1,66 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { EXPERIENCE_ROW_GRID, SECTION_INDEX_BAND, SITE_SHELL } from '../../components/SectionChrome';
+import { formatBlogDate, getBlogPosts } from '../../lib/blog';
+
+const posts = await getBlogPosts();
+---
+
+<Layout
+	title="Luke Pitstick | Blogs"
+	description="Blogs from Luke Pitstick on software, AI, projects, and what he is learning."
+>
+	<main id="main-content" class="blog-page min-h-screen pt-24 text-[#101617] sm:pt-28">
+		<section class={`${SITE_SHELL} blog-index-section py-12 md:py-16`} aria-labelledby="blogs-heading">
+			<header class="experience-header mb-8 flex w-full flex-col gap-4 border-b-[3px] border-[#101617] pb-5 shadow-[0_3px_0_0_#ff3a12] md:mb-10 md:flex-row md:items-end md:justify-between md:gap-10">
+				<div class="min-w-0 flex-1">
+					<h1 id="blogs-heading" class="font-heading text-3xl font-bold text-[#101617] md:text-4xl lg:text-[2.75rem]">
+						Blogs
+					</h1>
+				</div>
+				<p class="max-w-none font-body text-sm font-bold leading-relaxed text-[#334044] md:max-w-md md:shrink-0 md:text-right lg:max-w-xl xl:max-w-2xl">
+					Short writing on projects, software, and things I am learning.
+				</p>
+			</header>
+
+			{posts.length > 0 ? (
+				<ol class={`experience-index ${SECTION_INDEX_BAND}`} aria-labelledby="blogs-heading">
+					{posts.map((post) => (
+						<li>
+							<a class={`focus-ring blog-index-row-link ${EXPERIENCE_ROW_GRID}`} href={post.url}>
+								<div class="font-mono text-xs font-extrabold uppercase tracking-[0.05em] text-[#334044] md:pt-0.5">
+									<span class="block">{formatBlogDate(post.date)}</span>
+								</div>
+
+								<div class="min-w-0">
+									<h2 class="font-body text-base font-extrabold text-[#101617] md:text-lg">
+										{post.title}
+									</h2>
+									{post.description ? (
+										<p class="mt-1.5 text-sm font-extrabold text-[#334044] md:text-base">
+											{post.description}
+										</p>
+									) : null}
+								</div>
+							</a>
+						</li>
+					))}
+				</ol>
+			) : (
+				<div class={`${EXPERIENCE_ROW_GRID} blog-index-empty`} role="status">
+					<div class="font-mono text-xs font-extrabold uppercase tracking-[0.05em] text-[#334044] md:pt-0.5">
+						<span class="block">Soon</span>
+					</div>
+					<div class="min-w-0">
+						<h2 class="font-body text-base font-extrabold text-[#101617] md:text-lg">
+							No published blogs yet.
+						</h2>
+						<p class="mt-1.5 text-sm font-extrabold text-[#334044] md:text-base">
+							Nothing public here yet.
+						</p>
+					</div>
+				</div>
+			)}
+		</section>
+	</main>
+</Layout>
