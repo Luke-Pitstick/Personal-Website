@@ -582,9 +582,9 @@ export const AboutIntro = () => {
           className="about-intro-copy flex min-w-0 flex-col gap-6 text-center md:col-start-2 md:row-start-1 md:text-left"
         >
           <p className="mx-auto max-w-[52ch] font-body text-base font-bold leading-relaxed text-[#273337] md:mx-0 md:max-w-none md:text-[1.05rem] lg:text-[1.08rem] lg:leading-[1.75]">
-            Hey I'm Luke! I'm currently at CU Boulder studying <b>Computer Science and Political Science</b>, with a
+            Hey I'm Luke! I'm a student at CU Boulder studying <b>Computer Science and Political Science</b>, with a
             focus on building useful AI/ML tools that solve deep technical problems, simulate complex systems, and
-            improve the world through science. I currently at the National Oceanic and Atmospheric Administration as a Junior Data Manager and at WattByte Nexus as an
+            improve the world through science. I'm currently working at the National Oceanic and Atmospheric Administration as a Junior Data Manager and at WattByte Nexus as an
             AI/ML Engineer Intern. Outside of work, I am usually outdoors, cooking, exploring restaurants, or trying
             new coffee places.
           </p>
