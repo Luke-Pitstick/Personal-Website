@@ -6,7 +6,6 @@ const HERO_HEIGHT = 720;
 const LOW_RESOLUTION_SCALE = 0.64;
 const BASE_RENDER_WIDTH = HERO_WIDTH * LOW_RESOLUTION_SCALE;
 const BASE_RENDER_HEIGHT = HERO_HEIGHT * LOW_RESOLUTION_SCALE;
-const BACKGROUND_PIXEL_SIZE = 2;
 const FOREGROUND_PIXEL_SIZE = 6;
 const REVEAL_EDGE_NOISE = 0.56;
 const REVEAL_EDGE_DITHER = 0.94;
@@ -19,19 +18,15 @@ const TRAIL_DUST_FLICKER = 0.72;
 const TRAIL_DUST_SIZE = 9;
 const TRAIL_IDLE_MS = 180;
 const TRAIL_MAX_POINTS = 12;
-const SKY_BACKGROUND_BLUE_BIAS = 112;
-const SKY_BACKGROUND_SATURATION = 2.45;
-const BACKGROUND_REVEAL_SRC = '/background.jpg';
+const DITHERED_BACKGROUND_SRC = '/background-dithered.webp';
 const MOUNTAIN_FOREGROUND_SRC = '/hero-mountains.webp';
 const FALLBACK_BLUE_TINT = 22;
 
 const LAYER_CONTROLS = {
   background: {
-    brightness: 1.08,
-    contrast: 1.16,
-    ditherAmount: 0.9,
-    ditherMatrixSize: 8,
-    ditherPixelSize: BACKGROUND_PIXEL_SIZE,
+    brightness: 1,
+    contrast: 1,
+    ditherAmount: 0,
     opacity: 1,
     revealEdgeDither: REVEAL_EDGE_DITHER,
     revealEdgeFlicker: REVEAL_EDGE_FLICKER,
@@ -341,7 +336,7 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
 
     let cancelled = false;
 
-    loadSkyRevealBackground(HERO_WIDTH, HERO_HEIGHT)
+    loadDitheredRevealBackground(HERO_WIDTH, HERO_HEIGHT)
       .then((imageData) => {
         if (!cancelled) {
           setRevealBackground(imageData);
@@ -611,73 +606,6 @@ function scaleInteractionValue(value, interactionScale) {
   return Math.max(1, Math.round(value * interactionScale));
 }
 
-function rgbToHsl(r, g, b) {
-  const red = clamp01(r / 255);
-  const green = clamp01(g / 255);
-  const blue = clamp01(b / 255);
-  const max = Math.max(red, green, blue);
-  const min = Math.min(red, green, blue);
-  const l = (max + min) / 2;
-
-  if (max === min) {
-    return { h: 0, l, s: 0 };
-  }
-
-  const delta = max - min;
-  const s = l > 0.5 ? delta / (2 - max - min) : delta / (max + min);
-  const h =
-    max === red
-      ? (green - blue) / delta + (green < blue ? 6 : 0)
-      : max === green
-        ? (blue - red) / delta + 2
-        : (red - green) / delta + 4;
-
-  return { h: h / 6, l, s };
-}
-
-function hslToRgb(h, s, l) {
-  if (s === 0) {
-    const value = l * 255;
-
-    return { b: value, g: value, r: value };
-  }
-
-  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-  const p = 2 * l - q;
-
-  return {
-    b: hueToRgb(p, q, h - 1 / 3) * 255,
-    g: hueToRgb(p, q, h) * 255,
-    r: hueToRgb(p, q, h + 1 / 3) * 255,
-  };
-}
-
-function hueToRgb(p, q, t) {
-  const hue = moduloFloat(t, 1);
-
-  if (hue < 1 / 6) {
-    return p + (q - p) * 6 * hue;
-  }
-
-  if (hue < 1 / 2) {
-    return q;
-  }
-
-  if (hue < 2 / 3) {
-    return p + (q - p) * (2 / 3 - hue) * 6;
-  }
-
-  return p;
-}
-
-function clamp01(value) {
-  return Math.max(0, Math.min(1, value));
-}
-
-function moduloFloat(value, divisor) {
-  return ((value % divisor) + divisor) % divisor;
-}
-
 function createAutoRevealBalls() {
   return AUTO_REVEAL_BALLS.slice(0, AUTO_REVEAL_BALL_COUNT).map((ball) => ({ ...ball }));
 }
@@ -715,11 +643,11 @@ function dispatchAutoPointers(canvas, rect, balls) {
   });
 }
 
-async function loadSkyRevealBackground(width, height) {
+async function loadDitheredRevealBackground(width, height) {
   const image = new Image();
   image.crossOrigin = 'anonymous';
   image.decoding = 'async';
-  image.src = BACKGROUND_REVEAL_SRC;
+  image.src = DITHERED_BACKGROUND_SRC;
   await image.decode();
 
   const canvas = document.createElement('canvas');
@@ -733,32 +661,7 @@ async function loadSkyRevealBackground(width, height) {
 
   context.drawImage(image, 0, 0, width, height);
 
-  const imageData = context.getImageData(0, 0, width, height);
-  enhanceSkyBackground(imageData);
-
-  return imageData;
-}
-
-function enhanceSkyBackground(image) {
-  for (let index = 0; index < image.data.length; index += 4) {
-    const alpha = image.data[index + 3] ?? 0;
-
-    if (alpha === 0) {
-      continue;
-    }
-
-    const r = image.data[index] ?? 0;
-    const g = image.data[index + 1] ?? 0;
-    const b = image.data[index + 2] ?? 0;
-    const brightness = (r + g + b) / 3;
-    const skyWeight = clamp01((brightness - 92) / 150);
-    const hsl = rgbToHsl(r, g, b);
-    const saturated = hslToRgb(hsl.h, clamp01(hsl.s * SKY_BACKGROUND_SATURATION), hsl.l);
-
-    image.data[index] = clampByte(saturated.r - SKY_BACKGROUND_BLUE_BIAS * 0.55 * skyWeight);
-    image.data[index + 1] = clampByte(saturated.g + SKY_BACKGROUND_BLUE_BIAS * 0.16 * skyWeight);
-    image.data[index + 2] = clampByte(saturated.b + SKY_BACKGROUND_BLUE_BIAS * skyWeight);
-  }
+  return context.getImageData(0, 0, width, height);
 }
 
 function createIdleSurfaceImageData(width, height, { blueTint = 0 } = {}) {
