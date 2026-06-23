@@ -18,6 +18,7 @@ const TRAIL_DUST_FLICKER = 0.72;
 const TRAIL_DUST_SIZE = 9;
 const TRAIL_IDLE_MS = 180;
 const TRAIL_MAX_POINTS = 12;
+const IDLE_SURFACE_CONTRAST = 1.02;
 const DITHERED_BACKGROUND_SRC = '/background-dithered.webp';
 const MOUNTAIN_FOREGROUND_SRC = '/hero-mountains.webp';
 const FALLBACK_BLUE_TINT = 22;
@@ -44,7 +45,7 @@ const LAYER_CONTROLS = {
   },
   foreground: {
     brightness: 1,
-    contrast: 1.02,
+    contrast: 1,
     ditherAmount: 0,
     ditherMatrixSize: 8,
     ditherPixelSize: FOREGROUND_PIXEL_SIZE,
@@ -103,7 +104,9 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
   const interactionScale = useInteractionScale(rootRef);
 
   useEffect(() => {
-    setIdleLayer(createIdleSurfaceImageData(HERO_WIDTH, HERO_HEIGHT));
+    setIdleLayer(
+      createIdleSurfaceImageData(HERO_WIDTH, HERO_HEIGHT, { contrast: IDLE_SURFACE_CONTRAST })
+    );
   }, []);
 
   useEffect(() => {
@@ -664,7 +667,7 @@ async function loadDitheredRevealBackground(width, height) {
   return context.getImageData(0, 0, width, height);
 }
 
-function createIdleSurfaceImageData(width, height, { blueTint = 0 } = {}) {
+function createIdleSurfaceImageData(width, height, { blueTint = 0, contrast = 1 } = {}) {
   const image = new ImageData(width, height);
 
   for (let y = 0; y < height; y += 1) {
@@ -674,14 +677,18 @@ function createIdleSurfaceImageData(width, height, { blueTint = 0 } = {}) {
       const grain = (((x * 17 + y * 31) % 19) - 9) * 0.8;
       const paper = Math.sin(x / 120) * 3 + Math.cos((x + y) / 180) * 4 + grain;
 
-      image.data[index] = clampByte(228 + vertical * 12 + paper - blueTint * 0.55);
-      image.data[index + 1] = clampByte(232 + vertical * 8 + paper + blueTint * 0.2);
-      image.data[index + 2] = clampByte(220 + vertical * 5 + paper + blueTint * 0.85);
+      image.data[index] = clampContrast(228 + vertical * 12 + paper - blueTint * 0.55, contrast);
+      image.data[index + 1] = clampContrast(232 + vertical * 8 + paper + blueTint * 0.2, contrast);
+      image.data[index + 2] = clampContrast(220 + vertical * 5 + paper + blueTint * 0.85, contrast);
       image.data[index + 3] = 255;
     }
   }
 
   return image;
+}
+
+function clampContrast(value, contrast) {
+  return clampByte((value - 128) * contrast + 128);
 }
 
 function clampByte(value) {
