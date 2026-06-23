@@ -354,7 +354,7 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
   }, [useStaticFallback]);
 
   const layers = useMemo(() => {
-    if (useStaticFallback || !idleLayer) {
+    if (useStaticFallback || !idleLayer || !revealBackground) {
       return undefined;
     }
 
@@ -459,7 +459,7 @@ function createHeroLayers(idleLayer, revealBackground, interactionScale = 1) {
       filters: buildFilters(LAYER_CONTROLS.background),
       opacity: LAYER_CONTROLS.background.opacity,
       reveal: buildRevealConfig(LAYER_CONTROLS.background, interactionScale),
-      src: revealBackground ?? idleLayer,
+      src: revealBackground,
     },
     foreground: {
       dither: buildDitherConfig(LAYER_CONTROLS.foreground),
