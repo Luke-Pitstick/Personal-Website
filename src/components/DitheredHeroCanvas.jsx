@@ -6,7 +6,6 @@ const HERO_HEIGHT = 720;
 const LOW_RESOLUTION_SCALE = 0.64;
 const BASE_RENDER_WIDTH = HERO_WIDTH * LOW_RESOLUTION_SCALE;
 const BASE_RENDER_HEIGHT = HERO_HEIGHT * LOW_RESOLUTION_SCALE;
-const BACKGROUND_PIXEL_SIZE = 2;
 const FOREGROUND_PIXEL_SIZE = 6;
 const REVEAL_EDGE_NOISE = 0.56;
 const REVEAL_EDGE_DITHER = 0.94;
@@ -30,11 +29,9 @@ const TRAIL_STRENGTH = 0.9;
 
 const LAYER_CONTROLS = {
   background: {
-    brightness: 1.08,
-    contrast: 1.16,
+    brightness: 1,
+    contrast: 1,
     ditherAmount: 0,
-    ditherMatrixSize: 8,
-    ditherPixelSize: BACKGROUND_PIXEL_SIZE,
     opacity: 1,
     revealEdgeDither: REVEAL_EDGE_DITHER,
     revealEdgeFlicker: REVEAL_EDGE_FLICKER,
