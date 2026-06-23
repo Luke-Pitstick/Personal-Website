@@ -38,6 +38,10 @@ const BACKGROUND_CONTROLS = {
   ditherMatrixSize: 8,
   ditherPixelSize: BACKGROUND_PIXEL_SIZE,
 };
+const BACKGROUND_WEBP_OPTIONS = {
+  effort: 6,
+  quality: 82,
+};
 
 function clamp01(value) {
   return Math.max(0, Math.min(1, value));
@@ -235,7 +239,7 @@ async function main() {
       channels: 4,
     },
   })
-    .webp({ quality: 88 })
+    .webp(BACKGROUND_WEBP_OPTIONS)
     .toFile(OUTPUT);
 
   console.log(`Wrote ${OUTPUT} (${info.width}x${info.height})`);
