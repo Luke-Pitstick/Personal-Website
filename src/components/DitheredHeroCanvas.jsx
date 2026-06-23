@@ -33,6 +33,7 @@ const QUALITY = {
   resolutionScale: LOW_RESOLUTION_SCALE,
 };
 
+const AUTO_REVEAL_POINTER_INTERVAL_MS = 32;
 const AUTO_CURSOR_RESUME_MS = 2400;
 const AUTO_REVEAL_BALL_COUNT = 5;
 const AUTO_REVEAL_BOUNDS = {
@@ -259,7 +260,11 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
         refreshCanvasRect();
       }
 
-      if (canvasRect && time >= pauseUntil) {
+      if (
+        canvasRect &&
+        time >= pauseUntil &&
+        time - lastAutoRevealTime >= AUTO_REVEAL_POINTER_INTERVAL_MS
+      ) {
         const deltaMs = Math.min(64, Math.max(0, time - lastAutoRevealTime));
 
         stepAutoRevealBalls(autoRevealBalls, deltaMs);
