@@ -31,7 +31,6 @@ const EMPTY_FILTERS = [];
 const QUALITY = {
   backend: 'webgl2',
   resolutionScale: LOW_RESOLUTION_SCALE,
-  targetFps: 60,
 };
 
 const AUTO_REVEAL_POINTER_INTERVAL_MS = 32;
