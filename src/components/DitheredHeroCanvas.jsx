@@ -6,6 +6,7 @@ const HERO_HEIGHT = 720;
 const LOW_RESOLUTION_SCALE = 0.64;
 const BASE_RENDER_WIDTH = HERO_WIDTH * LOW_RESOLUTION_SCALE;
 const BASE_RENDER_HEIGHT = HERO_HEIGHT * LOW_RESOLUTION_SCALE;
+const BACKGROUND_PIXEL_SIZE = 2;
 const FOREGROUND_PIXEL_SIZE = 6;
 const REVEAL_EDGE_NOISE = 0.56;
 const REVEAL_EDGE_DITHER = 0.94;
@@ -26,11 +27,56 @@ const FALLBACK_BLUE_TINT = 22;
 const REVEAL_SOFTNESS = 0.58;
 const TRAIL_SPACING = 28;
 const TRAIL_STRENGTH = 0.9;
-const EMPTY_FILTERS = [];
+
+const LAYER_CONTROLS = {
+  background: {
+    brightness: 1.08,
+    contrast: 1.16,
+    ditherAmount: 0,
+    ditherMatrixSize: 8,
+    ditherPixelSize: BACKGROUND_PIXEL_SIZE,
+    opacity: 1,
+    revealEdgeDither: REVEAL_EDGE_DITHER,
+    revealEdgeFlicker: REVEAL_EDGE_FLICKER,
+    revealEdgeNoise: REVEAL_EDGE_NOISE,
+    revealFadeMs: REVEAL_FADE_MS,
+    revealPixelSize: FOREGROUND_PIXEL_SIZE,
+    revealRadius: REVEAL_RADIUS,
+    revealSoftness: REVEAL_SOFTNESS,
+    trailDustFlicker: TRAIL_DUST_FLICKER,
+    trailDustSize: TRAIL_DUST_SIZE,
+    trailDurationMs: TRAIL_DURATION_MS,
+    trailIdleMs: TRAIL_IDLE_MS,
+    trailSpacing: TRAIL_SPACING,
+    trailStrength: TRAIL_STRENGTH,
+  },
+  foreground: {
+    brightness: 1,
+    contrast: 1,
+    ditherAmount: 0,
+    ditherMatrixSize: 8,
+    ditherPixelSize: FOREGROUND_PIXEL_SIZE,
+    opacity: 1,
+    revealEdgeDither: REVEAL_EDGE_DITHER,
+    revealEdgeFlicker: REVEAL_EDGE_FLICKER,
+    revealEdgeNoise: REVEAL_EDGE_NOISE,
+    revealFadeMs: REVEAL_FADE_MS,
+    revealPixelSize: FOREGROUND_PIXEL_SIZE,
+    revealRadius: REVEAL_RADIUS,
+    revealSoftness: REVEAL_SOFTNESS,
+    trailDustFlicker: TRAIL_DUST_FLICKER,
+    trailDustSize: TRAIL_DUST_SIZE,
+    trailDurationMs: TRAIL_DURATION_MS,
+    trailIdleMs: TRAIL_IDLE_MS,
+    trailSpacing: TRAIL_SPACING,
+    trailStrength: TRAIL_STRENGTH,
+  },
+};
 
 const QUALITY = {
   backend: 'webgl2',
   resolutionScale: LOW_RESOLUTION_SCALE,
+  targetFps: 60,
 };
 
 const AUTO_REVEAL_POINTER_INTERVAL_MS = 32;
@@ -126,6 +172,7 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
 
     let frame = 0;
     let autoRevealTimer = 0;
+    let rectFrame = 0;
     let pauseUntil = 0;
     let lastAutoRevealTime = performance.now();
     let canvas;
@@ -136,6 +183,13 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
     const autoRevealBalls = createAutoRevealBalls();
 
     const canRender = () => isDocumentVisible && isHeroIntersecting;
+
+    const cancelRectRefresh = () => {
+      if (rectFrame) {
+        window.cancelAnimationFrame(rectFrame);
+        rectFrame = 0;
+      }
+    };
 
     const observeCanvas = (nextCanvas) => {
       if (observedCanvas === nextCanvas) {
@@ -188,6 +242,23 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
       }
 
       canvasRect = currentCanvas.getBoundingClientRect();
+    };
+
+    const scheduleCanvasRectRefresh = () => {
+      if (!canRender()) {
+        canvasRect = undefined;
+        cancelRectRefresh();
+        return;
+      }
+
+      if (rectFrame) {
+        return;
+      }
+
+      rectFrame = window.requestAnimationFrame(() => {
+        rectFrame = 0;
+        refreshCanvasRect();
+      });
     };
 
     const cancelAnimation = () => {
@@ -303,6 +374,7 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
 
     const handleRectInvalidation = () => {
       canvasRect = undefined;
+      scheduleCanvasRectRefresh();
     };
 
     const handleVisibilityChange = () => {
@@ -318,10 +390,16 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
     };
 
     const rectResizeObserver = new ResizeObserver(handleRectInvalidation);
+    const mutationObserver = new MutationObserver(() => {
+      discoverCanvas();
+      handleRectInvalidation();
+      syncAnimation();
+    });
     const intersectionObserver = new IntersectionObserver(handleIntersectionChange);
     const scrollListenerOptions = { capture: true, passive: true };
 
     rectResizeObserver.observe(root);
+    mutationObserver.observe(root, { childList: true, subtree: true });
     intersectionObserver.observe(root);
     window.addEventListener('resize', handleRectInvalidation);
     window.addEventListener('scroll', handleRectInvalidation, scrollListenerOptions);
@@ -333,7 +411,9 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
 
     return () => {
       cancelAnimation();
+      cancelRectRefresh();
       rectResizeObserver.disconnect();
+      mutationObserver.disconnect();
       intersectionObserver.disconnect();
       window.removeEventListener('resize', handleRectInvalidation);
       window.removeEventListener('scroll', handleRectInvalidation, scrollListenerOptions);
@@ -458,47 +538,72 @@ function getDitheredRevealBackground() {
 }
 
 function createHeroLayers(idleLayer, revealBackground, interactionScale = 1) {
-  const reveal = buildRevealConfig(interactionScale);
-
   return {
     background: {
-      dither: false,
+      dither: buildDitherConfig(LAYER_CONTROLS.background),
       fit: 'stretch',
-      filters: EMPTY_FILTERS,
-      opacity: 1,
-      reveal,
+      filters: buildFilters(LAYER_CONTROLS.background),
+      opacity: LAYER_CONTROLS.background.opacity,
+      reveal: buildRevealConfig(LAYER_CONTROLS.background, interactionScale),
       src: revealBackground,
     },
     foreground: {
-      dither: false,
+      dither: buildDitherConfig(LAYER_CONTROLS.foreground),
       fit: 'stretch',
-      filters: EMPTY_FILTERS,
-      opacity: 1,
-      reveal,
+      filters: buildFilters(LAYER_CONTROLS.foreground),
+      opacity: LAYER_CONTROLS.foreground.opacity,
+      reveal: buildRevealConfig(LAYER_CONTROLS.foreground, interactionScale),
       src: idleLayer,
     },
   };
 }
 
-function buildRevealConfig(interactionScale = 1) {
+function buildFilters(controls) {
+  const filters = [];
+
+  if (controls.contrast !== 1) {
+    filters.push({ type: 'contrast', amount: controls.contrast });
+  }
+
+  if (controls.brightness !== 1) {
+    filters.push({ type: 'brightness', amount: controls.brightness });
+  }
+
+  return filters;
+}
+
+function buildDitherConfig(controls) {
+  if (controls.ditherAmount <= 0) {
+    return false;
+  }
+
   return {
-    edgeDither: REVEAL_EDGE_DITHER,
-    edgeFlicker: REVEAL_EDGE_FLICKER,
-    edgeNoise: REVEAL_EDGE_NOISE,
-    fadeMs: REVEAL_FADE_MS,
+    amount: controls.ditherAmount,
+    matrixSize: controls.ditherMatrixSize,
+    palette: 'browserbase',
+    pixelSize: controls.ditherPixelSize,
+  };
+}
+
+function buildRevealConfig(controls, interactionScale = 1) {
+  return {
+    edgeDither: controls.revealEdgeDither,
+    edgeFlicker: controls.revealEdgeFlicker,
+    edgeNoise: controls.revealEdgeNoise,
+    fadeMs: controls.revealFadeMs,
     foregroundBlend: REVEAL_FOREGROUND_BLEND,
-    pixelSize: scaleInteractionValue(FOREGROUND_PIXEL_SIZE, interactionScale),
-    radius: REVEAL_RADIUS * interactionScale,
-    softness: REVEAL_SOFTNESS,
+    pixelSize: scaleInteractionValue(controls.revealPixelSize, interactionScale),
+    radius: controls.revealRadius * interactionScale,
+    softness: controls.revealSoftness,
     strength: 1,
     trail: {
-      dustFlicker: TRAIL_DUST_FLICKER,
-      dustSize: scaleInteractionValue(TRAIL_DUST_SIZE, interactionScale),
-      durationMs: TRAIL_DURATION_MS,
-      idleMs: TRAIL_IDLE_MS,
+      dustFlicker: controls.trailDustFlicker,
+      dustSize: scaleInteractionValue(controls.trailDustSize, interactionScale),
+      durationMs: controls.trailDurationMs,
+      idleMs: controls.trailIdleMs,
       maxPoints: TRAIL_MAX_POINTS,
-      spacing: scaleInteractionValue(TRAIL_SPACING, interactionScale),
-      strength: TRAIL_STRENGTH,
+      spacing: scaleInteractionValue(controls.trailSpacing, interactionScale),
+      strength: controls.trailStrength,
     },
   };
 }
