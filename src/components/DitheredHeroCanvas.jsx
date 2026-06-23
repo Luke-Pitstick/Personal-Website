@@ -87,6 +87,7 @@ const AUTO_REVEAL_BALLS = [
   { id: 4, x: 0.78, y: 0.66, vx: -0.000118, vy: -0.000071 },
   { id: 5, x: 0.48, y: 0.48, vx: 0.000073, vy: 0.000126 },
 ];
+const idleSurfaceWaveCache = new Map();
 
 const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInteract }) => {
   const rootRef = useRef(null);
@@ -669,13 +670,15 @@ async function loadDitheredRevealBackground(width, height) {
 
 function createIdleSurfaceImageData(width, height, { blueTint = 0, contrast = 1 } = {}) {
   const image = new ImageData(width, height);
+  const { cosXY, sinX } = getIdleSurfaceWaveTables(width, height);
 
   for (let y = 0; y < height; y += 1) {
+    const vertical = y / height;
+
     for (let x = 0; x < width; x += 1) {
       const index = (y * width + x) * 4;
-      const vertical = y / height;
       const grain = (((x * 17 + y * 31) % 19) - 9) * 0.8;
-      const paper = Math.sin(x / 120) * 3 + Math.cos((x + y) / 180) * 4 + grain;
+      const paper = sinX[x] + cosXY[x + y] + grain;
 
       image.data[index] = clampContrast(228 + vertical * 12 + paper - blueTint * 0.55, contrast);
       image.data[index + 1] = clampContrast(232 + vertical * 8 + paper + blueTint * 0.2, contrast);
@@ -685,6 +688,31 @@ function createIdleSurfaceImageData(width, height, { blueTint = 0, contrast = 1 
   }
 
   return image;
+}
+
+function getIdleSurfaceWaveTables(width, height) {
+  const cacheKey = `${width}x${height}`;
+  const cached = idleSurfaceWaveCache.get(cacheKey);
+
+  if (cached) {
+    return cached;
+  }
+
+  const sinX = new Float64Array(width);
+  const cosXY = new Float64Array(width + height - 1);
+
+  for (let x = 0; x < width; x += 1) {
+    sinX[x] = Math.sin(x / 120) * 3;
+  }
+
+  for (let index = 0; index < cosXY.length; index += 1) {
+    cosXY[index] = Math.cos(index / 180) * 4;
+  }
+
+  const tables = { cosXY, sinX };
+  idleSurfaceWaveCache.set(cacheKey, tables);
+
+  return tables;
 }
 
 function clampContrast(value, contrast) {
