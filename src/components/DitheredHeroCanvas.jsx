@@ -23,48 +23,10 @@ const DITHERED_BACKGROUND_SRC = '/background-dithered.webp';
 const MOUNTAIN_FOREGROUND_SRC = '/hero-mountains.webp';
 const FALLBACK_BLUE_TINT = 22;
 
-const LAYER_CONTROLS = {
-  background: {
-    brightness: 1,
-    contrast: 1,
-    ditherAmount: 0,
-    opacity: 1,
-    revealEdgeDither: REVEAL_EDGE_DITHER,
-    revealEdgeFlicker: REVEAL_EDGE_FLICKER,
-    revealEdgeNoise: REVEAL_EDGE_NOISE,
-    revealFadeMs: REVEAL_FADE_MS,
-    revealPixelSize: FOREGROUND_PIXEL_SIZE,
-    revealRadius: REVEAL_RADIUS,
-    revealSoftness: 0.58,
-    trailDustFlicker: TRAIL_DUST_FLICKER,
-    trailDustSize: TRAIL_DUST_SIZE,
-    trailDurationMs: TRAIL_DURATION_MS,
-    trailIdleMs: TRAIL_IDLE_MS,
-    trailSpacing: 28,
-    trailStrength: 0.9,
-  },
-  foreground: {
-    brightness: 1,
-    contrast: 1,
-    ditherAmount: 0,
-    ditherMatrixSize: 8,
-    ditherPixelSize: FOREGROUND_PIXEL_SIZE,
-    opacity: 1,
-    revealEdgeDither: REVEAL_EDGE_DITHER,
-    revealEdgeFlicker: REVEAL_EDGE_FLICKER,
-    revealEdgeNoise: REVEAL_EDGE_NOISE,
-    revealFadeMs: REVEAL_FADE_MS,
-    revealPixelSize: FOREGROUND_PIXEL_SIZE,
-    revealRadius: REVEAL_RADIUS,
-    revealSoftness: 0.58,
-    trailDustFlicker: TRAIL_DUST_FLICKER,
-    trailDustSize: TRAIL_DUST_SIZE,
-    trailDurationMs: TRAIL_DURATION_MS,
-    trailIdleMs: TRAIL_IDLE_MS,
-    trailSpacing: 28,
-    trailStrength: 0.9,
-  },
-};
+const REVEAL_SOFTNESS = 0.58;
+const TRAIL_SPACING = 28;
+const TRAIL_STRENGTH = 0.9;
+const EMPTY_FILTERS = [];
 
 const QUALITY = {
   backend: 'webgl2',
@@ -456,72 +418,47 @@ function shouldUseStaticFallback() {
 }
 
 function createHeroLayers(idleLayer, revealBackground, interactionScale = 1) {
+  const reveal = buildRevealConfig(interactionScale);
+
   return {
     background: {
-      dither: buildDitherConfig(LAYER_CONTROLS.background),
+      dither: false,
       fit: 'stretch',
-      filters: buildFilters(LAYER_CONTROLS.background),
-      opacity: LAYER_CONTROLS.background.opacity,
-      reveal: buildRevealConfig(LAYER_CONTROLS.background, interactionScale),
+      filters: EMPTY_FILTERS,
+      opacity: 1,
+      reveal,
       src: revealBackground,
     },
     foreground: {
-      dither: buildDitherConfig(LAYER_CONTROLS.foreground),
+      dither: false,
       fit: 'stretch',
-      filters: buildFilters(LAYER_CONTROLS.foreground),
-      opacity: LAYER_CONTROLS.foreground.opacity,
-      reveal: buildRevealConfig(LAYER_CONTROLS.foreground, interactionScale),
+      filters: EMPTY_FILTERS,
+      opacity: 1,
+      reveal,
       src: idleLayer,
     },
   };
 }
 
-function buildFilters(controls) {
-  const filters = [];
-
-  if (controls.contrast !== 1) {
-    filters.push({ type: 'contrast', amount: controls.contrast });
-  }
-
-  if (controls.brightness !== 1) {
-    filters.push({ type: 'brightness', amount: controls.brightness });
-  }
-
-  return filters;
-}
-
-function buildDitherConfig(controls) {
-  if (controls.ditherAmount <= 0) {
-    return false;
-  }
-
+function buildRevealConfig(interactionScale = 1) {
   return {
-    amount: controls.ditherAmount,
-    matrixSize: controls.ditherMatrixSize,
-    palette: 'browserbase',
-    pixelSize: controls.ditherPixelSize,
-  };
-}
-
-function buildRevealConfig(controls, interactionScale = 1) {
-  return {
-    edgeDither: controls.revealEdgeDither,
-    edgeFlicker: controls.revealEdgeFlicker,
-    edgeNoise: controls.revealEdgeNoise,
-    fadeMs: controls.revealFadeMs,
+    edgeDither: REVEAL_EDGE_DITHER,
+    edgeFlicker: REVEAL_EDGE_FLICKER,
+    edgeNoise: REVEAL_EDGE_NOISE,
+    fadeMs: REVEAL_FADE_MS,
     foregroundBlend: REVEAL_FOREGROUND_BLEND,
-    pixelSize: scaleInteractionValue(controls.revealPixelSize, interactionScale),
-    radius: controls.revealRadius * interactionScale,
-    softness: controls.revealSoftness,
+    pixelSize: scaleInteractionValue(FOREGROUND_PIXEL_SIZE, interactionScale),
+    radius: REVEAL_RADIUS * interactionScale,
+    softness: REVEAL_SOFTNESS,
     strength: 1,
     trail: {
-      dustFlicker: controls.trailDustFlicker,
-      dustSize: scaleInteractionValue(controls.trailDustSize, interactionScale),
-      durationMs: controls.trailDurationMs,
-      idleMs: controls.trailIdleMs,
+      dustFlicker: TRAIL_DUST_FLICKER,
+      dustSize: scaleInteractionValue(TRAIL_DUST_SIZE, interactionScale),
+      durationMs: TRAIL_DURATION_MS,
+      idleMs: TRAIL_IDLE_MS,
       maxPoints: TRAIL_MAX_POINTS,
-      spacing: scaleInteractionValue(controls.trailSpacing, interactionScale),
-      strength: controls.trailStrength,
+      spacing: scaleInteractionValue(TRAIL_SPACING, interactionScale),
+      strength: TRAIL_STRENGTH,
     },
   };
 }
