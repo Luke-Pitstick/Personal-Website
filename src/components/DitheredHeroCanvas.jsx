@@ -31,7 +31,6 @@ const EMPTY_FILTERS = [];
 const QUALITY = {
   backend: 'webgl2',
   resolutionScale: LOW_RESOLUTION_SCALE,
-  targetFps: 60,
 };
 
 const AUTO_CURSOR_RESUME_MS = 2400;
@@ -50,6 +49,18 @@ const AUTO_REVEAL_BALLS = [
   { id: 5, x: 0.48, y: 0.48, vx: 0.000073, vy: 0.000126 },
 ];
 const idleSurfaceWaveCache = new Map();
+let interactiveIdleLayerPromise;
+let revealBackgroundPromise;
+let staticFallbackPreference;
+
+export function preloadDitheredHeroCanvasData() {
+  if (typeof window === 'undefined' || shouldUseStaticFallback()) {
+    return;
+  }
+
+  void getInteractiveIdleLayer().catch(() => {});
+  void getDitheredRevealBackground().catch(() => {});
+}
 
 const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInteract }) => {
   const rootRef = useRef(null);
@@ -67,10 +78,28 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
   const interactionScale = useInteractionScale(rootRef);
 
   useEffect(() => {
-    setIdleLayer(
-      createIdleSurfaceImageData(HERO_WIDTH, HERO_HEIGHT, { contrast: IDLE_SURFACE_CONTRAST })
-    );
-  }, []);
+    if (useStaticFallback) {
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    getInteractiveIdleLayer()
+      .then((imageData) => {
+        if (!cancelled) {
+          setIdleLayer(imageData);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setUseStaticFallback(true);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [useStaticFallback]);
 
   useEffect(() => {
     const root = rootRef.current;
@@ -302,7 +331,7 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
 
     let cancelled = false;
 
-    loadDitheredRevealBackground(HERO_WIDTH, HERO_HEIGHT)
+    getDitheredRevealBackground()
       .then((imageData) => {
         if (!cancelled) {
           setRevealBackground(imageData);
@@ -405,16 +434,48 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
 };
 
 function shouldUseStaticFallback() {
+  if (staticFallbackPreference !== undefined) {
+    return staticFallbackPreference;
+  }
+
   if (typeof window === 'undefined') {
     return false;
   }
 
   try {
     const canvas = document.createElement('canvas');
-    return !canvas.getContext('webgl2');
+    const context = canvas.getContext('webgl2');
+    staticFallbackPreference = !context;
+    context?.getExtension('WEBGL_lose_context')?.loseContext();
+    return staticFallbackPreference;
   } catch {
+    staticFallbackPreference = true;
     return true;
   }
+}
+
+function getInteractiveIdleLayer() {
+  interactiveIdleLayerPromise ??= Promise.resolve()
+    .then(() =>
+      createIdleSurfaceImageData(HERO_WIDTH, HERO_HEIGHT, { contrast: IDLE_SURFACE_CONTRAST })
+    )
+    .catch((error) => {
+      interactiveIdleLayerPromise = undefined;
+      throw error;
+    });
+
+  return interactiveIdleLayerPromise;
+}
+
+function getDitheredRevealBackground() {
+  revealBackgroundPromise ??= loadDitheredRevealBackground(HERO_WIDTH, HERO_HEIGHT).catch(
+    (error) => {
+      revealBackgroundPromise = undefined;
+      throw error;
+    }
+  );
+
+  return revealBackgroundPromise;
 }
 
 function createHeroLayers(idleLayer, revealBackground, interactionScale = 1) {

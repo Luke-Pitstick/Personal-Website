@@ -112,7 +112,13 @@ const Hero = () => {
     };
     const prepareCanvas = () => {
       idleComplete = true;
-      void loadDitheredHeroCanvasModule().catch(() => {});
+      void loadDitheredHeroCanvasModule()
+        .then((module) => {
+          if (!cancelled) {
+            module.preloadDitheredHeroCanvasData?.();
+          }
+        })
+        .catch(() => {});
       loadCanvas();
     };
 
