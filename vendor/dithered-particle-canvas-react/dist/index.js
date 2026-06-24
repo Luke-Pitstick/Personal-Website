@@ -1234,7 +1234,7 @@ function xi(e, t, r) {
     y: (e.clientY - t.top) * o
   };
 }
-var fe, le, A, R, Q, fr, lr, Et;
+var fe, le, A, R, U, Q, fr, lr, Et;
 class vi {
   constructor() {
     d(this, Q);
@@ -1242,6 +1242,7 @@ class vi {
     d(this, le, 0);
     d(this, A, { ...$t });
     d(this, R, []);
+    d(this, U, []);
   }
   getSnapshot({
     now: t = 0,
@@ -1286,10 +1287,10 @@ class vi {
     }), this.getSnapshot({ ...r, now: t })) : { ...n(this, A) };
   }
   clear() {
-    return h(this, fe, !1), h(this, le, 0), h(this, A, { ...$t }), h(this, R, []), { ...n(this, A) };
+    return h(this, fe, !1), h(this, le, 0), h(this, A, { ...$t }), h(this, R, []), n(this, U).length = 0, { ...n(this, A) };
   }
 }
-fe = new WeakMap(), le = new WeakMap(), A = new WeakMap(), R = new WeakMap(), Q = new WeakSet(), fr = function(t, r, { reducedMotion: i = !1, reveal: o }) {
+fe = new WeakMap(), le = new WeakMap(), A = new WeakMap(), R = new WeakMap(), U = new WeakMap(), Q = new WeakSet(), fr = function(t, r, { reducedMotion: i = !1, reveal: o }) {
   const s = Me(rt(o).trail);
   if (i || !s || s.durationMs <= 0 || s.maxPoints <= 0) {
     h(this, R, []);
@@ -1306,19 +1307,16 @@ fe = new WeakMap(), le = new WeakMap(), A = new WeakMap(), R = new WeakMap(), Q 
   const o = Me(r.trail);
   if (i || !o || o.durationMs <= 0) {
     h(this, R, []);
+    n(this, U).length = 0;
     return;
   }
   if (u(this, Q, Et).call(this, t, o.durationMs), n(this, R).length !== 0) {
-    const s = n(this, R), a = [];
+    const s = n(this, R), a = n(this, U);
     for (let c = 0; c < s.length; c += 1) {
-      const f = s[c];
-      a.push({
-        fade: E(1 - Math.max(0, t - f.time) / o.durationMs),
-        x: f.x,
-        y: f.y
-      });
+      const f = s[c], l = a[c] ?? (a[c] = { fade: 0, x: 0, y: 0 });
+      l.fade = E(1 - Math.max(0, t - f.time) / o.durationMs), l.x = f.x, l.y = f.y;
     }
-    return a;
+    return a.length = s.length, a;
   }
 }, Et = function(t, r) {
   const i = n(this, R);
