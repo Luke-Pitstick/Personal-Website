@@ -35,6 +35,8 @@ firebase-debug.log
 public/*
 !public/favicon.svg
 !public/background-dithered.webp
+!public/hero-paper-precomputed.png
+!public/hero-mountains-precomputed.png
 !public/pictureofme.jpg
 !public/pictureofme-*.avif
 !public/pictureofme-*.webp

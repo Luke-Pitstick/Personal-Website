@@ -22,12 +22,48 @@ const portraitAvifSrcSet =
 		imagesizes={portraitSizes}
 		fetchpriority="high"
 	/>
+	<link
+		slot="head"
+		rel="preload"
+		as="image"
+		type="image/png"
+		href="/hero-paper-precomputed.png"
+		fetchpriority="high"
+	/>
+	<link
+		slot="head"
+		rel="preload"
+		as="image"
+		type="image/png"
+		href="/hero-mountains-precomputed.png"
+		fetchpriority="high"
+	/>
 	<main id="main-content">
 		<section
 			id="home"
 			class="scroll-mt-16 relative grid min-h-screen overflow-hidden bg-[#f8f7f1] px-4 text-[#101617]"
 		>
 			<div class="dithered-hero dithered-hero--static" aria-hidden="true">
+				<img
+					class="dithered-hero-paper"
+					src="/hero-paper-precomputed.png"
+					alt=""
+					width="1280"
+					height="720"
+					decoding="async"
+					fetchpriority="high"
+					loading="eager"
+				/>
+				<img
+					class="dithered-hero-mountains"
+					src="/hero-mountains-precomputed.png"
+					alt=""
+					width="1280"
+					height="720"
+					decoding="async"
+					fetchpriority="high"
+					loading="eager"
+				/>
 				<div class="dithered-hero-shade"></div>
 			</div>
 			<HeroContent />
