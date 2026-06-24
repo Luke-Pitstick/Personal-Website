@@ -4,9 +4,10 @@
   "version": "0.0.1",
   "scripts": {
     "generate:hero-fallback": "node scripts/generate-dithered-background.mjs",
+    "generate:hero-paper": "node scripts/generate-hero-paper.mjs",
     "generate:hero-portrait": "node scripts/generate-hero-portrait.mjs",
     "dev": "astro dev",
-    "build": "npm run generate:hero-portrait && astro build && node scripts/prune-hero-source.mjs",
+    "build": "npm run generate:hero-paper && npm run generate:hero-portrait && astro build && node scripts/prune-hero-source.mjs",
     "preview": "astro preview",
     "deploy": "npx vercel --prod",
     "deploy:preview": "npx vercel",

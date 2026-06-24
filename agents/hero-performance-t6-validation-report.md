@@ -6,7 +6,7 @@ Collected: 2026-06-11 MDT / 2026-06-12 UTC
 
 ## Current Branch Note
 
-This report is historical. It predates the current branch's precomputed hero asset integration, initial WebP preload hints, interactive data warmup, auto-reveal throttling refinements, coarse-pointer auto-only seeding, and production pruning of source-only hero JPEGs. In current HEAD, the interactive path no longer loads `background.jpg` or `chautauqua-flatirons_fg.jpg`; it uses `/background-dithered.webp` and `/hero-mountains.webp` instead.
+This report is historical. It predates the current branch's precomputed hero asset integration, initial WebP preload hints, interactive data warmup, auto-reveal throttling refinements, coarse-pointer auto-only seeding, and production pruning of source-only hero JPEGs. In current HEAD, the interactive path no longer loads `background.jpg` or `chautauqua-flatirons_fg.jpg`; it uses `/background-dithered.webp`, `/hero-paper.webp`, and `/hero-mountains.webp` instead.
 
 ## Scope
 

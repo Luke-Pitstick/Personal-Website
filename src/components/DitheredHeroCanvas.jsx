@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { DitheredParticleCanvas } from '@dithered-particle-canvas/react';
+import { useDitheredCanvas } from '@dithered-particle-canvas/react';
 
 const HERO_WIDTH = 1280;
 const HERO_HEIGHT = 720;
-const LOW_RESOLUTION_SCALE = 0.64;
+const LOW_RESOLUTION_SCALE = 0.6;
+const HERO_RENDERER_DEVICE_PIXEL_RATIO = 1;
 const BASE_RENDER_WIDTH = HERO_WIDTH * LOW_RESOLUTION_SCALE;
 const BASE_RENDER_HEIGHT = HERO_HEIGHT * LOW_RESOLUTION_SCALE;
 const FOREGROUND_PIXEL_SIZE = 6;
@@ -17,9 +18,9 @@ const TRAIL_DURATION_MS = 1550;
 const TRAIL_DUST_FLICKER = 0.72;
 const TRAIL_DUST_SIZE = 9;
 const TRAIL_IDLE_MS = 180;
-const TRAIL_MAX_POINTS = 12;
-const IDLE_SURFACE_CONTRAST = 1.02;
+const TRAIL_MAX_POINTS = 10;
 const DITHERED_BACKGROUND_SRC = '/background-dithered.webp';
+const PAPER_FOREGROUND_SRC = '/hero-paper.webp';
 const MOUNTAIN_FOREGROUND_SRC = '/hero-mountains.webp';
 const FALLBACK_BLUE_TINT = 22;
 
@@ -32,10 +33,13 @@ const QUALITY = {
   backend: 'webgl2',
   resolutionScale: LOW_RESOLUTION_SCALE,
 };
+const HERO_RENDERER_OPTIONS = {
+  IntersectionObserver: false,
+  devicePixelRatio: HERO_RENDERER_DEVICE_PIXEL_RATIO,
+};
 
 const AUTO_REVEAL_POINTER_INTERVAL_MS = 32;
 const AUTO_CURSOR_RESUME_MS = 2400;
-const AUTO_REVEAL_BALL_COUNT = 5;
 const AUTO_REVEAL_BOUNDS = {
   maxX: 0.92,
   maxY: 0.9,
@@ -47,11 +51,11 @@ const AUTO_REVEAL_BALLS = [
   { id: 2, x: 0.34, y: 0.73, vx: -0.000084, vy: 0.000112 },
   { id: 3, x: 0.58, y: 0.28, vx: 0.000096, vy: -0.000089 },
   { id: 4, x: 0.78, y: 0.66, vx: -0.000118, vy: -0.000071 },
-  { id: 5, x: 0.48, y: 0.48, vx: 0.000073, vy: 0.000126 },
 ];
 const AUTO_ONLY_MEDIA_QUERY = '(hover: none), (pointer: coarse)';
 const idleSurfaceWaveCache = new Map();
 const idleSurfaceGrainCache = new Map();
+const canPackRgbaPixels = isLittleEndian();
 let interactiveIdleLayerPromise;
 let revealBackgroundPromise;
 let staticFallbackPreference;
@@ -67,6 +71,7 @@ export function preloadDitheredHeroCanvasData() {
 
 const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInteract }) => {
   const rootRef = useRef(null);
+  const shaderCanvasRef = useRef(null);
   const fallbackCanvasRef = useRef(null);
   const rendererRef = useRef(null);
   const [preparedImageData, setPreparedImageData] = useState();
@@ -128,7 +133,6 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
     let autoRevealTimer = 0;
     let pauseUntil = 0;
     let lastAutoRevealTime = performance.now();
-    let canvas;
     let canvasRect;
     let observedCanvas;
     let isDocumentVisible = document.visibilityState !== 'hidden';
@@ -153,34 +157,24 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
       }
     };
 
-    const getCachedCanvas = () => {
-      if (canvas?.isConnected && root.contains(canvas)) {
-        return canvas;
+    const getCurrentCanvas = () => {
+      const currentCanvas = shaderCanvasRef.current;
+
+      if (currentCanvas?.isConnected && root.contains(currentCanvas)) {
+        observeCanvas(currentCanvas);
+        return currentCanvas;
       }
 
-      if (canvas) {
+      if (observedCanvas) {
         observeCanvas(undefined);
-        canvas = undefined;
         canvasRect = undefined;
       }
 
       return undefined;
     };
 
-    const discoverCanvas = () => {
-      const nextCanvas = root.querySelector('.dithered-hero-canvas canvas') ?? undefined;
-
-      if (nextCanvas !== canvas) {
-        canvas = nextCanvas;
-        canvasRect = undefined;
-        observeCanvas(canvas);
-      }
-
-      return canvas;
-    };
-
     const refreshCanvasRect = () => {
-      const currentCanvas = getCachedCanvas() ?? discoverCanvas();
+      const currentCanvas = getCurrentCanvas();
 
       if (!currentCanvas) {
         canvasRect = undefined;
@@ -240,7 +234,7 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
         rendererRef.current?.pause?.();
       }
 
-      if (canRender() && getCachedCanvas()) {
+      if (canRender() && getCurrentCanvas()) {
         startAnimation();
         return;
       }
@@ -263,7 +257,7 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
         return;
       }
 
-      const currentCanvas = getCachedCanvas();
+      const currentCanvas = getCurrentCanvas();
 
       if (!currentCanvas) {
         syncAnimation();
@@ -321,14 +315,11 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
     const intersectionObserver = new IntersectionObserver(handleIntersectionChange);
     const scrollListenerOptions = { capture: true, passive: true };
 
-    rectResizeObserver.observe(root);
     intersectionObserver.observe(root);
     window.addEventListener('resize', handleRectInvalidation);
     window.addEventListener('scroll', handleRectInvalidation, scrollListenerOptions);
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
-    discoverCanvas();
-    refreshCanvasRect();
     syncAnimation();
 
     return () => {
@@ -372,7 +363,10 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
   }, [fallbackSurface]);
 
   return (
-    <div ref={rootRef} className={`dithered-hero${autoOnly ? ' dithered-hero--auto-only' : ''}`}>
+    <div
+      ref={rootRef}
+      className={`dithered-hero dithered-hero--interactive${autoOnly ? ' dithered-hero--auto-only' : ''}`}
+    >
       {fallbackSurface ? (
         <canvas
           ref={fallbackCanvasRef}
@@ -383,11 +377,11 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
         />
       ) : null}
       {!useStaticFallback && layers ? (
-        <DitheredParticleCanvas
+        <DitheredHeroRenderer
           ref={rendererRef}
           aria-label="Dithered Flatirons reveal background"
+          canvasElementRef={shaderCanvasRef}
           className="dithered-hero-canvas"
-          fallback="Dithered hero"
           height={HERO_HEIGHT}
           layers={layers}
           motion="full"
@@ -395,6 +389,7 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
           preset="browserbase"
           quality={QUALITY}
           revealLayer="background"
+          rendererOptions={HERO_RENDERER_OPTIONS}
           width={HERO_WIDTH}
         />
       ) : null}
@@ -403,6 +398,7 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
         aria-hidden="true"
         className="dithered-hero-mountains"
         decoding="async"
+        fetchPriority="low"
         height={HERO_HEIGHT}
         src={MOUNTAIN_FOREGROUND_SRC}
         width={HERO_WIDTH}
@@ -433,21 +429,53 @@ function shouldUseStaticFallback() {
   }
 }
 
+const DitheredHeroRenderer = React.forwardRef(function DitheredHeroRenderer(
+  {
+    canvasElementRef,
+    className,
+    height,
+    width,
+    'aria-label': ariaLabel,
+    ...rendererProps
+  },
+  ref
+) {
+  const { canvasRef } = useDitheredCanvas(ref, { ...rendererProps, height, width });
+
+  const setCanvasRef = useCallback(
+    (canvas) => {
+      canvasRef.current = canvas;
+      canvasElementRef.current = canvas;
+    },
+    [canvasElementRef, canvasRef]
+  );
+
+  return (
+    <div className={className}>
+      <canvas
+        ref={setCanvasRef}
+        aria-label={ariaLabel}
+        height={height}
+        role={ariaLabel ? 'img' : undefined}
+        width={width}
+      />
+    </div>
+  );
+});
+
 function getInteractiveIdleLayer() {
-  interactiveIdleLayerPromise ??= Promise.resolve()
-    .then(() =>
-      createIdleSurfaceImageData(HERO_WIDTH, HERO_HEIGHT, { contrast: IDLE_SURFACE_CONTRAST })
-    )
-    .catch((error) => {
+  interactiveIdleLayerPromise ??= loadImageData(PAPER_FOREGROUND_SRC, HERO_WIDTH, HERO_HEIGHT).catch(
+    (error) => {
       interactiveIdleLayerPromise = undefined;
       throw error;
-    });
+    }
+  );
 
   return interactiveIdleLayerPromise;
 }
 
 function getDitheredRevealBackground() {
-  revealBackgroundPromise ??= loadDitheredRevealBackground(HERO_WIDTH, HERO_HEIGHT).catch(
+  revealBackgroundPromise ??= loadImageData(DITHERED_BACKGROUND_SRC, HERO_WIDTH, HERO_HEIGHT).catch(
     (error) => {
       revealBackgroundPromise = undefined;
       throw error;
@@ -513,15 +541,15 @@ function useInteractionScale(rootRef) {
       return undefined;
     }
 
-    let frame = 0;
+    const updateScale = ([entry]) => {
+      if (!entry) {
+        return;
+      }
 
-    const updateScale = () => {
-      frame = 0;
-      const rect = root.getBoundingClientRect();
       const nextScale = calculateInteractionScale(
-        rect.width,
-        rect.height,
-        window.devicePixelRatio || 1
+        entry.contentRect.width,
+        entry.contentRect.height,
+        HERO_RENDERER_DEVICE_PIXEL_RATIO
       );
 
       setInteractionScale((currentScale) =>
@@ -529,27 +557,11 @@ function useInteractionScale(rootRef) {
       );
     };
 
-    const scheduleUpdateScale = () => {
-      if (frame) {
-        return;
-      }
-
-      frame = window.requestAnimationFrame(updateScale);
-    };
-
-    updateScale();
-
-    const resizeObserver = new ResizeObserver(scheduleUpdateScale);
+    const resizeObserver = new ResizeObserver(updateScale);
     resizeObserver.observe(root);
-    window.addEventListener('resize', scheduleUpdateScale);
 
     return () => {
-      if (frame) {
-        window.cancelAnimationFrame(frame);
-      }
-
       resizeObserver.disconnect();
-      window.removeEventListener('resize', scheduleUpdateScale);
     };
   }, [rootRef]);
 
@@ -564,7 +576,7 @@ function getInitialInteractionScale() {
   return calculateInteractionScale(
     window.innerWidth || HERO_WIDTH,
     window.innerHeight || HERO_HEIGHT,
-    window.devicePixelRatio || 1
+    HERO_RENDERER_DEVICE_PIXEL_RATIO
   );
 }
 
@@ -616,11 +628,13 @@ function scaleInteractionValue(value, interactionScale) {
 }
 
 function createAutoRevealBalls() {
-  return AUTO_REVEAL_BALLS.slice(0, AUTO_REVEAL_BALL_COUNT).map((ball) => ({ ...ball }));
+  return AUTO_REVEAL_BALLS.map((ball) => ({ ...ball }));
 }
 
 function stepAutoRevealBalls(balls, deltaMs) {
-  balls.forEach((ball) => {
+  for (let index = 0; index < balls.length; index += 1) {
+    const ball = balls[index];
+
     ball.x += ball.vx * deltaMs;
     ball.y += ball.vy * deltaMs;
 
@@ -633,7 +647,7 @@ function stepAutoRevealBalls(balls, deltaMs) {
       ball.y = Math.max(AUTO_REVEAL_BOUNDS.minY, Math.min(AUTO_REVEAL_BOUNDS.maxY, ball.y));
       ball.vy *= -1;
     }
-  });
+  }
 }
 
 function dispatchAutoPointers(canvas, rect, balls) {
@@ -663,11 +677,11 @@ function dispatchAutoPointers(canvas, rect, balls) {
   }
 }
 
-async function loadDitheredRevealBackground(width, height) {
+async function loadImageData(src, width, height) {
   const image = new Image();
   image.crossOrigin = 'anonymous';
   image.decoding = 'async';
-  image.src = DITHERED_BACKGROUND_SRC;
+  image.src = src;
   await image.decode();
 
   const canvas = document.createElement('canvas');
@@ -676,7 +690,7 @@ async function loadDitheredRevealBackground(width, height) {
   const context = canvas.getContext('2d', { willReadFrequently: true });
 
   if (!context) {
-    throw new Error('Canvas2D is unavailable for background image loading.');
+    throw new Error(`Canvas2D is unavailable for loading ${src}.`);
   }
 
   context.drawImage(image, 0, 0, width, height);
@@ -686,6 +700,8 @@ async function loadDitheredRevealBackground(width, height) {
 
 function createIdleSurfaceImageData(width, height, { blueTint = 0, contrast = 1 } = {}) {
   const image = new ImageData(width, height);
+  const packedPixels =
+    canPackRgbaPixels && !blueTint ? new Uint32Array(image.data.buffer) : undefined;
   const { cosXY, sinX } = getIdleSurfaceWaveTables(width, height);
   const grainRows = getIdleSurfaceGrainRows(width);
   const redTint = blueTint * 0.55;
@@ -699,16 +715,24 @@ function createIdleSurfaceImageData(width, height, { blueTint = 0, contrast = 1 
     const greenBase = (232 + vertical * 8 + greenTint) * contrast + contrastOffset;
     const blueBase = (220 + vertical * 5 + blueTintBoost) * contrast + contrastOffset;
     const grainRow = grainRows[y % grainRows.length];
-    const rowOffset = y * width * 4;
+    const rowOffset = y * width;
 
     for (let x = 0; x < width; x += 1) {
-      const index = rowOffset + x * 4;
       const paper = (sinX[x] + cosXY[x + y] + grainRow[x]) * contrast;
+      const red = Math.round(redBase + paper);
+      const green = Math.round(greenBase + paper);
+      const blue = Math.round(blueBase + paper);
 
-      image.data[index] = Math.round(redBase + paper);
-      image.data[index + 1] = Math.round(greenBase + paper);
-      image.data[index + 2] = Math.round(blueBase + paper);
-      image.data[index + 3] = 255;
+      if (packedPixels) {
+        packedPixels[rowOffset + x] = 0xff000000 | (blue << 16) | (green << 8) | red;
+      } else {
+        const index = (rowOffset + x) * 4;
+
+        image.data[index] = red;
+        image.data[index + 1] = green;
+        image.data[index + 2] = blue;
+        image.data[index + 3] = 255;
+      }
     }
   }
 
@@ -760,6 +784,10 @@ function getIdleSurfaceWaveTables(width, height) {
   idleSurfaceWaveCache.set(cacheKey, tables);
 
   return tables;
+}
+
+function isLittleEndian() {
+  return new Uint8Array(new Uint32Array([0x0a0b0c0d]).buffer)[0] === 0x0d;
 }
 
 export default DitheredHeroCanvas;

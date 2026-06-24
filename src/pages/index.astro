@@ -10,6 +10,7 @@ const portraitSizes = '(min-width: 768px) 280px, 100vw';
 const portraitAvifSrcSet =
 	'/pictureofme-256.avif 256w, /pictureofme-384.avif 384w, /pictureofme-512.avif 512w, /pictureofme-768.avif 768w';
 const ditheredHeroBackgroundSrc = '/background-dithered.webp';
+const ditheredHeroPaperSrc = '/hero-paper.webp';
 const ditheredHeroMountainsSrc = '/hero-mountains.webp';
 ---
 
@@ -20,6 +21,14 @@ const ditheredHeroMountainsSrc = '/hero-mountains.webp';
 		as="image"
 		type="image/webp"
 		href={ditheredHeroBackgroundSrc}
+	/>
+	<link
+		slot="head"
+		rel="preload"
+		as="image"
+		type="image/webp"
+		href={ditheredHeroPaperSrc}
+		fetchpriority="high"
 	/>
 	<link
 		slot="head"
@@ -45,10 +54,28 @@ const ditheredHeroMountainsSrc = '/hero-mountains.webp';
 			class="scroll-mt-16 relative grid min-h-screen overflow-hidden bg-[#f8f7f1] px-4 text-[#101617]"
 		>
 			<div class="dithered-hero dithered-hero--static" aria-hidden="true">
+				<img
+					alt=""
+					class="dithered-hero-paper"
+					decoding="async"
+					fetchpriority="high"
+					height="720"
+					src={ditheredHeroPaperSrc}
+					width="1280"
+				/>
+				<img
+					alt=""
+					class="dithered-hero-mountains"
+					decoding="async"
+					fetchpriority="low"
+					height="720"
+					src={ditheredHeroMountainsSrc}
+					width="1280"
+				/>
 				<div class="dithered-hero-shade"></div>
 			</div>
 			<HeroContent />
-			<Hero client:idle />
+			<Hero client:load />
 		</section>
 		<div class="relative z-10 flex min-h-screen flex-col border-t-4 border-[#101617] bg-[#f8f7f1]/92 shadow-[0_-10px_0_rgba(255,58,18,0.9)] backdrop-blur-sm">
 			<div class="flex flex-1 flex-col">
