@@ -1713,14 +1713,11 @@ T = new WeakMap(), Se = new WeakMap(), me = new WeakMap(), L = new WeakMap(), $e
     frames: n(this, we)
   }));
 }, Er = function(t) {
+  var s;
   if (n(this, M) || n(this, Y) || !n(this, q))
     return !1;
   const r = u(this, p, Ce).call(this), i = u(this, p, wt).call(this, t), o = r ? { ...Ie, ...r } : void 0;
-  return !n(this, j) && i.active && o && o.edgeDither > 0 && o.edgeFlicker > 0 ? !0 : n(this, se).isFadeActive({
-    now: t,
-    reducedMotion: n(this, j),
-    reveal: r
-  });
+  return !n(this, j) && i.active && o && o.edgeDither > 0 && o.edgeFlicker > 0 ? !0 : !i.active && E(i.fade ?? 0) > 0 || (((s = i.trail) == null ? void 0 : s.length) ?? 0) > 0;
 }, wt = function(t = n(this, oe).call(this)) {
   return n(this, se).getSnapshot({
     now: t,
