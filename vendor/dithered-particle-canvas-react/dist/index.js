@@ -1129,17 +1129,14 @@ k = new WeakMap(), I = new WeakMap(), ke = new WeakMap(), B = new WeakMap(), te 
   if ((o == null ? void 0 : o.key) === i)
     return o.processedTexture;
   u(this, g, xt).call(this, o);
-  const s = u(this, g, ee).call(this), a = r.source.imageData ?? $(r.source.width, r.source.height), c = ht(s, a);
-  this.debugCounters.sourceTextureUploads += 1, this.debugCounters.texturesCreated += 1;
-  const f = Nt(r, n(this, w)), l = ht(s, f), m = fi(s, f.width, f.height);
+  const s = u(this, g, ee).call(this), f = Nt(r, n(this, w)), l = ht(s, f), m = fi(s, f.width, f.height);
   this.debugCounters.texturesCreated += 2;
   const b = ni(s, m);
   this.debugCounters.framebuffersCreated += 1, u(this, g, cr).call(this, l, b), u(this, g, pe).call(this, l), this.debugCounters.processedTextureRebuilds += 1;
   const x = {
     framebuffer: b,
     key: i,
-    processedTexture: m,
-    sourceTexture: c
+    processedTexture: m
   };
   return n(this, de).set(t, x), m;
 }, ur = function() {
@@ -1151,20 +1148,18 @@ k = new WeakMap(), I = new WeakMap(), ke = new WeakMap(), B = new WeakMap(), te 
   const i = u(this, g, ee).call(this), o = u(this, g, gt).call(this);
   i.bindFramebuffer(i.FRAMEBUFFER, r.framebuffer), i.viewport(0, 0, r.texture.width, r.texture.height), i.useProgram(o.copy.program), u(this, g, Je).call(this, 0, t.texture), i.uniform1i(o.copy.uniforms.u_texture, 0), u(this, g, mt).call(this), i.bindFramebuffer(i.FRAMEBUFFER, null);
 }, dr = function(t, r) {
-  const i = u(this, g, ee).call(this), o = r.revealLayer ?? "background", s = o === "background" ? n(this, te).foreground : n(this, te).background, a = { ...Ie, ...(s == null ? void 0 : s.reveal) || {} }, c = Me(a.trail), f = (n(this, W).trail ?? []).slice(0, zt), l = !!(s != null && s.reveal) && (n(this, W).active || (n(this, W).fade ?? 0) > 0);
-  i.uniform2f(t.uniforms.u_pointer, n(this, W).x, n(this, w).height - n(this, W).y), i.uniform1f(t.uniforms.u_pointerActive, l ? 1 : 0), i.uniform1f(t.uniforms.u_pointerFade, n(this, W).fade ?? 1), i.uniform1f(t.uniforms.u_radius, a.radius), i.uniform1f(t.uniforms.u_softness, a.softness), i.uniform1f(t.uniforms.u_strength, a.strength), i.uniform1f(t.uniforms.u_time, r.time), i.uniform1f(t.uniforms.u_edgeDither, a.edgeDither), i.uniform1f(t.uniforms.u_edgeFlicker, Math.max(0, Math.min(1, a.edgeFlicker))), i.uniform1f(t.uniforms.u_edgeNoise, a.edgeNoise), i.uniform1f(t.uniforms.u_foregroundBlend, a.foregroundBlend), i.uniform1f(t.uniforms.u_revealPixelSize, Math.max(1, Math.round(a.pixelSize))), i.uniform1i(t.uniforms.u_revealLayer, o === "background" ? 0 : 1), i.uniform1i(t.uniforms.u_trailCount, c ? f.length : 0), i.uniform1f(
+  const i = u(this, g, ee).call(this), o = r.revealLayer ?? "background", s = o === "background" ? n(this, te).foreground : n(this, te).background, a = { ...Ie, ...(s == null ? void 0 : s.reveal) || {} }, c = Me(a.trail), f = n(this, W).trail ?? [], l = c ? Math.min(f.length, zt) : 0, m = !!(s != null && s.reveal) && (n(this, W).active || (n(this, W).fade ?? 0) > 0);
+  i.uniform2f(t.uniforms.u_pointer, n(this, W).x, n(this, w).height - n(this, W).y), i.uniform1f(t.uniforms.u_pointerActive, m ? 1 : 0), i.uniform1f(t.uniforms.u_pointerFade, n(this, W).fade ?? 1), i.uniform1f(t.uniforms.u_radius, a.radius), i.uniform1f(t.uniforms.u_softness, a.softness), i.uniform1f(t.uniforms.u_strength, a.strength), i.uniform1f(t.uniforms.u_time, r.time), i.uniform1f(t.uniforms.u_edgeDither, a.edgeDither), i.uniform1f(t.uniforms.u_edgeFlicker, Math.max(0, Math.min(1, a.edgeFlicker))), i.uniform1f(t.uniforms.u_edgeNoise, a.edgeNoise), i.uniform1f(t.uniforms.u_foregroundBlend, a.foregroundBlend), i.uniform1f(t.uniforms.u_revealPixelSize, Math.max(1, Math.round(a.pixelSize))), i.uniform1i(t.uniforms.u_revealLayer, o === "background" ? 0 : 1), i.uniform1i(t.uniforms.u_trailCount, l), i.uniform1f(
     t.uniforms.u_trailDustFlicker,
     c ? Math.max(0, Math.min(1, c.dustFlicker)) : 0
   ), i.uniform1f(t.uniforms.u_trailDustSize, c ? Math.max(1, c.dustSize) : 1), i.uniform1f(t.uniforms.u_trailStrength, c ? c.strength : 0);
-  const m = new Float32Array(zt * 4);
-  for (let b = 0; b < f.length; b += 1) {
-    const x = f[b], U = b * 4;
-    m[U] = x.x, m[U + 1] = n(this, w).height - x.y, m[U + 2] = x.fade, m[U + 3] = x.x * 0.37 + x.y * 0.21;
+  let b = 0;
+  for (; b < l; b += 1) {
+    const x = f[b];
+    i.uniform4f(t.uniforms[trailUniformNames[b]], x.x, n(this, w).height - x.y, x.fade, x.x * 0.37 + x.y * 0.21);
   }
-  for (let b = 0; b < zt; b += 1) {
-    const x = b * 4;
-    i.uniform4f(t.uniforms[trailUniformNames[b]], m[x], m[x + 1], m[x + 2], m[x + 3]);
-  }
+  for (; b < zt; b += 1)
+    i.uniform4f(t.uniforms[trailUniformNames[b]], 0, 0, 0, 0);
 }, Je = function(t, r) {
   const i = u(this, g, ee).call(this);
   i.activeTexture(i.TEXTURE0 + t), i.bindTexture(i.TEXTURE_2D, r);
@@ -1236,7 +1231,7 @@ function xi(e, t, r) {
     y: (e.clientY - t.top) * o
   };
 }
-var fe, le, A, R, Q, fr, lr, Et;
+var fe, le, A, R, U, Q, fr, lr, Et;
 class vi {
   constructor() {
     d(this, Q);
@@ -1244,6 +1239,7 @@ class vi {
     d(this, le, 0);
     d(this, A, { ...$t });
     d(this, R, []);
+    d(this, U, []);
   }
   getSnapshot({
     now: t = 0,
@@ -1257,13 +1253,13 @@ class vi {
       elapsedSinceInactiveMs: a,
       fadeMs: l,
       reducedMotion: r
-    }), b = u(this, Q, lr).call(this, t, o, r);
-    return h(this, A, {
+    }), b = u(this, Q, lr).call(this, t, o, r), x = {
       ...n(this, A),
       active: f,
       fade: s && !f ? 0 : m,
       trail: b
-    }), { ...n(this, A) };
+    };
+    return h(this, A, x), x;
   }
   isFadeActive(t = {}) {
     var i;
@@ -1288,10 +1284,10 @@ class vi {
     }), this.getSnapshot({ ...r, now: t })) : { ...n(this, A) };
   }
   clear() {
-    return h(this, fe, !1), h(this, le, 0), h(this, A, { ...$t }), h(this, R, []), { ...n(this, A) };
+    return h(this, fe, !1), h(this, le, 0), h(this, A, { ...$t }), h(this, R, []), n(this, U).length = 0, { ...n(this, A) };
   }
 }
-fe = new WeakMap(), le = new WeakMap(), A = new WeakMap(), R = new WeakMap(), Q = new WeakSet(), fr = function(t, r, { reducedMotion: i = !1, reveal: o }) {
+fe = new WeakMap(), le = new WeakMap(), A = new WeakMap(), R = new WeakMap(), U = new WeakMap(), Q = new WeakSet(), fr = function(t, r, { reducedMotion: i = !1, reveal: o }) {
   const s = Me(rt(o).trail);
   if (i || !s || s.durationMs <= 0 || s.maxPoints <= 0) {
     h(this, R, []);
@@ -1308,16 +1304,23 @@ fe = new WeakMap(), le = new WeakMap(), A = new WeakMap(), R = new WeakMap(), Q 
   const o = Me(r.trail);
   if (i || !o || o.durationMs <= 0) {
     h(this, R, []);
+    n(this, U).length = 0;
     return;
   }
-  if (u(this, Q, Et).call(this, t, o.durationMs), n(this, R).length !== 0)
-    return n(this, R).map((s) => ({
-      fade: E(1 - Math.max(0, t - s.time) / o.durationMs),
-      x: s.x,
-      y: s.y
-    })).filter((s) => s.fade > 0);
+  if (u(this, Q, Et).call(this, t, o.durationMs), n(this, R).length !== 0) {
+    const s = n(this, R), a = n(this, U);
+    for (let c = 0; c < s.length; c += 1) {
+      const f = s[c], l = a[c] ?? (a[c] = { fade: 0, x: 0, y: 0 });
+      l.fade = E(1 - Math.max(0, t - f.time) / o.durationMs), l.x = f.x, l.y = f.y;
+    }
+    return a.length = s.length, a;
+  }
 }, Et = function(t, r) {
-  h(this, R, n(this, R).filter((i) => t - i.time < r));
+  const i = n(this, R);
+  let o = 0;
+  for (; o < i.length && t - i[o].time >= r; o += 1)
+    ;
+  o > 0 && i.splice(0, o);
 };
 function Ei(e, t, r) {
   const i = t.reveal === !0 ? Ie : t.reveal ? { ...Ie, ...t.reveal } : !1;
@@ -1705,14 +1708,11 @@ T = new WeakMap(), Se = new WeakMap(), me = new WeakMap(), L = new WeakMap(), $e
     frames: n(this, we)
   }));
 }, Er = function(t) {
+  var s;
   if (n(this, M) || n(this, Y) || !n(this, q))
     return !1;
   const r = u(this, p, Ce).call(this), i = u(this, p, wt).call(this, t), o = r ? { ...Ie, ...r } : void 0;
-  return !n(this, j) && i.active && o && o.edgeDither > 0 && o.edgeFlicker > 0 ? !0 : n(this, se).isFadeActive({
-    now: t,
-    reducedMotion: n(this, j),
-    reveal: r
-  });
+  return !n(this, j) && i.active && o && o.edgeDither > 0 && o.edgeFlicker > 0 ? !0 : !i.active && E(i.fade ?? 0) > 0 || (((s = i.trail) == null ? void 0 : s.length) ?? 0) > 0;
 }, wt = function(t = n(this, oe).call(this)) {
   return n(this, se).getSnapshot({
     now: t,
@@ -1839,7 +1839,7 @@ function Ar() {
 function jt(e) {
   return e instanceof Error ? e : new Error(String(e));
 }
-let Ki = ({ canvas: e, props: t }) => Pi(e, t);
+let Ki = ({ canvas: e, props: t }) => Pi(e, t, t.rendererOptions);
 function Hi(e, t) {
   const r = ot(null), i = ot(null), o = ot(t ?? {});
   return o.current = t ?? {}, Ct(() => {

@@ -60,5 +60,5 @@ Residual review note: `dispatchAutoPointers` still sends synthetic pointer event
 
 ## Remaining Work
 
-- T2 still needs raw helper `ImageData` references, generated candidate assets, and byte/visual comparison before T3 can simplify the heavy runtime image-prep path.
-- T6 should run a fresh post-change comparison with cold-ish browser conditions and consistent device scale before claiming final performance deltas.
+- The current branch has since adopted precomputed hero assets and removed the heavy runtime image-prep path from `DitheredHeroCanvas.jsx`.
+- T6 should run a fresh current-HEAD comparison with cold-ish browser conditions and consistent device scale before claiming final performance deltas.

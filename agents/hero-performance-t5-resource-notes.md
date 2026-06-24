@@ -8,8 +8,11 @@
 ## After
 - All project images now use `loading="lazy"`.
 - All project images now set `fetchPriority="low"` while preserving the same `src`, `alt`, dimensions, object positioning, overlays, text, links, and layout classes.
-- Hero preload and hero source files were not changed.
+- In this T5-only change, hero preload and hero source files were not changed.
 
 ## Validation
 - Parent integration reapplied the same resource scheduling change to the current `ProjectCard`/`motion.img` implementation on 2026-06-11.
 - Parent validation: `npm run astro -- build` passed on 2026-06-11 after integration.
+
+## Later Branch Note
+- Subsequent hero-performance commits changed the hero source path: the interactive hero now preloads and consumes committed WebP assets, including the generated `/hero-paper.webp` idle surface, while `npm run build` prunes source-only hero JPEGs from `dist/`.

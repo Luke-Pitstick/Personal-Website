@@ -2,7 +2,11 @@
 
 Task: T1R - Replacement Hero Performance Baseline  
 Collected: 2026-06-11 20:25 MDT / 2026-06-12T02:25Z  
-Baseline state: current worktree after parent-integrated T5 resource scheduling in `src/components/Projects.jsx`.
+Baseline state at collection: then-current worktree after parent-integrated T5 resource scheduling in `src/components/Projects.jsx`.
+
+## Current Branch Note
+
+This baseline is historical and predates the current branch's precomputed hero asset integration. Current HEAD no longer loads `background.jpg` or `chautauqua-flatirons_fg.jpg` from the interactive hero runtime path; it uses committed WebPs including `/hero-paper.webp`.
 
 ## Commands
 
