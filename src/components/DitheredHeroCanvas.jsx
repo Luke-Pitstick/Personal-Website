@@ -101,10 +101,24 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
     };
   }, [useStaticFallback]);
 
+  const layers = useMemo(() => {
+    if (useStaticFallback || !preparedImageData) {
+      return undefined;
+    }
+
+    return createHeroLayers(
+      preparedImageData.idleLayer,
+      preparedImageData.revealBackground,
+      interactionScale
+    );
+  }, [useStaticFallback, preparedImageData, interactionScale]);
+
+  const isInteractive = !useStaticFallback && Boolean(layers);
+
   useEffect(() => {
     const root = rootRef.current;
 
-    if (!root || useStaticFallback) {
+    if (!root || !isInteractive) {
       return undefined;
     }
 
@@ -334,19 +348,7 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
       root.removeEventListener('pointermove', pauseForUser);
       root.removeEventListener('pointerdown', pauseForUser);
     };
-  }, [autoOnly, useStaticFallback, onUserInteract]);
-
-  const layers = useMemo(() => {
-    if (useStaticFallback || !preparedImageData) {
-      return undefined;
-    }
-
-    return createHeroLayers(
-      preparedImageData.idleLayer,
-      preparedImageData.revealBackground,
-      interactionScale
-    );
-  }, [useStaticFallback, preparedImageData, interactionScale]);
+  }, [autoOnly, isInteractive, onUserInteract]);
 
   const fallbackSurface = useMemo(() => {
     if (!useStaticFallback) {
@@ -355,8 +357,6 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
 
     return createIdleSurfaceImageData(HERO_WIDTH, HERO_HEIGHT, { blueTint: FALLBACK_BLUE_TINT });
   }, [useStaticFallback]);
-
-  const isInteractive = !useStaticFallback && Boolean(layers);
 
   useEffect(() => {
     onInteractiveChange?.(isInteractive);
