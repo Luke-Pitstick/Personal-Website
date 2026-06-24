@@ -1839,7 +1839,7 @@ function Ar() {
 function jt(e) {
   return e instanceof Error ? e : new Error(String(e));
 }
-let Ki = ({ canvas: e, props: t }) => Pi(e, t);
+let Ki = ({ canvas: e, props: t }) => Pi(e, t, t.rendererOptions);
 function Hi(e, t) {
   const r = ot(null), i = ot(null), o = ot(t ?? {});
   return o.current = t ?? {}, Ct(() => {
