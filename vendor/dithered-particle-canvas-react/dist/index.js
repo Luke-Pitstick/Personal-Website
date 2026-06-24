@@ -1255,13 +1255,13 @@ class vi {
       elapsedSinceInactiveMs: a,
       fadeMs: l,
       reducedMotion: r
-    }), b = u(this, Q, lr).call(this, t, o, r);
-    return h(this, A, {
+    }), b = u(this, Q, lr).call(this, t, o, r), x = {
       ...n(this, A),
       active: f,
       fade: s && !f ? 0 : m,
       trail: b
-    }), { ...n(this, A) };
+    };
+    return h(this, A, x), x;
   }
   isFadeActive(t = {}) {
     var i;
