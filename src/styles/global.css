@@ -126,6 +126,11 @@ body::before {
   pointer-events: none;
 }
 
+.dithered-hero--interactive {
+  background-color: transparent;
+  background-image: none;
+}
+
 .dithered-hero-canvas,
 .dithered-hero-mountains,
 .dithered-hero-fallback {
