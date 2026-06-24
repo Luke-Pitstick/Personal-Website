@@ -1,4 +1,5 @@
 import React, { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
+import { ArrowDown } from 'lucide-react';
 
 import { scrollToSection } from '../lib/scroll';
 
@@ -150,10 +151,10 @@ const Hero = () => {
         ref={arrowRef}
         type="button"
         onClick={scrollPastHero}
-        className="focus-ring absolute bottom-4 left-1/2 z-40 rounded-full border-2 border-[#101617] bg-[#faf9f4]/90 px-4 py-2 font-mono text-xs font-extrabold uppercase tracking-[0.14em] text-[#101617] shadow-[4px_4px_0_0_rgba(255,58,18,0.9)] backdrop-blur-sm transition-[background-color,box-shadow,color,transform,top] duration-300 hover:bg-[#ffda18] hover:shadow-[6px_6px_0_0_rgba(16,22,23,0.9)]"
+        className="focus-ring absolute bottom-4 left-1/2 z-40 grid h-12 w-12 place-items-center rounded-full border-2 border-[#101617] bg-[#faf9f4]/90 text-[#101617] shadow-[4px_4px_0_0_rgba(255,58,18,0.9)] backdrop-blur-sm transition-[background-color,box-shadow,color,transform,top] duration-300 hover:bg-[#ffda18] hover:shadow-[6px_6px_0_0_rgba(16,22,23,0.9)] sm:h-14 sm:w-14"
         aria-label="Scroll past hero to about section"
       >
-        <span className="hero-scroll-label block">Scroll</span>
+        <ArrowDown className="h-6 w-6 sm:h-7 sm:w-7" strokeWidth={3.25} aria-hidden="true" />
       </button>
     </>
   );
