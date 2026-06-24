@@ -1129,17 +1129,14 @@ k = new WeakMap(), I = new WeakMap(), ke = new WeakMap(), B = new WeakMap(), te 
   if ((o == null ? void 0 : o.key) === i)
     return o.processedTexture;
   u(this, g, xt).call(this, o);
-  const s = u(this, g, ee).call(this), a = r.source.imageData ?? $(r.source.width, r.source.height), c = ht(s, a);
-  this.debugCounters.sourceTextureUploads += 1, this.debugCounters.texturesCreated += 1;
-  const f = Nt(r, n(this, w)), l = ht(s, f), m = fi(s, f.width, f.height);
+  const s = u(this, g, ee).call(this), f = Nt(r, n(this, w)), l = ht(s, f), m = fi(s, f.width, f.height);
   this.debugCounters.texturesCreated += 2;
   const b = ni(s, m);
   this.debugCounters.framebuffersCreated += 1, u(this, g, cr).call(this, l, b), u(this, g, pe).call(this, l), this.debugCounters.processedTextureRebuilds += 1;
   const x = {
     framebuffer: b,
     key: i,
-    processedTexture: m,
-    sourceTexture: c
+    processedTexture: m
   };
   return n(this, de).set(t, x), m;
 }, ur = function() {
