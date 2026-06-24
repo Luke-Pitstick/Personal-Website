@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { DitheredParticleCanvas } from '@dithered-particle-canvas/react';
 
 const HERO_WIDTH = 1280;
@@ -101,6 +101,8 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
   const [idleLayer, setIdleLayer] = useState();
   const [revealBackground, setRevealBackground] = useState();
   const [mountains, setMountains] = useState();
+  const [fallbackReady, setFallbackReady] = useState(false);
+  const [mountainsReady, setMountainsReady] = useState(false);
   const [useStaticFallback, setUseStaticFallback] = useState(shouldUseStaticFallback);
   const autoOnly = useAutoOnlyShaderMode();
 
@@ -413,7 +415,10 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
     return createIdleSurfaceImageData(HERO_WIDTH, HERO_HEIGHT, { blueTint: FALLBACK_BLUE_TINT });
   }, [useStaticFallback]);
 
-  const isInteractive = !useStaticFallback && Boolean(layers) && Boolean(revealBackground);
+  const liveSceneReady = useStaticFallback
+    ? fallbackReady && mountainsReady
+    : Boolean(layers) && Boolean(revealBackground) && mountainsReady;
+  const isInteractive = !useStaticFallback && liveSceneReady;
 
   useEffect(() => {
     onInteractiveChange?.(isInteractive);
@@ -429,32 +434,55 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
     }
   }, [useStaticFallback, onInteractiveChange]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const canvas = fallbackCanvasRef.current;
 
     if (!canvas || !fallbackSurface) {
+      setFallbackReady(false);
       return;
     }
 
     canvas.width = fallbackSurface.width;
     canvas.height = fallbackSurface.height;
-    canvas.getContext('2d')?.putImageData(fallbackSurface, 0, 0);
+    const context = canvas.getContext('2d');
+
+    if (!context) {
+      setFallbackReady(false);
+      return;
+    }
+
+    context.putImageData(fallbackSurface, 0, 0);
+    setFallbackReady(true);
   }, [fallbackSurface]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const canvas = mountainCanvasRef.current;
 
     if (!canvas || !mountains) {
+      setMountainsReady(false);
       return;
     }
 
     canvas.width = mountains.width;
     canvas.height = mountains.height;
-    canvas.getContext('2d')?.putImageData(mountains, 0, 0);
+    const context = canvas.getContext('2d');
+
+    if (!context) {
+      setMountainsReady(false);
+      return;
+    }
+
+    context.putImageData(mountains, 0, 0);
+    setMountainsReady(true);
   }, [mountains]);
 
   return (
-    <div ref={rootRef} className={`dithered-hero${autoOnly ? ' dithered-hero--auto-only' : ''}`}>
+    <div
+      ref={rootRef}
+      className={`dithered-hero dithered-hero--live${autoOnly ? ' dithered-hero--auto-only' : ''}${
+        liveSceneReady ? ' dithered-hero--ready' : ''
+      }`}
+    >
       {fallbackSurface ? (
         <canvas
           ref={fallbackCanvasRef}

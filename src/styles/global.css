@@ -136,6 +136,12 @@ body::before {
   pointer-events: none;
 }
 
+.dithered-hero--live:not(.dithered-hero--ready) {
+  background: transparent;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .dithered-hero-canvas,
 .dithered-hero-paper,
 .dithered-hero-mountains,
