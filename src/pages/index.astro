@@ -28,7 +28,6 @@ const ditheredHeroMountainsSrc = '/hero-mountains.webp';
 		type="image/webp"
 		href={ditheredHeroMountainsSrc}
 		fetchpriority="low"
-		media="(prefers-reduced-motion: no-preference)"
 	/>
 	<link
 		slot="head"
@@ -46,6 +45,15 @@ const ditheredHeroMountainsSrc = '/hero-mountains.webp';
 			class="scroll-mt-16 relative grid min-h-screen overflow-hidden bg-[#f8f7f1] px-4 text-[#101617]"
 		>
 			<div class="dithered-hero dithered-hero--static" aria-hidden="true">
+				<img
+					alt=""
+					class="dithered-hero-mountains"
+					decoding="async"
+					fetchpriority="low"
+					height="720"
+					src={ditheredHeroMountainsSrc}
+					width="1280"
+				/>
 				<div class="dithered-hero-shade"></div>
 			</div>
 			<HeroContent />
