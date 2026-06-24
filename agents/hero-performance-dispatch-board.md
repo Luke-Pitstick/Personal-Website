@@ -4,7 +4,7 @@ Generated: 2026-06-11
 
 ## Current HEAD Summary
 
-The branch now includes the T2/T3-style production integration: the interactive hero consumes the precomputed `/background-dithered.webp` reveal background and `/hero-mountains.webp` mountain overlay, warms module/data preparation during the existing idle gate, throttles and pauses auto reveal work, seeds coarse-pointer auto-only mode before mount, and prunes source-only hero JPEGs from production `dist/`.
+The branch now includes the T2/T3-style production integration: the interactive hero consumes the precomputed `/background-dithered.webp` reveal background, `/hero-paper.webp` idle paper surface, and `/hero-mountains.webp` mountain overlay, warms module/data preparation during the existing idle gate, throttles and pauses auto reveal work, seeds coarse-pointer auto-only mode before mount, and prunes source-only hero JPEGs from production `dist/`.
 
 ## Parent Coordination
 - Plan source: `agents/hero-performance-subtasks.md`
@@ -28,7 +28,7 @@ The branch now includes the T2/T3-style production integration: the interactive 
 ## Pending Tasks
 | Task | Status | Dependency |
 | --- | --- | --- |
-| T2 precompute deterministic hero image work | complete for the adopted production path | Current HEAD consumes committed `/background-dithered.webp` and `/hero-mountains.webp`; no separate runtime foreground preprocessing remains. |
+| T2 precompute deterministic hero image work | complete for the adopted production path | Current HEAD consumes committed `/background-dithered.webp`, `/hero-paper.webp`, and `/hero-mountains.webp`; no separate runtime foreground preprocessing remains. |
 | T3 simplify `DitheredHeroCanvas` runtime | complete in current HEAD | Runtime layer controls, sky enhancement, mountain matte/pixelation/palette helpers, and source JPEG loading were removed from the client path. |
 | T4 implementation | complete | T1R baseline; safe strategy captured in `agents/hero-performance-t4-investigation.md` |
 | T6 validate visual equivalence and performance gains | needs rerun for current HEAD | Existing T6 report predates the T2/T3-style integration and remains historical only. |
@@ -39,4 +39,4 @@ The branch now includes the T2/T3-style production integration: the interactive 
 - Stage only accepted files with known ownership if committing later.
 - Keep visual equivalence higher priority than raw metric gains.
 - Treat browser-produced reference artifacts as the oracle for any future hero visual-equivalence work.
-- Keep `scripts/generate-dithered-background.mjs` aligned with the committed `/background-dithered.webp` fallback asset when regenerating it.
+- Keep `scripts/generate-dithered-background.mjs` aligned with the committed `/background-dithered.webp` fallback asset and `scripts/generate-hero-paper.mjs` aligned with `/hero-paper.webp` when regenerating hero assets.

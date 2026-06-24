@@ -6,7 +6,7 @@ Collected: 2026-06-11 MDT / 2026-06-12 UTC
 
 ## Current Branch Note
 
-This spike has been superseded by the current branch implementation. The interactive hero now consumes committed precomputed assets at `/background-dithered.webp` and `/hero-mountains.webp`, and `DitheredHeroCanvas.jsx` no longer loads `background.jpg` or `chautauqua-flatirons_fg.jpg` for runtime sky or mountain preprocessing.
+This spike has been superseded by the current branch implementation. The interactive hero now consumes committed precomputed assets at `/background-dithered.webp`, `/hero-paper.webp`, and `/hero-mountains.webp`, and `DitheredHeroCanvas.jsx` no longer loads `background.jpg` or `chautauqua-flatirons_fg.jpg` for runtime sky or mountain preprocessing.
 
 ## Scope Guard
 

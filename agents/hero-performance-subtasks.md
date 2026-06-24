@@ -6,7 +6,7 @@ Generated: 2026-06-11
 Improve the home-page hero's load, CPU, memory, and runtime animation performance while preserving the current core behavior and matching the current visual output.
 
 ## Current Branch Note
-This planning artifact is historical. The current branch has implemented the precomputed hero asset path, idle module/data warmup, auto-reveal throttling and lifecycle reductions, coarse-pointer auto-only seeding, and production pruning of source-only hero JPEGs. Use `agents/hero-performance-dispatch-board.md` for current status.
+This planning artifact is historical. The current branch has implemented the precomputed hero asset path, including `/hero-paper.webp`, idle module/data warmup, auto-reveal throttling and lifecycle reductions, coarse-pointer auto-only seeding, and production pruning of source-only hero JPEGs. Use `agents/hero-performance-dispatch-board.md` for current status.
 
 ## Frame
 - Desired outcome: the hero should feel and measure lighter without changing the static first paint, portrait/title/socials, scroll affordance, shader reveal behavior, fallback behavior, or reduced-motion behavior.
