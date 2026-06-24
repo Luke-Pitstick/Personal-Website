@@ -321,14 +321,12 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
     const intersectionObserver = new IntersectionObserver(handleIntersectionChange);
     const scrollListenerOptions = { capture: true, passive: true };
 
-    rectResizeObserver.observe(root);
     intersectionObserver.observe(root);
     window.addEventListener('resize', handleRectInvalidation);
     window.addEventListener('scroll', handleRectInvalidation, scrollListenerOptions);
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
     discoverCanvas();
-    refreshCanvasRect();
     syncAnimation();
 
     return () => {
