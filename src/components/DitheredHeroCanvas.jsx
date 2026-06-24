@@ -108,6 +108,7 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
   const [mountains, setMountains] = useState();
   const [fallbackReady, setFallbackReady] = useState(false);
   const [mountainsReady, setMountainsReady] = useState(false);
+  const [handoffPaperReady, setHandoffPaperReady] = useState(false);
   const [liveRevealPrimed, setLiveRevealPrimed] = useState(false);
   const [livePaintReady, setLivePaintReady] = useState(false);
   const [liveHandoffSettled, setLiveHandoffSettled] = useState(false);
@@ -140,6 +141,46 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (useStaticFallback) {
+      setHandoffPaperReady(false);
+      return undefined;
+    }
+
+    let cancelled = false;
+    const image = new Image(HERO_WIDTH, HERO_HEIGHT);
+    image.decoding = 'async';
+
+    const markReady = () => {
+      if (!cancelled) {
+        setHandoffPaperReady(true);
+      }
+    };
+
+    const handleError = () => {
+      if (!cancelled) {
+        setUseStaticFallback(true);
+      }
+    };
+
+    image.src = PRECOMPUTED_IDLE_SURFACE_SRC;
+
+    if (typeof image.decode === 'function') {
+      image.decode().then(markReady).catch(handleError);
+    } else if (image.complete && image.naturalWidth > 0) {
+      markReady();
+    } else {
+      image.addEventListener('load', markReady, { once: true });
+      image.addEventListener('error', handleError, { once: true });
+    }
+
+    return () => {
+      cancelled = true;
+      image.removeEventListener('load', markReady);
+      image.removeEventListener('error', handleError);
+    };
+  }, [useStaticFallback]);
 
   useEffect(() => {
     const root = rootRef.current;
@@ -433,7 +474,7 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
 
   const liveSceneReady = useStaticFallback
     ? fallbackReady && mountainsReady
-    : Boolean(layers) && Boolean(revealBackground) && mountainsReady && liveRevealPrimed;
+    : Boolean(layers) && Boolean(revealBackground) && mountainsReady && handoffPaperReady && liveRevealPrimed;
   const showLiveScene = liveSceneReady && livePaintReady;
   const showHandoffGuard = !useStaticFallback && !livePaperGuardReleased;
   const isInteractive = !useStaticFallback && showLiveScene && livePaperGuardReleased;
