@@ -52,6 +52,7 @@ const AUTO_REVEAL_BALLS = [
 const AUTO_ONLY_MEDIA_QUERY = '(hover: none), (pointer: coarse)';
 const idleSurfaceWaveCache = new Map();
 const idleSurfaceGrainCache = new Map();
+const canPackRgbaPixels = isLittleEndian();
 let interactiveIdleLayerPromise;
 let revealBackgroundPromise;
 let staticFallbackPreference;
@@ -671,6 +672,8 @@ async function loadDitheredRevealBackground(width, height) {
 
 function createIdleSurfaceImageData(width, height, { blueTint = 0, contrast = 1 } = {}) {
   const image = new ImageData(width, height);
+  const packedPixels =
+    canPackRgbaPixels && !blueTint ? new Uint32Array(image.data.buffer) : undefined;
   const { cosXY, sinX } = getIdleSurfaceWaveTables(width, height);
   const grainRows = getIdleSurfaceGrainRows(width);
   const redTint = blueTint * 0.55;
@@ -684,16 +687,24 @@ function createIdleSurfaceImageData(width, height, { blueTint = 0, contrast = 1 
     const greenBase = (232 + vertical * 8 + greenTint) * contrast + contrastOffset;
     const blueBase = (220 + vertical * 5 + blueTintBoost) * contrast + contrastOffset;
     const grainRow = grainRows[y % grainRows.length];
-    const rowOffset = y * width * 4;
+    const rowOffset = y * width;
 
     for (let x = 0; x < width; x += 1) {
-      const index = rowOffset + x * 4;
       const paper = (sinX[x] + cosXY[x + y] + grainRow[x]) * contrast;
+      const red = Math.round(redBase + paper);
+      const green = Math.round(greenBase + paper);
+      const blue = Math.round(blueBase + paper);
 
-      image.data[index] = Math.round(redBase + paper);
-      image.data[index + 1] = Math.round(greenBase + paper);
-      image.data[index + 2] = Math.round(blueBase + paper);
-      image.data[index + 3] = 255;
+      if (packedPixels) {
+        packedPixels[rowOffset + x] = 0xff000000 | (blue << 16) | (green << 8) | red;
+      } else {
+        const index = (rowOffset + x) * 4;
+
+        image.data[index] = red;
+        image.data[index + 1] = green;
+        image.data[index + 2] = blue;
+        image.data[index + 3] = 255;
+      }
     }
   }
 
@@ -745,6 +756,10 @@ function getIdleSurfaceWaveTables(width, height) {
   idleSurfaceWaveCache.set(cacheKey, tables);
 
   return tables;
+}
+
+function isLittleEndian() {
+  return new Uint8Array(new Uint32Array([0x0a0b0c0d]).buffer)[0] === 0x0d;
 }
 
 export default DitheredHeroCanvas;
