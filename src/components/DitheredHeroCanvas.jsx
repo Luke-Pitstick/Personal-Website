@@ -18,8 +18,8 @@ const TRAIL_DUST_FLICKER = 0.72;
 const TRAIL_DUST_SIZE = 9;
 const TRAIL_IDLE_MS = 180;
 const TRAIL_MAX_POINTS = 10;
-const IDLE_SURFACE_CONTRAST = 1.02;
 const DITHERED_BACKGROUND_SRC = '/background-dithered.webp';
+const PAPER_FOREGROUND_SRC = '/hero-paper.webp';
 const MOUNTAIN_FOREGROUND_SRC = '/hero-mountains.webp';
 const FALLBACK_BLUE_TINT = 22;
 
@@ -462,20 +462,18 @@ const DitheredHeroRenderer = React.forwardRef(function DitheredHeroRenderer(
 });
 
 function getInteractiveIdleLayer() {
-  interactiveIdleLayerPromise ??= Promise.resolve()
-    .then(() =>
-      createIdleSurfaceImageData(HERO_WIDTH, HERO_HEIGHT, { contrast: IDLE_SURFACE_CONTRAST })
-    )
-    .catch((error) => {
+  interactiveIdleLayerPromise ??= loadImageData(PAPER_FOREGROUND_SRC, HERO_WIDTH, HERO_HEIGHT).catch(
+    (error) => {
       interactiveIdleLayerPromise = undefined;
       throw error;
-    });
+    }
+  );
 
   return interactiveIdleLayerPromise;
 }
 
 function getDitheredRevealBackground() {
-  revealBackgroundPromise ??= loadDitheredRevealBackground(HERO_WIDTH, HERO_HEIGHT).catch(
+  revealBackgroundPromise ??= loadImageData(DITHERED_BACKGROUND_SRC, HERO_WIDTH, HERO_HEIGHT).catch(
     (error) => {
       revealBackgroundPromise = undefined;
       throw error;
@@ -677,11 +675,11 @@ function dispatchAutoPointers(canvas, rect, balls) {
   }
 }
 
-async function loadDitheredRevealBackground(width, height) {
+async function loadImageData(src, width, height) {
   const image = new Image();
   image.crossOrigin = 'anonymous';
   image.decoding = 'async';
-  image.src = DITHERED_BACKGROUND_SRC;
+  image.src = src;
   await image.decode();
 
   const canvas = document.createElement('canvas');
@@ -690,7 +688,7 @@ async function loadDitheredRevealBackground(width, height) {
   const context = canvas.getContext('2d', { willReadFrequently: true });
 
   if (!context) {
-    throw new Error('Canvas2D is unavailable for background image loading.');
+    throw new Error(`Canvas2D is unavailable for loading ${src}.`);
   }
 
   context.drawImage(image, 0, 0, width, height);
