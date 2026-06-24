@@ -539,7 +539,6 @@ function useInteractionScale(rootRef) {
 
     const resizeObserver = new ResizeObserver(scheduleUpdateScale);
     resizeObserver.observe(root);
-    window.addEventListener('resize', scheduleUpdateScale);
 
     return () => {
       if (frame) {
@@ -547,7 +546,6 @@ function useInteractionScale(rootRef) {
       }
 
       resizeObserver.disconnect();
-      window.removeEventListener('resize', scheduleUpdateScale);
     };
   }, [rootRef]);
 
