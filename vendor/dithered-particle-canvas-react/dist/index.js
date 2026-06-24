@@ -1156,15 +1156,13 @@ k = new WeakMap(), I = new WeakMap(), ke = new WeakMap(), B = new WeakMap(), te 
     t.uniforms.u_trailDustFlicker,
     c ? Math.max(0, Math.min(1, c.dustFlicker)) : 0
   ), i.uniform1f(t.uniforms.u_trailDustSize, c ? Math.max(1, c.dustSize) : 1), i.uniform1f(t.uniforms.u_trailStrength, c ? c.strength : 0);
-  const m = new Float32Array(zt * 4);
-  for (let b = 0; b < f.length; b += 1) {
-    const x = f[b], U = b * 4;
-    m[U] = x.x, m[U + 1] = n(this, w).height - x.y, m[U + 2] = x.fade, m[U + 3] = x.x * 0.37 + x.y * 0.21;
+  let m = 0;
+  for (; m < f.length; m += 1) {
+    const b = f[m];
+    i.uniform4f(t.uniforms[trailUniformNames[m]], b.x, n(this, w).height - b.y, b.fade, b.x * 0.37 + b.y * 0.21);
   }
-  for (let b = 0; b < zt; b += 1) {
-    const x = b * 4;
-    i.uniform4f(t.uniforms[trailUniformNames[b]], m[x], m[x + 1], m[x + 2], m[x + 3]);
-  }
+  for (; m < zt; m += 1)
+    i.uniform4f(t.uniforms[trailUniformNames[m]], 0, 0, 0, 0);
 }, Je = function(t, r) {
   const i = u(this, g, ee).call(this);
   i.activeTexture(i.TEXTURE0 + t), i.bindTexture(i.TEXTURE_2D, r);
