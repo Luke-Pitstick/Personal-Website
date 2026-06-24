@@ -111,7 +111,6 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
 
     let frame = 0;
     let autoRevealTimer = 0;
-    let rectFrame = 0;
     let pauseUntil = 0;
     let lastAutoRevealTime = performance.now();
     let canvas;
@@ -122,13 +121,6 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
     const autoRevealBalls = createAutoRevealBalls();
 
     const canRender = () => isDocumentVisible && isHeroIntersecting;
-
-    const cancelRectRefresh = () => {
-      if (rectFrame) {
-        window.cancelAnimationFrame(rectFrame);
-        rectFrame = 0;
-      }
-    };
 
     const observeCanvas = (nextCanvas) => {
       if (observedCanvas === nextCanvas) {
@@ -181,23 +173,6 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
       }
 
       canvasRect = currentCanvas.getBoundingClientRect();
-    };
-
-    const scheduleCanvasRectRefresh = () => {
-      if (!canRender()) {
-        canvasRect = undefined;
-        cancelRectRefresh();
-        return;
-      }
-
-      if (rectFrame) {
-        return;
-      }
-
-      rectFrame = window.requestAnimationFrame(() => {
-        rectFrame = 0;
-        refreshCanvasRect();
-      });
     };
 
     const cancelAnimation = () => {
@@ -315,7 +290,6 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
 
     const handleRectInvalidation = () => {
       canvasRect = undefined;
-      scheduleCanvasRectRefresh();
     };
 
     const handleVisibilityChange = () => {
@@ -352,7 +326,6 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
 
     return () => {
       cancelAnimation();
-      cancelRectRefresh();
       rectResizeObserver.disconnect();
       mutationObserver.disconnect();
       intersectionObserver.disconnect();
