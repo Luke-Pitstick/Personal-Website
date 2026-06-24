@@ -132,6 +132,7 @@ body::before {
 }
 
 .dithered-hero-canvas,
+.dithered-hero-paper,
 .dithered-hero-mountains,
 .dithered-hero-fallback {
   position: absolute;
@@ -143,6 +144,12 @@ body::before {
 
 .dithered-hero-canvas {
   z-index: 0;
+}
+
+.dithered-hero-paper {
+  z-index: 0;
+  image-rendering: pixelated;
+  pointer-events: none;
 }
 
 .dithered-hero-canvas canvas {
@@ -177,6 +184,7 @@ body::before {
 
 @media (max-aspect-ratio: 16 / 9) {
   .dithered-hero-canvas,
+  .dithered-hero-paper,
   .dithered-hero-mountains,
   .dithered-hero-fallback {
     inset: 50% auto auto 50%;
