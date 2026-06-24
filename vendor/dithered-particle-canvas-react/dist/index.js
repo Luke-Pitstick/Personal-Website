@@ -1308,14 +1308,24 @@ fe = new WeakMap(), le = new WeakMap(), A = new WeakMap(), R = new WeakMap(), Q 
     h(this, R, []);
     return;
   }
-  if (u(this, Q, Et).call(this, t, o.durationMs), n(this, R).length !== 0)
-    return n(this, R).map((s) => ({
-      fade: E(1 - Math.max(0, t - s.time) / o.durationMs),
-      x: s.x,
-      y: s.y
-    })).filter((s) => s.fade > 0);
+  if (u(this, Q, Et).call(this, t, o.durationMs), n(this, R).length !== 0) {
+    const s = n(this, R), a = [];
+    for (let c = 0; c < s.length; c += 1) {
+      const f = s[c];
+      a.push({
+        fade: E(1 - Math.max(0, t - f.time) / o.durationMs),
+        x: f.x,
+        y: f.y
+      });
+    }
+    return a;
+  }
 }, Et = function(t, r) {
-  h(this, R, n(this, R).filter((i) => t - i.time < r));
+  const i = n(this, R);
+  let o = 0;
+  for (; o < i.length && t - i[o].time >= r; o += 1)
+    ;
+  o > 0 && i.splice(0, o);
 };
 function Ei(e, t, r) {
   const i = t.reveal === !0 ? Ie : t.reveal ? { ...Ie, ...t.reveal } : !1;
