@@ -32,6 +32,9 @@ const QUALITY = {
   backend: 'webgl2',
   resolutionScale: LOW_RESOLUTION_SCALE,
 };
+const HERO_RENDERER_OPTIONS = {
+  IntersectionObserver: false,
+};
 
 const AUTO_REVEAL_POINTER_INTERVAL_MS = 32;
 const AUTO_CURSOR_RESUME_MS = 2400;
@@ -384,6 +387,7 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
           preset="browserbase"
           quality={QUALITY}
           revealLayer="background"
+          rendererOptions={HERO_RENDERER_OPTIONS}
           width={HERO_WIDTH}
         />
       ) : null}
