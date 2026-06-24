@@ -79,6 +79,7 @@ const QUALITY = {
 
 const AUTO_CURSOR_RESUME_MS = 2400;
 const AUTO_REVEAL_BALL_COUNT = 5;
+const LIVE_HANDOFF_GUARD_MS = 220;
 const AUTO_REVEAL_BOUNDS = {
   maxX: 0.92,
   maxY: 0.9,
@@ -105,6 +106,7 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
   const [mountainsReady, setMountainsReady] = useState(false);
   const [liveRevealPrimed, setLiveRevealPrimed] = useState(false);
   const [livePaintReady, setLivePaintReady] = useState(false);
+  const [liveHandoffSettled, setLiveHandoffSettled] = useState(false);
   const [useStaticFallback, setUseStaticFallback] = useState(shouldUseStaticFallback);
   const autoOnly = useAutoOnlyShaderMode();
 
@@ -428,6 +430,7 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
     ? fallbackReady && mountainsReady
     : Boolean(layers) && Boolean(revealBackground) && mountainsReady && liveRevealPrimed;
   const showLiveScene = liveSceneReady && livePaintReady;
+  const showHandoffGuard = !useStaticFallback && !liveHandoffSettled;
   const isInteractive = !useStaticFallback && showLiveScene;
 
   useEffect(() => {
@@ -461,6 +464,38 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
       }
     };
   }, [liveSceneReady]);
+
+  useEffect(() => {
+    if (!showLiveScene || useStaticFallback) {
+      setLiveHandoffSettled(false);
+      return undefined;
+    }
+
+    let cancelled = false;
+    let paintFrame = 0;
+    let guardTimer = 0;
+
+    setLiveHandoffSettled(false);
+    paintFrame = window.requestAnimationFrame(() => {
+      guardTimer = window.setTimeout(() => {
+        if (!cancelled) {
+          setLiveHandoffSettled(true);
+        }
+      }, LIVE_HANDOFF_GUARD_MS);
+    });
+
+    return () => {
+      cancelled = true;
+
+      if (paintFrame) {
+        window.cancelAnimationFrame(paintFrame);
+      }
+
+      if (guardTimer) {
+        window.clearTimeout(guardTimer);
+      }
+    };
+  }, [showLiveScene, useStaticFallback]);
 
   useEffect(() => {
     onInteractiveChange?.(isInteractive);
@@ -548,6 +583,20 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
           quality={QUALITY}
           revealLayer="background"
           width={HERO_WIDTH}
+        />
+      ) : null}
+      {!useStaticFallback ? (
+        <img
+          aria-hidden="true"
+          className={`dithered-hero-handoff-paper${
+            showHandoffGuard ? '' : ' dithered-hero-handoff-paper--hidden'
+          }`}
+          src={PRECOMPUTED_IDLE_SURFACE_SRC}
+          alt=""
+          width={HERO_WIDTH}
+          height={HERO_HEIGHT}
+          decoding="async"
+          loading="eager"
         />
       ) : null}
       <canvas
