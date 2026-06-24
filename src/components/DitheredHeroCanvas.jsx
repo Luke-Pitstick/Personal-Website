@@ -3,7 +3,7 @@ import { DitheredParticleCanvas } from '@dithered-particle-canvas/react';
 
 const HERO_WIDTH = 1280;
 const HERO_HEIGHT = 720;
-const LOW_RESOLUTION_SCALE = 0.64;
+const LOW_RESOLUTION_SCALE = 0.6;
 const BASE_RENDER_WIDTH = HERO_WIDTH * LOW_RESOLUTION_SCALE;
 const BASE_RENDER_HEIGHT = HERO_HEIGHT * LOW_RESOLUTION_SCALE;
 const FOREGROUND_PIXEL_SIZE = 6;
