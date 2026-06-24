@@ -396,6 +396,7 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
         aria-hidden="true"
         className="dithered-hero-mountains"
         decoding="async"
+        fetchPriority="low"
         height={HERO_HEIGHT}
         src={MOUNTAIN_FOREGROUND_SRC}
         width={HERO_WIDTH}
