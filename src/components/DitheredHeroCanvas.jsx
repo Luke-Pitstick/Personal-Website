@@ -67,8 +67,7 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
   const rootRef = useRef(null);
   const fallbackCanvasRef = useRef(null);
   const rendererRef = useRef(null);
-  const [idleLayer, setIdleLayer] = useState();
-  const [revealBackground, setRevealBackground] = useState();
+  const [preparedImageData, setPreparedImageData] = useState();
   const [useStaticFallback, setUseStaticFallback] = useState(shouldUseStaticFallback);
   const autoOnly = useAutoOnlyShaderMode();
 
@@ -85,10 +84,10 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
 
     let cancelled = false;
 
-    getInteractiveIdleLayer()
-      .then((imageData) => {
+    Promise.all([getInteractiveIdleLayer(), getDitheredRevealBackground()])
+      .then(([idleLayer, revealBackground]) => {
         if (!cancelled) {
-          setIdleLayer(imageData);
+          setPreparedImageData({ idleLayer, revealBackground });
         }
       })
       .catch(() => {
@@ -337,37 +336,17 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
     };
   }, [autoOnly, useStaticFallback, onUserInteract]);
 
-  useEffect(() => {
-    if (useStaticFallback) {
-      return undefined;
-    }
-
-    let cancelled = false;
-
-    getDitheredRevealBackground()
-      .then((imageData) => {
-        if (!cancelled) {
-          setRevealBackground(imageData);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setUseStaticFallback(true);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [useStaticFallback]);
-
   const layers = useMemo(() => {
-    if (useStaticFallback || !idleLayer || !revealBackground) {
+    if (useStaticFallback || !preparedImageData) {
       return undefined;
     }
 
-    return createHeroLayers(idleLayer, revealBackground, interactionScale);
-  }, [useStaticFallback, idleLayer, revealBackground, interactionScale]);
+    return createHeroLayers(
+      preparedImageData.idleLayer,
+      preparedImageData.revealBackground,
+      interactionScale
+    );
+  }, [useStaticFallback, preparedImageData, interactionScale]);
 
   const fallbackSurface = useMemo(() => {
     if (!useStaticFallback) {
@@ -377,7 +356,7 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
     return createIdleSurfaceImageData(HERO_WIDTH, HERO_HEIGHT, { blueTint: FALLBACK_BLUE_TINT });
   }, [useStaticFallback]);
 
-  const isInteractive = !useStaticFallback && Boolean(layers) && Boolean(revealBackground);
+  const isInteractive = !useStaticFallback && Boolean(layers);
 
   useEffect(() => {
     onInteractiveChange?.(isInteractive);
@@ -386,12 +365,6 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
   useEffect(() => {
     onAutoOnlyChange?.(autoOnly);
   }, [autoOnly, onAutoOnlyChange]);
-
-  useEffect(() => {
-    if (useStaticFallback) {
-      onInteractiveChange?.(false);
-    }
-  }, [useStaticFallback, onInteractiveChange]);
 
   useEffect(() => {
     const canvas = fallbackCanvasRef.current;
