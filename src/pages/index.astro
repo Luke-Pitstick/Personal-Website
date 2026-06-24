@@ -9,9 +9,26 @@ import Contact from '../components/Contact.jsx';
 const portraitSizes = '(min-width: 768px) 280px, 100vw';
 const portraitAvifSrcSet =
 	'/pictureofme-256.avif 256w, /pictureofme-384.avif 384w, /pictureofme-512.avif 512w, /pictureofme-768.avif 768w';
+const ditheredHeroBackgroundSrc = '/background-dithered.webp';
+const ditheredHeroMountainsSrc = '/hero-mountains.webp';
 ---
 
 <Layout title="Luke Pitstick | Home">
+	<link
+		slot="head"
+		rel="preload"
+		as="image"
+		type="image/webp"
+		href={ditheredHeroBackgroundSrc}
+	/>
+	<link
+		slot="head"
+		rel="preload"
+		as="image"
+		type="image/webp"
+		href={ditheredHeroMountainsSrc}
+		fetchpriority="low"
+	/>
 	<link
 		slot="head"
 		rel="preload"

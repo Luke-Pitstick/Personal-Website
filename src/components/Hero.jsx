@@ -6,7 +6,17 @@ const SOCIAL_HIDE_SCROLL_Y = 96;
 const HERO_CANVAS_IDLE_TIMEOUT = 1800;
 const HERO_CANVAS_MIN_DELAY = 900;
 
-const LazyDitheredHeroCanvas = lazy(() => import('./DitheredHeroCanvas'));
+let ditheredHeroCanvasModulePromise;
+
+const loadDitheredHeroCanvasModule = () => {
+  ditheredHeroCanvasModulePromise ??= import('./DitheredHeroCanvas').catch((error) => {
+    ditheredHeroCanvasModulePromise = undefined;
+    throw error;
+  });
+  return ditheredHeroCanvasModulePromise;
+};
+
+const LazyDitheredHeroCanvas = lazy(loadDitheredHeroCanvasModule);
 
 const Hero = () => {
   const [canvasReady, setCanvasReady] = useState(false);
@@ -100,6 +110,17 @@ const Hero = () => {
         setCanvasReady(true);
       }
     };
+    const prepareCanvas = () => {
+      idleComplete = true;
+      void loadDitheredHeroCanvasModule()
+        .then((module) => {
+          if (!cancelled) {
+            module.preloadDitheredHeroCanvasData?.();
+          }
+        })
+        .catch(() => {});
+      loadCanvas();
+    };
 
     const delayId = window.setTimeout(() => {
       minDelayComplete = true;
@@ -108,17 +129,11 @@ const Hero = () => {
 
     if ('requestIdleCallback' in window) {
       idleId = window.requestIdleCallback(
-        () => {
-          idleComplete = true;
-          loadCanvas();
-        },
+        prepareCanvas,
         { timeout: HERO_CANVAS_IDLE_TIMEOUT },
       );
     } else {
-      idleId = window.setTimeout(() => {
-        idleComplete = true;
-        loadCanvas();
-      }, HERO_CANVAS_IDLE_TIMEOUT);
+      idleId = window.setTimeout(prepareCanvas, HERO_CANVAS_IDLE_TIMEOUT);
     }
 
     return () => {

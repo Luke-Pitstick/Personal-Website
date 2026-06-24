@@ -6,7 +6,6 @@ const HERO_HEIGHT = 720;
 const LOW_RESOLUTION_SCALE = 0.64;
 const BASE_RENDER_WIDTH = HERO_WIDTH * LOW_RESOLUTION_SCALE;
 const BASE_RENDER_HEIGHT = HERO_HEIGHT * LOW_RESOLUTION_SCALE;
-const BACKGROUND_PIXEL_SIZE = 2;
 const FOREGROUND_PIXEL_SIZE = 6;
 const REVEAL_EDGE_NOISE = 0.56;
 const REVEAL_EDGE_DITHER = 0.94;
@@ -19,81 +18,22 @@ const TRAIL_DUST_FLICKER = 0.72;
 const TRAIL_DUST_SIZE = 9;
 const TRAIL_IDLE_MS = 180;
 const TRAIL_MAX_POINTS = 12;
-const SKY_BACKGROUND_BLUE_BIAS = 112;
-const SKY_BACKGROUND_SATURATION = 2.45;
-const BACKGROUND_REVEAL_SRC = '/background.jpg';
-const FOREGROUND_MOUNTAINS_SRC = '/chautauqua-flatirons_fg.jpg';
+const IDLE_SURFACE_CONTRAST = 1.02;
+const DITHERED_BACKGROUND_SRC = '/background-dithered.webp';
+const MOUNTAIN_FOREGROUND_SRC = '/hero-mountains.webp';
 const FALLBACK_BLUE_TINT = 22;
 
-const MOUNTAIN_PALETTE = {
-  black: [8, 12, 14],
-  green: [119, 203, 45],
-  orange: [255, 58, 18],
-  pale: [242, 239, 214],
-  yellow: [255, 218, 24],
-};
-
-const LAYER_CONTROLS = {
-  background: {
-    brightness: 1.08,
-    contrast: 1.16,
-    ditherAmount: 0.9,
-    ditherMatrixSize: 8,
-    ditherPixelSize: BACKGROUND_PIXEL_SIZE,
-    opacity: 1,
-    revealEdgeDither: REVEAL_EDGE_DITHER,
-    revealEdgeFlicker: REVEAL_EDGE_FLICKER,
-    revealEdgeNoise: REVEAL_EDGE_NOISE,
-    revealFadeMs: REVEAL_FADE_MS,
-    revealPixelSize: FOREGROUND_PIXEL_SIZE,
-    revealRadius: REVEAL_RADIUS,
-    revealSoftness: 0.58,
-    trailDustFlicker: TRAIL_DUST_FLICKER,
-    trailDustSize: TRAIL_DUST_SIZE,
-    trailDurationMs: TRAIL_DURATION_MS,
-    trailIdleMs: TRAIL_IDLE_MS,
-    trailSpacing: 28,
-    trailStrength: 0.9,
-  },
-  foreground: {
-    brightness: 1,
-    contrast: 1.02,
-    ditherAmount: 0,
-    ditherMatrixSize: 8,
-    ditherPixelSize: FOREGROUND_PIXEL_SIZE,
-    opacity: 1,
-    revealEdgeDither: REVEAL_EDGE_DITHER,
-    revealEdgeFlicker: REVEAL_EDGE_FLICKER,
-    revealEdgeNoise: REVEAL_EDGE_NOISE,
-    revealFadeMs: REVEAL_FADE_MS,
-    revealPixelSize: FOREGROUND_PIXEL_SIZE,
-    revealRadius: REVEAL_RADIUS,
-    revealSoftness: 0.58,
-    trailDustFlicker: TRAIL_DUST_FLICKER,
-    trailDustSize: TRAIL_DUST_SIZE,
-    trailDurationMs: TRAIL_DURATION_MS,
-    trailIdleMs: TRAIL_IDLE_MS,
-    trailSpacing: 28,
-    trailStrength: 0.9,
-  },
-};
-
-const MOUNTAIN_CONTROLS = {
-  brightness: 1,
-  colorCount: 5,
-  colorMode: 'limited',
-  contrast: 1,
-  hue: 0,
-  saturation: 1,
-  warmth: 0,
-};
+const REVEAL_SOFTNESS = 0.58;
+const TRAIL_SPACING = 28;
+const TRAIL_STRENGTH = 0.9;
+const EMPTY_FILTERS = [];
 
 const QUALITY = {
   backend: 'webgl2',
   resolutionScale: LOW_RESOLUTION_SCALE,
-  targetFps: 60,
 };
 
+const AUTO_REVEAL_POINTER_INTERVAL_MS = 32;
 const AUTO_CURSOR_RESUME_MS = 2400;
 const AUTO_REVEAL_BALL_COUNT = 5;
 const AUTO_REVEAL_BOUNDS = {
@@ -109,15 +49,27 @@ const AUTO_REVEAL_BALLS = [
   { id: 4, x: 0.78, y: 0.66, vx: -0.000118, vy: -0.000071 },
   { id: 5, x: 0.48, y: 0.48, vx: 0.000073, vy: 0.000126 },
 ];
+const AUTO_ONLY_MEDIA_QUERY = '(hover: none), (pointer: coarse)';
+const idleSurfaceWaveCache = new Map();
+const idleSurfaceGrainCache = new Map();
+let interactiveIdleLayerPromise;
+let revealBackgroundPromise;
+let staticFallbackPreference;
+
+export function preloadDitheredHeroCanvasData() {
+  if (typeof window === 'undefined' || shouldUseStaticFallback()) {
+    return;
+  }
+
+  void getInteractiveIdleLayer().catch(() => {});
+  void getDitheredRevealBackground().catch(() => {});
+}
 
 const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInteract }) => {
   const rootRef = useRef(null);
   const fallbackCanvasRef = useRef(null);
-  const mountainCanvasRef = useRef(null);
   const rendererRef = useRef(null);
-  const [idleLayer, setIdleLayer] = useState();
-  const [revealBackground, setRevealBackground] = useState();
-  const [mountainBase, setMountainBase] = useState();
+  const [preparedImageData, setPreparedImageData] = useState();
   const [useStaticFallback, setUseStaticFallback] = useState(shouldUseStaticFallback);
   const autoOnly = useAutoOnlyShaderMode();
 
@@ -128,18 +80,52 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
   const interactionScale = useInteractionScale(rootRef);
 
   useEffect(() => {
-    setIdleLayer(createIdleSurfaceImageData(HERO_WIDTH, HERO_HEIGHT));
-  }, []);
+    if (useStaticFallback) {
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    Promise.all([getInteractiveIdleLayer(), getDitheredRevealBackground()])
+      .then(([idleLayer, revealBackground]) => {
+        if (!cancelled) {
+          setPreparedImageData({ idleLayer, revealBackground });
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setUseStaticFallback(true);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [useStaticFallback]);
+
+  const layers = useMemo(() => {
+    if (useStaticFallback || !preparedImageData) {
+      return undefined;
+    }
+
+    return createHeroLayers(
+      preparedImageData.idleLayer,
+      preparedImageData.revealBackground,
+      interactionScale
+    );
+  }, [useStaticFallback, preparedImageData, interactionScale]);
+
+  const isInteractive = !useStaticFallback && Boolean(layers);
 
   useEffect(() => {
     const root = rootRef.current;
 
-    if (!root || useStaticFallback) {
+    if (!root || !isInteractive) {
       return undefined;
     }
 
     let frame = 0;
-    let rectFrame = 0;
+    let autoRevealTimer = 0;
     let pauseUntil = 0;
     let lastAutoRevealTime = performance.now();
     let canvas;
@@ -150,13 +136,6 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
     const autoRevealBalls = createAutoRevealBalls();
 
     const canRender = () => isDocumentVisible && isHeroIntersecting;
-
-    const cancelRectRefresh = () => {
-      if (rectFrame) {
-        window.cancelAnimationFrame(rectFrame);
-        rectFrame = 0;
-      }
-    };
 
     const observeCanvas = (nextCanvas) => {
       if (observedCanvas === nextCanvas) {
@@ -211,37 +190,47 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
       canvasRect = currentCanvas.getBoundingClientRect();
     };
 
-    const scheduleCanvasRectRefresh = () => {
-      if (!canRender()) {
-        canvasRect = undefined;
-        cancelRectRefresh();
-        return;
-      }
-
-      if (rectFrame) {
-        return;
-      }
-
-      rectFrame = window.requestAnimationFrame(() => {
-        rectFrame = 0;
-        refreshCanvasRect();
-      });
-    };
-
     const cancelAnimation = () => {
       if (frame) {
         window.cancelAnimationFrame(frame);
         frame = 0;
       }
+
+      if (autoRevealTimer) {
+        window.clearTimeout(autoRevealTimer);
+        autoRevealTimer = 0;
+      }
+    };
+
+    const scheduleAnimation = (delayMs = 0) => {
+      if (frame || autoRevealTimer) {
+        return;
+      }
+
+      if (delayMs > 0) {
+        autoRevealTimer = window.setTimeout(() => {
+          autoRevealTimer = 0;
+
+          if (!canRender()) {
+            syncAnimation();
+            return;
+          }
+
+          frame = window.requestAnimationFrame(animate);
+        }, delayMs);
+        return;
+      }
+
+      frame = window.requestAnimationFrame(animate);
     };
 
     const startAnimation = () => {
-      if (frame) {
+      if (frame || autoRevealTimer) {
         return;
       }
 
       lastAutoRevealTime = performance.now();
-      frame = window.requestAnimationFrame(animate);
+      scheduleAnimation(AUTO_REVEAL_POINTER_INTERVAL_MS);
     };
 
     const syncAnimation = () => {
@@ -260,10 +249,6 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
     };
 
     const pauseForUser = (event) => {
-      if (autoOnly) {
-        return;
-      }
-
       if (event.isTrusted) {
         pauseUntil = performance.now() + AUTO_CURSOR_RESUME_MS;
         onUserInteract?.();
@@ -289,23 +274,35 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
         refreshCanvasRect();
       }
 
-      if (canvasRect && time >= pauseUntil) {
-        const deltaMs = Math.min(64, Math.max(0, time - lastAutoRevealTime));
+      let nextDelay = AUTO_REVEAL_POINTER_INTERVAL_MS;
 
-        stepAutoRevealBalls(autoRevealBalls, deltaMs);
-        dispatchAutoPointers(currentCanvas, canvasRect, autoRevealBalls);
-        lastAutoRevealTime = time;
+      if (canvasRect) {
+        const nextAutoRevealTime = Math.max(
+          pauseUntil,
+          lastAutoRevealTime + AUTO_REVEAL_POINTER_INTERVAL_MS
+        );
+
+        if (time >= nextAutoRevealTime) {
+          const deltaMs = Math.min(64, Math.max(0, time - lastAutoRevealTime));
+
+          stepAutoRevealBalls(autoRevealBalls, deltaMs);
+          dispatchAutoPointers(currentCanvas, canvasRect, autoRevealBalls);
+          lastAutoRevealTime = time;
+        } else {
+          nextDelay = nextAutoRevealTime - time;
+        }
       }
 
-      frame = window.requestAnimationFrame(animate);
+      scheduleAnimation(nextDelay);
     };
 
-    root.addEventListener('pointermove', pauseForUser, { passive: true });
-    root.addEventListener('pointerdown', pauseForUser, { passive: true });
+    if (!autoOnly) {
+      root.addEventListener('pointermove', pauseForUser, { passive: true });
+      root.addEventListener('pointerdown', pauseForUser, { passive: true });
+    }
 
     const handleRectInvalidation = () => {
       canvasRect = undefined;
-      scheduleCanvasRectRefresh();
     };
 
     const handleVisibilityChange = () => {
@@ -321,16 +318,10 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
     };
 
     const rectResizeObserver = new ResizeObserver(handleRectInvalidation);
-    const mutationObserver = new MutationObserver(() => {
-      discoverCanvas();
-      handleRectInvalidation();
-      syncAnimation();
-    });
     const intersectionObserver = new IntersectionObserver(handleIntersectionChange);
     const scrollListenerOptions = { capture: true, passive: true };
 
     rectResizeObserver.observe(root);
-    mutationObserver.observe(root, { childList: true, subtree: true });
     intersectionObserver.observe(root);
     window.addEventListener('resize', handleRectInvalidation);
     window.addEventListener('scroll', handleRectInvalidation, scrollListenerOptions);
@@ -342,9 +333,7 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
 
     return () => {
       cancelAnimation();
-      cancelRectRefresh();
       rectResizeObserver.disconnect();
-      mutationObserver.disconnect();
       intersectionObserver.disconnect();
       window.removeEventListener('resize', handleRectInvalidation);
       window.removeEventListener('scroll', handleRectInvalidation, scrollListenerOptions);
@@ -352,59 +341,7 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
       root.removeEventListener('pointermove', pauseForUser);
       root.removeEventListener('pointerdown', pauseForUser);
     };
-  }, [autoOnly, useStaticFallback, onUserInteract]);
-
-  useEffect(() => {
-    if (useStaticFallback) {
-      return undefined;
-    }
-
-    let cancelled = false;
-
-    loadSkyRevealBackground(HERO_WIDTH, HERO_HEIGHT)
-      .then((imageData) => {
-        if (!cancelled) {
-          setRevealBackground(imageData);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setUseStaticFallback(true);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [useStaticFallback]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    loadMattedMountainForeground(FOREGROUND_MOUNTAINS_SRC, HERO_WIDTH, HERO_HEIGHT)
-      .then((imageData) => {
-        if (!cancelled) {
-          setMountainBase(imageData);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setUseStaticFallback(true);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const layers = useMemo(() => {
-    if (useStaticFallback || !idleLayer) {
-      return undefined;
-    }
-
-    return createHeroLayers(idleLayer, revealBackground, interactionScale);
-  }, [useStaticFallback, idleLayer, revealBackground, interactionScale]);
+  }, [autoOnly, isInteractive, onUserInteract]);
 
   const fallbackSurface = useMemo(() => {
     if (!useStaticFallback) {
@@ -414,8 +351,6 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
     return createIdleSurfaceImageData(HERO_WIDTH, HERO_HEIGHT, { blueTint: FALLBACK_BLUE_TINT });
   }, [useStaticFallback]);
 
-  const isInteractive = !useStaticFallback && Boolean(layers) && Boolean(revealBackground);
-
   useEffect(() => {
     onInteractiveChange?.(isInteractive);
   }, [isInteractive, onInteractiveChange]);
@@ -423,20 +358,6 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
   useEffect(() => {
     onAutoOnlyChange?.(autoOnly);
   }, [autoOnly, onAutoOnlyChange]);
-
-  useEffect(() => {
-    if (useStaticFallback) {
-      onInteractiveChange?.(false);
-    }
-  }, [useStaticFallback, onInteractiveChange]);
-
-  const mountains = useMemo(() => {
-    if (!mountainBase) {
-      return undefined;
-    }
-
-    return applyMountainColorFilters(mountainBase, MOUNTAIN_CONTROLS);
-  }, [mountainBase]);
 
   useEffect(() => {
     const canvas = fallbackCanvasRef.current;
@@ -449,18 +370,6 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
     canvas.height = fallbackSurface.height;
     canvas.getContext('2d')?.putImageData(fallbackSurface, 0, 0);
   }, [fallbackSurface]);
-
-  useEffect(() => {
-    const canvas = mountainCanvasRef.current;
-
-    if (!canvas || !mountains) {
-      return;
-    }
-
-    canvas.width = mountains.width;
-    canvas.height = mountains.height;
-    canvas.getContext('2d')?.putImageData(mountains, 0, 0);
-  }, [mountains]);
 
   return (
     <div ref={rootRef} className={`dithered-hero${autoOnly ? ' dithered-hero--auto-only' : ''}`}>
@@ -489,10 +398,13 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
           width={HERO_WIDTH}
         />
       ) : null}
-      <canvas
-        ref={mountainCanvasRef}
+      <img
+        alt=""
+        aria-hidden="true"
         className="dithered-hero-mountains"
+        decoding="async"
         height={HERO_HEIGHT}
+        src={MOUNTAIN_FOREGROUND_SRC}
         width={HERO_WIDTH}
       />
       <div className="dithered-hero-shade" />
@@ -501,91 +413,98 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
 };
 
 function shouldUseStaticFallback() {
+  if (staticFallbackPreference !== undefined) {
+    return staticFallbackPreference;
+  }
+
   if (typeof window === 'undefined') {
     return false;
   }
 
   try {
     const canvas = document.createElement('canvas');
-    return !canvas.getContext('webgl2');
+    const context = canvas.getContext('webgl2');
+    staticFallbackPreference = !context;
+    context?.getExtension('WEBGL_lose_context')?.loseContext();
+    return staticFallbackPreference;
   } catch {
+    staticFallbackPreference = true;
     return true;
   }
 }
 
+function getInteractiveIdleLayer() {
+  interactiveIdleLayerPromise ??= Promise.resolve()
+    .then(() =>
+      createIdleSurfaceImageData(HERO_WIDTH, HERO_HEIGHT, { contrast: IDLE_SURFACE_CONTRAST })
+    )
+    .catch((error) => {
+      interactiveIdleLayerPromise = undefined;
+      throw error;
+    });
+
+  return interactiveIdleLayerPromise;
+}
+
+function getDitheredRevealBackground() {
+  revealBackgroundPromise ??= loadDitheredRevealBackground(HERO_WIDTH, HERO_HEIGHT).catch(
+    (error) => {
+      revealBackgroundPromise = undefined;
+      throw error;
+    }
+  );
+
+  return revealBackgroundPromise;
+}
+
 function createHeroLayers(idleLayer, revealBackground, interactionScale = 1) {
+  const reveal = buildRevealConfig(interactionScale);
+
   return {
     background: {
-      dither: buildDitherConfig(LAYER_CONTROLS.background),
+      dither: false,
       fit: 'stretch',
-      filters: buildFilters(LAYER_CONTROLS.background),
-      opacity: LAYER_CONTROLS.background.opacity,
-      reveal: buildRevealConfig(LAYER_CONTROLS.background, interactionScale),
-      src: revealBackground ?? idleLayer,
+      filters: EMPTY_FILTERS,
+      opacity: 1,
+      reveal,
+      src: revealBackground,
     },
     foreground: {
-      dither: buildDitherConfig(LAYER_CONTROLS.foreground),
+      dither: false,
       fit: 'stretch',
-      filters: buildFilters(LAYER_CONTROLS.foreground),
-      opacity: LAYER_CONTROLS.foreground.opacity,
-      reveal: buildRevealConfig(LAYER_CONTROLS.foreground, interactionScale),
+      filters: EMPTY_FILTERS,
+      opacity: 1,
+      reveal,
       src: idleLayer,
     },
   };
 }
 
-function buildFilters(controls) {
-  const filters = [];
-
-  if (controls.contrast !== 1) {
-    filters.push({ type: 'contrast', amount: controls.contrast });
-  }
-
-  if (controls.brightness !== 1) {
-    filters.push({ type: 'brightness', amount: controls.brightness });
-  }
-
-  return filters;
-}
-
-function buildDitherConfig(controls) {
-  if (controls.ditherAmount <= 0) {
-    return false;
-  }
-
+function buildRevealConfig(interactionScale = 1) {
   return {
-    amount: controls.ditherAmount,
-    matrixSize: controls.ditherMatrixSize,
-    palette: 'browserbase',
-    pixelSize: controls.ditherPixelSize,
-  };
-}
-
-function buildRevealConfig(controls, interactionScale = 1) {
-  return {
-    edgeDither: controls.revealEdgeDither,
-    edgeFlicker: controls.revealEdgeFlicker,
-    edgeNoise: controls.revealEdgeNoise,
-    fadeMs: controls.revealFadeMs,
+    edgeDither: REVEAL_EDGE_DITHER,
+    edgeFlicker: REVEAL_EDGE_FLICKER,
+    edgeNoise: REVEAL_EDGE_NOISE,
+    fadeMs: REVEAL_FADE_MS,
     foregroundBlend: REVEAL_FOREGROUND_BLEND,
-    pixelSize: scaleInteractionValue(controls.revealPixelSize, interactionScale),
-    radius: controls.revealRadius * interactionScale,
-    softness: controls.revealSoftness,
+    pixelSize: scaleInteractionValue(FOREGROUND_PIXEL_SIZE, interactionScale),
+    radius: REVEAL_RADIUS * interactionScale,
+    softness: REVEAL_SOFTNESS,
     strength: 1,
     trail: {
-      dustFlicker: controls.trailDustFlicker,
-      dustSize: scaleInteractionValue(controls.trailDustSize, interactionScale),
-      durationMs: controls.trailDurationMs,
-      idleMs: controls.trailIdleMs,
+      dustFlicker: TRAIL_DUST_FLICKER,
+      dustSize: scaleInteractionValue(TRAIL_DUST_SIZE, interactionScale),
+      durationMs: TRAIL_DURATION_MS,
+      idleMs: TRAIL_IDLE_MS,
       maxPoints: TRAIL_MAX_POINTS,
-      spacing: scaleInteractionValue(controls.trailSpacing, interactionScale),
-      strength: controls.trailStrength,
+      spacing: scaleInteractionValue(TRAIL_SPACING, interactionScale),
+      strength: TRAIL_STRENGTH,
     },
   };
 }
 
 function useInteractionScale(rootRef) {
-  const [interactionScale, setInteractionScale] = useState(1);
+  const [interactionScale, setInteractionScale] = useState(getInitialInteractionScale);
 
   useEffect(() => {
     const root = rootRef.current;
@@ -599,12 +518,10 @@ function useInteractionScale(rootRef) {
     const updateScale = () => {
       frame = 0;
       const rect = root.getBoundingClientRect();
-      const devicePixelRatio = window.devicePixelRatio || 1;
-      const renderWidth = rect.width * QUALITY.resolutionScale * devicePixelRatio;
-      const renderHeight = rect.height * QUALITY.resolutionScale * devicePixelRatio;
-      const nextScale = Math.max(
-        0.1,
-        Math.min(1, renderWidth / BASE_RENDER_WIDTH, renderHeight / BASE_RENDER_HEIGHT)
+      const nextScale = calculateInteractionScale(
+        rect.width,
+        rect.height,
+        window.devicePixelRatio || 1
       );
 
       setInteractionScale((currentScale) =>
@@ -639,15 +556,37 @@ function useInteractionScale(rootRef) {
   return interactionScale;
 }
 
+function getInitialInteractionScale() {
+  if (typeof window === 'undefined') {
+    return 1;
+  }
+
+  return calculateInteractionScale(
+    window.innerWidth || HERO_WIDTH,
+    window.innerHeight || HERO_HEIGHT,
+    window.devicePixelRatio || 1
+  );
+}
+
+function calculateInteractionScale(width, height, devicePixelRatio = 1) {
+  const renderWidth = width * QUALITY.resolutionScale * devicePixelRatio;
+  const renderHeight = height * QUALITY.resolutionScale * devicePixelRatio;
+
+  return Math.max(
+    0.1,
+    Math.min(1, renderWidth / BASE_RENDER_WIDTH, renderHeight / BASE_RENDER_HEIGHT)
+  );
+}
+
 function useAutoOnlyShaderMode() {
-  const [autoOnly, setAutoOnly] = useState(false);
+  const [autoOnly, setAutoOnly] = useState(getInitialAutoOnlyShaderMode);
 
   useEffect(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
       return undefined;
     }
 
-    const media = window.matchMedia('(hover: none), (pointer: coarse)');
+    const media = window.matchMedia(AUTO_ONLY_MEDIA_QUERY);
     const updateAutoOnly = () => setAutoOnly(media.matches);
 
     updateAutoOnly();
@@ -664,117 +603,16 @@ function useAutoOnlyShaderMode() {
   return autoOnly;
 }
 
+function getInitialAutoOnlyShaderMode() {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+    return false;
+  }
+
+  return window.matchMedia(AUTO_ONLY_MEDIA_QUERY).matches;
+}
+
 function scaleInteractionValue(value, interactionScale) {
   return Math.max(1, Math.round(value * interactionScale));
-}
-
-function applyMountainColorFilters(source, controls) {
-  const output = new ImageData(new Uint8ClampedArray(source.data), source.width, source.height);
-  const hueShift = controls.hue / 360;
-
-  if (controls.colorMode === 'limited') {
-    applyMountainPalette(output, controls.colorCount);
-  }
-
-  for (let index = 0; index < output.data.length; index += 4) {
-    const alpha = output.data[index + 3] ?? 0;
-
-    if (alpha === 0) {
-      continue;
-    }
-
-    let r = adjustContrast(output.data[index] ?? 0, controls.contrast);
-    let g = adjustContrast(output.data[index + 1] ?? 0, controls.contrast);
-    let b = adjustContrast(output.data[index + 2] ?? 0, controls.contrast);
-
-    r = r * controls.brightness + controls.warmth * 26;
-    g = g * controls.brightness + controls.warmth * 6;
-    b = b * controls.brightness - controls.warmth * 24;
-
-    const hsl = rgbToHsl(r, g, b);
-    const shifted = hslToRgb(
-      moduloFloat(hsl.h + hueShift, 1),
-      clamp01(hsl.s * controls.saturation),
-      hsl.l
-    );
-
-    output.data[index] = clampByte(shifted.r);
-    output.data[index + 1] = clampByte(shifted.g);
-    output.data[index + 2] = clampByte(shifted.b);
-  }
-
-  return output;
-}
-
-function adjustContrast(value, contrast) {
-  return (value - 128) * contrast + 128;
-}
-
-function rgbToHsl(r, g, b) {
-  const red = clamp01(r / 255);
-  const green = clamp01(g / 255);
-  const blue = clamp01(b / 255);
-  const max = Math.max(red, green, blue);
-  const min = Math.min(red, green, blue);
-  const l = (max + min) / 2;
-
-  if (max === min) {
-    return { h: 0, l, s: 0 };
-  }
-
-  const delta = max - min;
-  const s = l > 0.5 ? delta / (2 - max - min) : delta / (max + min);
-  const h =
-    max === red
-      ? (green - blue) / delta + (green < blue ? 6 : 0)
-      : max === green
-        ? (blue - red) / delta + 2
-        : (red - green) / delta + 4;
-
-  return { h: h / 6, l, s };
-}
-
-function hslToRgb(h, s, l) {
-  if (s === 0) {
-    const value = l * 255;
-
-    return { b: value, g: value, r: value };
-  }
-
-  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-  const p = 2 * l - q;
-
-  return {
-    b: hueToRgb(p, q, h - 1 / 3) * 255,
-    g: hueToRgb(p, q, h) * 255,
-    r: hueToRgb(p, q, h + 1 / 3) * 255,
-  };
-}
-
-function hueToRgb(p, q, t) {
-  const hue = moduloFloat(t, 1);
-
-  if (hue < 1 / 6) {
-    return p + (q - p) * 6 * hue;
-  }
-
-  if (hue < 1 / 2) {
-    return q;
-  }
-
-  if (hue < 2 / 3) {
-    return p + (q - p) * (2 / 3 - hue) * 6;
-  }
-
-  return p;
-}
-
-function clamp01(value) {
-  return Math.max(0, Math.min(1, value));
-}
-
-function moduloFloat(value, divisor) {
-  return ((value % divisor) + divisor) % divisor;
 }
 
 function createAutoRevealBalls() {
@@ -799,26 +637,37 @@ function stepAutoRevealBalls(balls, deltaMs) {
 }
 
 function dispatchAutoPointers(canvas, rect, balls) {
-  balls.forEach((ball, index) => {
-    canvas.dispatchEvent(
-      new PointerEvent('pointermove', {
-        bubbles: true,
-        clientX: rect.left + rect.width * ball.x,
-        clientY: rect.top + rect.height * ball.y,
-        isPrimary: index === 0,
-        pointerId: ball.id,
-        pointerType: 'mouse',
-        pressure: 0.65,
-      })
-    );
-  });
+  const originalGetBoundingClientRect = canvas.getBoundingClientRect;
+
+  // Reuse the rect already measured by the wrapper for this synchronous pointer batch.
+  canvas.getBoundingClientRect = () => rect;
+
+  try {
+    for (let index = 0; index < balls.length; index += 1) {
+      const ball = balls[index];
+
+      canvas.dispatchEvent(
+        new PointerEvent('pointermove', {
+          bubbles: false,
+          clientX: rect.left + rect.width * ball.x,
+          clientY: rect.top + rect.height * ball.y,
+          isPrimary: index === 0,
+          pointerId: ball.id,
+          pointerType: 'mouse',
+          pressure: 0.65,
+        })
+      );
+    }
+  } finally {
+    canvas.getBoundingClientRect = originalGetBoundingClientRect;
+  }
 }
 
-async function loadSkyRevealBackground(width, height) {
+async function loadDitheredRevealBackground(width, height) {
   const image = new Image();
   image.crossOrigin = 'anonymous';
   image.decoding = 'async';
-  image.src = BACKGROUND_REVEAL_SRC;
+  image.src = DITHERED_BACKGROUND_SRC;
   await image.decode();
 
   const canvas = document.createElement('canvas');
@@ -832,47 +681,33 @@ async function loadSkyRevealBackground(width, height) {
 
   context.drawImage(image, 0, 0, width, height);
 
-  const imageData = context.getImageData(0, 0, width, height);
-  enhanceSkyBackground(imageData);
-
-  return imageData;
+  return context.getImageData(0, 0, width, height);
 }
 
-function enhanceSkyBackground(image) {
-  for (let index = 0; index < image.data.length; index += 4) {
-    const alpha = image.data[index + 3] ?? 0;
-
-    if (alpha === 0) {
-      continue;
-    }
-
-    const r = image.data[index] ?? 0;
-    const g = image.data[index + 1] ?? 0;
-    const b = image.data[index + 2] ?? 0;
-    const brightness = (r + g + b) / 3;
-    const skyWeight = clamp01((brightness - 92) / 150);
-    const hsl = rgbToHsl(r, g, b);
-    const saturated = hslToRgb(hsl.h, clamp01(hsl.s * SKY_BACKGROUND_SATURATION), hsl.l);
-
-    image.data[index] = clampByte(saturated.r - SKY_BACKGROUND_BLUE_BIAS * 0.55 * skyWeight);
-    image.data[index + 1] = clampByte(saturated.g + SKY_BACKGROUND_BLUE_BIAS * 0.16 * skyWeight);
-    image.data[index + 2] = clampByte(saturated.b + SKY_BACKGROUND_BLUE_BIAS * skyWeight);
-  }
-}
-
-function createIdleSurfaceImageData(width, height, { blueTint = 0 } = {}) {
+function createIdleSurfaceImageData(width, height, { blueTint = 0, contrast = 1 } = {}) {
   const image = new ImageData(width, height);
+  const { cosXY, sinX } = getIdleSurfaceWaveTables(width, height);
+  const grainRows = getIdleSurfaceGrainRows(width);
+  const redTint = blueTint * 0.55;
+  const greenTint = blueTint * 0.2;
+  const blueTintBoost = blueTint * 0.85;
+  const contrastOffset = 128 - 128 * contrast;
 
   for (let y = 0; y < height; y += 1) {
-    for (let x = 0; x < width; x += 1) {
-      const index = (y * width + x) * 4;
-      const vertical = y / height;
-      const grain = (((x * 17 + y * 31) % 19) - 9) * 0.8;
-      const paper = Math.sin(x / 120) * 3 + Math.cos((x + y) / 180) * 4 + grain;
+    const vertical = y / height;
+    const redBase = (228 + vertical * 12 - redTint) * contrast + contrastOffset;
+    const greenBase = (232 + vertical * 8 + greenTint) * contrast + contrastOffset;
+    const blueBase = (220 + vertical * 5 + blueTintBoost) * contrast + contrastOffset;
+    const grainRow = grainRows[y % grainRows.length];
+    const rowOffset = y * width * 4;
 
-      image.data[index] = clampByte(228 + vertical * 12 + paper - blueTint * 0.55);
-      image.data[index + 1] = clampByte(232 + vertical * 8 + paper + blueTint * 0.2);
-      image.data[index + 2] = clampByte(220 + vertical * 5 + paper + blueTint * 0.85);
+    for (let x = 0; x < width; x += 1) {
+      const index = rowOffset + x * 4;
+      const paper = (sinX[x] + cosXY[x + y] + grainRow[x]) * contrast;
+
+      image.data[index] = Math.round(redBase + paper);
+      image.data[index + 1] = Math.round(greenBase + paper);
+      image.data[index + 2] = Math.round(blueBase + paper);
       image.data[index + 3] = 255;
     }
   }
@@ -880,366 +715,51 @@ function createIdleSurfaceImageData(width, height, { blueTint = 0 } = {}) {
   return image;
 }
 
-async function loadMattedMountainForeground(src, width, height) {
-  const image = new Image();
-  image.crossOrigin = 'anonymous';
-  image.decoding = 'async';
-  image.src = src;
-  await image.decode();
+function getIdleSurfaceGrainRows(width) {
+  const cached = idleSurfaceGrainCache.get(width);
 
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  const context = canvas.getContext('2d', { willReadFrequently: true });
-
-  if (!context) {
-    throw new Error('Canvas2D is unavailable for foreground matte generation.');
+  if (cached) {
+    return cached;
   }
 
-  const scale = Math.max(width / image.naturalWidth, height / image.naturalHeight);
-  const drawnWidth = image.naturalWidth * scale;
-  const drawnHeight = image.naturalHeight * scale;
-  const x = (width - drawnWidth) / 2;
-  const y = (height - drawnHeight) / 2 + height * 0.12;
+  const rows = Array.from({ length: 19 }, (_, yMod) => {
+    const row = new Float64Array(width);
 
-  context.drawImage(image, x, y, drawnWidth, drawnHeight);
-
-  const imageData = context.getImageData(0, 0, width, height);
-
-  applyConnectedSkyMatte(imageData);
-  pixelateOpaqueForeground(imageData, FOREGROUND_PIXEL_SIZE);
-
-  return imageData;
-}
-
-function applyConnectedSkyMatte(image) {
-  const skyColor = estimateSkyColor(image);
-  const visited = new Uint8Array(image.width * image.height);
-  const queue = [];
-
-  for (let x = 0; x < image.width; x += 1) {
-    seedSkyPixel(image, visited, queue, skyColor, x, 0);
-  }
-
-  for (let y = 1; y < image.height; y += 1) {
-    seedSkyPixel(image, visited, queue, skyColor, 0, y);
-    seedSkyPixel(image, visited, queue, skyColor, image.width - 1, y);
-  }
-
-  for (let head = 0; head < queue.length; head += 1) {
-    const current = queue[head];
-    const x = current % image.width;
-    const y = Math.floor(current / image.width);
-    const neighbors = [
-      [x + 1, y],
-      [x - 1, y],
-      [x, y + 1],
-      [x, y - 1],
-    ];
-
-    for (const [nextX, nextY] of neighbors) {
-      seedSkyPixel(image, visited, queue, skyColor, nextX, nextY);
+    for (let x = 0; x < width; x += 1) {
+      row[x] = (((x * 17 + yMod * 31) % 19) - 9) * 0.8;
     }
-  }
 
-  const originalAlpha = new Uint8Array(visited);
-
-  for (let y = 0; y < image.height; y += 1) {
-    for (let x = 0; x < image.width; x += 1) {
-      const offset = y * image.width + x;
-      const alphaIndex = offset * 4 + 3;
-
-      if (originalAlpha[offset] === 1) {
-        image.data[alphaIndex] = 0;
-        continue;
-      }
-
-      const touchesSky =
-        isVisited(originalAlpha, image.width, image.height, x + 1, y) ||
-        isVisited(originalAlpha, image.width, image.height, x - 1, y) ||
-        isVisited(originalAlpha, image.width, image.height, x, y + 1) ||
-        isVisited(originalAlpha, image.width, image.height, x, y - 1);
-
-      if (touchesSky && isSkyColorPixel(image, skyColor, x, y, 132, 90)) {
-        image.data[alphaIndex] = 160;
-      }
-    }
-  }
-}
-
-function estimateSkyColor(image) {
-  let topImageY = 0;
-
-  while (topImageY < image.height && !rowHasOpaquePixel(image, topImageY)) {
-    topImageY += 1;
-  }
-
-  let r = 0;
-  let g = 0;
-  let b = 0;
-  let count = 0;
-  const sampleHeight = Math.min(image.height, topImageY + 24);
-
-  for (let y = topImageY; y < sampleHeight; y += 1) {
-    for (let x = 0; x < image.width; x += 1) {
-      const pixel = getOpaquePixel(image, x, y);
-
-      if (!pixel || getBrightness(pixel) < 150) {
-        continue;
-      }
-
-      r += pixel.r;
-      g += pixel.g;
-      b += pixel.b;
-      count += 1;
-    }
-  }
-
-  if (count === 0) {
-    return { b: 235, g: 235, r: 235 };
-  }
-
-  return {
-    b: b / count,
-    g: g / count,
-    r: r / count,
-  };
-}
-
-function rowHasOpaquePixel(image, y) {
-  for (let x = 0; x < image.width; x += 1) {
-    const index = (y * image.width + x) * 4;
-
-    if ((image.data[index + 3] ?? 0) > 0) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-function seedSkyPixel(image, visited, queue, skyColor, x, y) {
-  if (x < 0 || x >= image.width || y < 0 || y >= image.height) {
-    return;
-  }
-
-  const offset = y * image.width + x;
-
-  if (visited[offset] === 1 || !isSkyColorPixel(image, skyColor, x, y, 150, 74)) {
-    return;
-  }
-
-  visited[offset] = 1;
-  queue.push(offset);
-}
-
-function isVisited(visited, width, height, x, y) {
-  return x >= 0 && x < width && y >= 0 && y < height && visited[y * width + x] === 1;
-}
-
-function isSkyColorPixel(image, skyColor, x, y, minimumBrightness, maximumDistance) {
-  const pixel = getOpaquePixel(image, x, y);
-
-  if (!pixel) {
-    return false;
-  }
-
-  const brightness = getBrightness(pixel);
-  const distance = getColorDistance(pixel, skyColor);
-
-  return brightness >= minimumBrightness && distance <= maximumDistance;
-}
-
-function getOpaquePixel(image, x, y) {
-  const index = (y * image.width + x) * 4;
-  const alpha = image.data[index + 3] ?? 0;
-
-  if (alpha === 0) {
-    return undefined;
-  }
-
-  return {
-    b: image.data[index + 2] ?? 0,
-    g: image.data[index + 1] ?? 0,
-    r: image.data[index] ?? 0,
-  };
-}
-
-function getBrightness(color) {
-  return (color.r + color.g + color.b) / 3;
-}
-
-function getColorDistance(from, to) {
-  const r = from.r - to.r;
-  const g = from.g - to.g;
-  const b = from.b - to.b;
-
-  return Math.sqrt(r * r + g * g + b * b);
-}
-
-function clampByte(value) {
-  return Math.max(0, Math.min(255, Math.round(value)));
-}
-
-function applyMountainPalette(image, colorCount = 5) {
-  const palette = createMountainPalette(colorCount);
-
-  for (let y = 0; y < image.height; y += 1) {
-    for (let x = 0; x < image.width; x += 1) {
-      const index = (y * image.width + x) * 4;
-      const alpha = image.data[index + 3] ?? 0;
-
-      if (alpha === 0) {
-        continue;
-      }
-
-      const r = image.data[index] ?? 0;
-      const g = image.data[index + 1] ?? 0;
-      const b = image.data[index + 2] ?? 0;
-      const luma = r * 0.299 + g * 0.587 + b * 0.114;
-      const threshold = (getMountainDitherThreshold(x, y) - 0.5) * 58;
-      const shade = luma + threshold;
-      const greenBias = g - Math.max(r, b);
-      const color = getMountainPaletteColor(shade, greenBias, palette, colorCount);
-
-      image.data[index] = color[0];
-      image.data[index + 1] = color[1];
-      image.data[index + 2] = color[2];
-      image.data[index + 3] = alpha > 80 ? 255 : alpha;
-    }
-  }
-}
-
-function createMountainPalette(colorCount) {
-  const count = Math.max(2, Math.min(12, Math.round(colorCount)));
-  const anchors = [
-    MOUNTAIN_PALETTE.black,
-    MOUNTAIN_PALETTE.orange,
-    MOUNTAIN_PALETTE.yellow,
-    MOUNTAIN_PALETTE.green,
-    MOUNTAIN_PALETTE.pale,
-  ];
-
-  if (count === 5) {
-    return [
-      MOUNTAIN_PALETTE.black,
-      MOUNTAIN_PALETTE.orange,
-      MOUNTAIN_PALETTE.yellow,
-      MOUNTAIN_PALETTE.green,
-      MOUNTAIN_PALETTE.pale,
-    ];
-  }
-
-  return Array.from({ length: count }, (_, index) => {
-    const position = count === 1 ? 0 : index / (count - 1);
-    const scaled = position * (anchors.length - 1);
-    const leftIndex = Math.min(anchors.length - 2, Math.floor(scaled));
-    const rightIndex = leftIndex + 1;
-    const mix = scaled - leftIndex;
-    const left = anchors[leftIndex];
-    const right = anchors[rightIndex];
-
-    return [
-      Math.round(lerp(left[0], right[0], mix)),
-      Math.round(lerp(left[1], right[1], mix)),
-      Math.round(lerp(left[2], right[2], mix)),
-    ];
+    return row;
   });
+
+  idleSurfaceGrainCache.set(width, rows);
+
+  return rows;
 }
 
-function getMountainPaletteColor(shade, greenBias, palette, colorCount) {
-  if (Math.round(colorCount) === 5) {
-    return shade < 70
-      ? MOUNTAIN_PALETTE.black
-      : greenBias > 14 && shade < 190
-        ? MOUNTAIN_PALETTE.green
-        : shade < 128
-          ? MOUNTAIN_PALETTE.orange
-          : shade < 198
-            ? MOUNTAIN_PALETTE.yellow
-            : MOUNTAIN_PALETTE.pale;
+function getIdleSurfaceWaveTables(width, height) {
+  const cacheKey = `${width}x${height}`;
+  const cached = idleSurfaceWaveCache.get(cacheKey);
+
+  if (cached) {
+    return cached;
   }
 
-  const shadeRatio = clamp01(shade / 235);
-  const index = Math.max(0, Math.min(palette.length - 1, Math.round(shadeRatio * (palette.length - 1))));
+  const sinX = new Float64Array(width);
+  const cosXY = new Float64Array(width + height - 1);
 
-  return palette[index] ?? palette[palette.length - 1];
-}
-
-function lerp(from, to, amount) {
-  return from + (to - from) * amount;
-}
-
-function pixelateOpaqueForeground(image, blockSize) {
-  for (let blockY = 0; blockY < image.height; blockY += blockSize) {
-    for (let blockX = 0; blockX < image.width; blockX += blockSize) {
-      let r = 0;
-      let g = 0;
-      let b = 0;
-      let a = 0;
-      let count = 0;
-
-      for (let y = blockY; y < Math.min(blockY + blockSize, image.height); y += 1) {
-        for (let x = blockX; x < Math.min(blockX + blockSize, image.width); x += 1) {
-          const index = (y * image.width + x) * 4;
-          const alpha = image.data[index + 3] ?? 0;
-
-          if (alpha === 0) {
-            continue;
-          }
-
-          r += image.data[index] ?? 0;
-          g += image.data[index + 1] ?? 0;
-          b += image.data[index + 2] ?? 0;
-          a += alpha;
-          count += 1;
-        }
-      }
-
-      if (count === 0) {
-        continue;
-      }
-
-      const average = [
-        clampByte(r / count),
-        clampByte(g / count),
-        clampByte(b / count),
-        clampByte(a / count),
-      ];
-
-      for (let y = blockY; y < Math.min(blockY + blockSize, image.height); y += 1) {
-        for (let x = blockX; x < Math.min(blockX + blockSize, image.width); x += 1) {
-          const index = (y * image.width + x) * 4;
-
-          if ((image.data[index + 3] ?? 0) === 0) {
-            continue;
-          }
-
-          image.data[index] = average[0];
-          image.data[index + 1] = average[1];
-          image.data[index + 2] = average[2];
-          image.data[index + 3] = average[3];
-        }
-      }
-    }
+  for (let x = 0; x < width; x += 1) {
+    sinX[x] = Math.sin(x / 120) * 3;
   }
-}
 
-function getMountainDitherThreshold(x, y) {
-  const matrix = [
-    [0, 32, 8, 40, 2, 34, 10, 42],
-    [48, 16, 56, 24, 50, 18, 58, 26],
-    [12, 44, 4, 36, 14, 46, 6, 38],
-    [60, 28, 52, 20, 62, 30, 54, 22],
-    [3, 35, 11, 43, 1, 33, 9, 41],
-    [51, 19, 59, 27, 49, 17, 57, 25],
-    [15, 47, 7, 39, 13, 45, 5, 37],
-    [63, 31, 55, 23, 61, 29, 53, 21],
-  ];
-  const row = ((Math.floor(y) % matrix.length) + matrix.length) % matrix.length;
-  const column = ((Math.floor(x) % matrix[row].length) + matrix[row].length) % matrix[row].length;
+  for (let index = 0; index < cosXY.length; index += 1) {
+    cosXY[index] = Math.cos(index / 180) * 4;
+  }
 
-  return (matrix[row][column] + 0.5) / 64;
+  const tables = { cosXY, sinX };
+  idleSurfaceWaveCache.set(cacheKey, tables);
+
+  return tables;
 }
 
 export default DitheredHeroCanvas;
