@@ -49,6 +49,7 @@ const AUTO_REVEAL_BALLS = [
   { id: 4, x: 0.78, y: 0.66, vx: -0.000118, vy: -0.000071 },
   { id: 5, x: 0.48, y: 0.48, vx: 0.000073, vy: 0.000126 },
 ];
+const AUTO_ONLY_MEDIA_QUERY = '(hover: none), (pointer: coarse)';
 const idleSurfaceWaveCache = new Map();
 const idleSurfaceGrainCache = new Map();
 let interactiveIdleLayerPromise;
@@ -248,10 +249,6 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
     };
 
     const pauseForUser = (event) => {
-      if (autoOnly) {
-        return;
-      }
-
       if (event.isTrusted) {
         pauseUntil = performance.now() + AUTO_CURSOR_RESUME_MS;
         onUserInteract?.();
@@ -299,8 +296,10 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
       scheduleAnimation(nextDelay);
     };
 
-    root.addEventListener('pointermove', pauseForUser, { passive: true });
-    root.addEventListener('pointerdown', pauseForUser, { passive: true });
+    if (!autoOnly) {
+      root.addEventListener('pointermove', pauseForUser, { passive: true });
+      root.addEventListener('pointerdown', pauseForUser, { passive: true });
+    }
 
     const handleRectInvalidation = () => {
       canvasRect = undefined;
@@ -580,14 +579,14 @@ function calculateInteractionScale(width, height, devicePixelRatio = 1) {
 }
 
 function useAutoOnlyShaderMode() {
-  const [autoOnly, setAutoOnly] = useState(false);
+  const [autoOnly, setAutoOnly] = useState(getInitialAutoOnlyShaderMode);
 
   useEffect(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
       return undefined;
     }
 
-    const media = window.matchMedia('(hover: none), (pointer: coarse)');
+    const media = window.matchMedia(AUTO_ONLY_MEDIA_QUERY);
     const updateAutoOnly = () => setAutoOnly(media.matches);
 
     updateAutoOnly();
@@ -602,6 +601,14 @@ function useAutoOnlyShaderMode() {
   }, []);
 
   return autoOnly;
+}
+
+function getInitialAutoOnlyShaderMode() {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+    return false;
+  }
+
+  return window.matchMedia(AUTO_ONLY_MEDIA_QUERY).matches;
 }
 
 function scaleInteractionValue(value, interactionScale) {
