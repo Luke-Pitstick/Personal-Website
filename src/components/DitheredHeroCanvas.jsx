@@ -50,6 +50,7 @@ const AUTO_REVEAL_BALLS = [
   { id: 5, x: 0.48, y: 0.48, vx: 0.000073, vy: 0.000126 },
 ];
 const idleSurfaceWaveCache = new Map();
+const idleSurfaceGrainCache = new Map();
 let interactiveIdleLayerPromise;
 let revealBackgroundPromise;
 let staticFallbackPreference;
@@ -679,23 +680,54 @@ async function loadDitheredRevealBackground(width, height) {
 function createIdleSurfaceImageData(width, height, { blueTint = 0, contrast = 1 } = {}) {
   const image = new ImageData(width, height);
   const { cosXY, sinX } = getIdleSurfaceWaveTables(width, height);
+  const grainRows = getIdleSurfaceGrainRows(width);
+  const redTint = blueTint * 0.55;
+  const greenTint = blueTint * 0.2;
+  const blueTintBoost = blueTint * 0.85;
+  const contrastOffset = 128 - 128 * contrast;
 
   for (let y = 0; y < height; y += 1) {
     const vertical = y / height;
+    const redBase = (228 + vertical * 12 - redTint) * contrast + contrastOffset;
+    const greenBase = (232 + vertical * 8 + greenTint) * contrast + contrastOffset;
+    const blueBase = (220 + vertical * 5 + blueTintBoost) * contrast + contrastOffset;
+    const grainRow = grainRows[y % grainRows.length];
+    const rowOffset = y * width * 4;
 
     for (let x = 0; x < width; x += 1) {
-      const index = (y * width + x) * 4;
-      const grain = (((x * 17 + y * 31) % 19) - 9) * 0.8;
-      const paper = sinX[x] + cosXY[x + y] + grain;
+      const index = rowOffset + x * 4;
+      const paper = (sinX[x] + cosXY[x + y] + grainRow[x]) * contrast;
 
-      image.data[index] = clampContrast(228 + vertical * 12 + paper - blueTint * 0.55, contrast);
-      image.data[index + 1] = clampContrast(232 + vertical * 8 + paper + blueTint * 0.2, contrast);
-      image.data[index + 2] = clampContrast(220 + vertical * 5 + paper + blueTint * 0.85, contrast);
+      image.data[index] = Math.round(redBase + paper);
+      image.data[index + 1] = Math.round(greenBase + paper);
+      image.data[index + 2] = Math.round(blueBase + paper);
       image.data[index + 3] = 255;
     }
   }
 
   return image;
+}
+
+function getIdleSurfaceGrainRows(width) {
+  const cached = idleSurfaceGrainCache.get(width);
+
+  if (cached) {
+    return cached;
+  }
+
+  const rows = Array.from({ length: 19 }, (_, yMod) => {
+    const row = new Float64Array(width);
+
+    for (let x = 0; x < width; x += 1) {
+      row[x] = (((x * 17 + yMod * 31) % 19) - 9) * 0.8;
+    }
+
+    return row;
+  });
+
+  idleSurfaceGrainCache.set(width, rows);
+
+  return rows;
 }
 
 function getIdleSurfaceWaveTables(width, height) {
@@ -721,14 +753,6 @@ function getIdleSurfaceWaveTables(width, height) {
   idleSurfaceWaveCache.set(cacheKey, tables);
 
   return tables;
-}
-
-function clampContrast(value, contrast) {
-  return clampByte((value - 128) * contrast + 128);
-}
-
-function clampByte(value) {
-  return Math.max(0, Math.min(255, Math.round(value)));
 }
 
 export default DitheredHeroCanvas;
