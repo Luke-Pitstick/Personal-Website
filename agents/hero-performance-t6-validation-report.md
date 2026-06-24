@@ -4,9 +4,13 @@ Task ID: T6 - Validate visual equivalence and performance gains
 Status: complete with concerns
 Collected: 2026-06-11 MDT / 2026-06-12 UTC
 
+## Current Branch Note
+
+This report is historical. It predates the current branch's precomputed hero asset integration, initial WebP preload hints, interactive data warmup, auto-reveal throttling refinements, coarse-pointer auto-only seeding, and production pruning of source-only hero JPEGs. In current HEAD, the interactive path no longer loads `background.jpg` or `chautauqua-flatirons_fg.jpg`; it uses `/background-dithered.webp` and `/hero-mountains.webp` instead.
+
 ## Scope
 
-This is a post-T4/T5/T2A validation pass, not the final all-optimizations pass. T2 is still reference-only and T3 has not consumed precomputed deterministic assets, so this report validates the current committed state through `dde76de`.
+At collection time, this was a post-T4/T5/T2A validation pass, not the final all-optimizations pass. T2 was still reference-only and T3 had not consumed precomputed deterministic assets, so this report validated the then-current committed state through `dde76de`.
 
 The worktree was cleaned of off-scope video-background artifacts before measurement so the run reflects the committed hero-performance changes only.
 
@@ -123,7 +127,7 @@ Reduced motion:
 - Console/page errors: 0 / 0.
 - Desktop project images still loaded early.
 
-No-WebGL fallback:
+No-WebGL fallback in the measured historical state:
 
 - `DitheredHeroCanvas` chunk loaded to run the fallback component path.
 - WebGL shader canvas was absent.
@@ -178,7 +182,7 @@ What did not improve enough:
 
 Conclusion: the lifecycle/cache work is behavior-preserving and likely helps some steady-state wrapper overhead, but the dominant bottleneck is still deterministic hero image preparation and source image loading. T2/T3 remain the real path to the large performance win.
 
-## Recommended Next Steps
+## Historical Recommended Next Steps
 
 1. Finish T2 raw helper `ImageData` capture and generated candidate assets.
 2. Run T3 to consume validated precomputed assets and remove runtime image transforms.
