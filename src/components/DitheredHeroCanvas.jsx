@@ -632,7 +632,9 @@ function createAutoRevealBalls() {
 }
 
 function stepAutoRevealBalls(balls, deltaMs) {
-  balls.forEach((ball) => {
+  for (let index = 0; index < balls.length; index += 1) {
+    const ball = balls[index];
+
     ball.x += ball.vx * deltaMs;
     ball.y += ball.vy * deltaMs;
 
@@ -645,7 +647,7 @@ function stepAutoRevealBalls(balls, deltaMs) {
       ball.y = Math.max(AUTO_REVEAL_BOUNDS.minY, Math.min(AUTO_REVEAL_BOUNDS.maxY, ball.y));
       ball.vy *= -1;
     }
-  });
+  }
 }
 
 function dispatchAutoPointers(canvas, rect, balls) {
