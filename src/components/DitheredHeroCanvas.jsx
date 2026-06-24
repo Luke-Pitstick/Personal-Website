@@ -538,7 +538,7 @@ function buildRevealConfig(interactionScale = 1) {
 }
 
 function useInteractionScale(rootRef) {
-  const [interactionScale, setInteractionScale] = useState(1);
+  const [interactionScale, setInteractionScale] = useState(getInitialInteractionScale);
 
   useEffect(() => {
     const root = rootRef.current;
@@ -552,12 +552,10 @@ function useInteractionScale(rootRef) {
     const updateScale = () => {
       frame = 0;
       const rect = root.getBoundingClientRect();
-      const devicePixelRatio = window.devicePixelRatio || 1;
-      const renderWidth = rect.width * QUALITY.resolutionScale * devicePixelRatio;
-      const renderHeight = rect.height * QUALITY.resolutionScale * devicePixelRatio;
-      const nextScale = Math.max(
-        0.1,
-        Math.min(1, renderWidth / BASE_RENDER_WIDTH, renderHeight / BASE_RENDER_HEIGHT)
+      const nextScale = calculateInteractionScale(
+        rect.width,
+        rect.height,
+        window.devicePixelRatio || 1
       );
 
       setInteractionScale((currentScale) =>
@@ -590,6 +588,28 @@ function useInteractionScale(rootRef) {
   }, [rootRef]);
 
   return interactionScale;
+}
+
+function getInitialInteractionScale() {
+  if (typeof window === 'undefined') {
+    return 1;
+  }
+
+  return calculateInteractionScale(
+    window.innerWidth || HERO_WIDTH,
+    window.innerHeight || HERO_HEIGHT,
+    window.devicePixelRatio || 1
+  );
+}
+
+function calculateInteractionScale(width, height, devicePixelRatio = 1) {
+  const renderWidth = width * QUALITY.resolutionScale * devicePixelRatio;
+  const renderHeight = height * QUALITY.resolutionScale * devicePixelRatio;
+
+  return Math.max(
+    0.1,
+    Math.min(1, renderWidth / BASE_RENDER_WIDTH, renderHeight / BASE_RENDER_HEIGHT)
+  );
 }
 
 function useAutoOnlyShaderMode() {
