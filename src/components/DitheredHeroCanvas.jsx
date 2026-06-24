@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { DitheredParticleCanvas } from '@dithered-particle-canvas/react';
+import { useDitheredCanvas } from '@dithered-particle-canvas/react';
 
 const HERO_WIDTH = 1280;
 const HERO_HEIGHT = 720;
@@ -68,6 +68,7 @@ export function preloadDitheredHeroCanvasData() {
 
 const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInteract }) => {
   const rootRef = useRef(null);
+  const shaderCanvasRef = useRef(null);
   const fallbackCanvasRef = useRef(null);
   const rendererRef = useRef(null);
   const [preparedImageData, setPreparedImageData] = useState();
@@ -129,7 +130,6 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
     let autoRevealTimer = 0;
     let pauseUntil = 0;
     let lastAutoRevealTime = performance.now();
-    let canvas;
     let canvasRect;
     let observedCanvas;
     let isDocumentVisible = document.visibilityState !== 'hidden';
@@ -154,34 +154,24 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
       }
     };
 
-    const getCachedCanvas = () => {
-      if (canvas?.isConnected && root.contains(canvas)) {
-        return canvas;
+    const getCurrentCanvas = () => {
+      const currentCanvas = shaderCanvasRef.current;
+
+      if (currentCanvas?.isConnected && root.contains(currentCanvas)) {
+        observeCanvas(currentCanvas);
+        return currentCanvas;
       }
 
-      if (canvas) {
+      if (observedCanvas) {
         observeCanvas(undefined);
-        canvas = undefined;
         canvasRect = undefined;
       }
 
       return undefined;
     };
 
-    const discoverCanvas = () => {
-      const nextCanvas = root.querySelector('.dithered-hero-canvas canvas') ?? undefined;
-
-      if (nextCanvas !== canvas) {
-        canvas = nextCanvas;
-        canvasRect = undefined;
-        observeCanvas(canvas);
-      }
-
-      return canvas;
-    };
-
     const refreshCanvasRect = () => {
-      const currentCanvas = getCachedCanvas() ?? discoverCanvas();
+      const currentCanvas = getCurrentCanvas();
 
       if (!currentCanvas) {
         canvasRect = undefined;
@@ -241,7 +231,7 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
         rendererRef.current?.pause?.();
       }
 
-      if (canRender() && getCachedCanvas()) {
+      if (canRender() && getCurrentCanvas()) {
         startAnimation();
         return;
       }
@@ -264,7 +254,7 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
         return;
       }
 
-      const currentCanvas = getCachedCanvas();
+      const currentCanvas = getCurrentCanvas();
 
       if (!currentCanvas) {
         syncAnimation();
@@ -327,7 +317,6 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
     window.addEventListener('scroll', handleRectInvalidation, scrollListenerOptions);
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
-    discoverCanvas();
     syncAnimation();
 
     return () => {
@@ -385,11 +374,11 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
         />
       ) : null}
       {!useStaticFallback && layers ? (
-        <DitheredParticleCanvas
+        <DitheredHeroRenderer
           ref={rendererRef}
           aria-label="Dithered Flatirons reveal background"
+          canvasElementRef={shaderCanvasRef}
           className="dithered-hero-canvas"
-          fallback="Dithered hero"
           height={HERO_HEIGHT}
           layers={layers}
           motion="full"
@@ -434,6 +423,40 @@ function shouldUseStaticFallback() {
     return true;
   }
 }
+
+const DitheredHeroRenderer = React.forwardRef(function DitheredHeroRenderer(
+  {
+    canvasElementRef,
+    className,
+    height,
+    width,
+    'aria-label': ariaLabel,
+    ...rendererProps
+  },
+  ref
+) {
+  const { canvasRef } = useDitheredCanvas(ref, { ...rendererProps, height, width });
+
+  const setCanvasRef = useCallback(
+    (canvas) => {
+      canvasRef.current = canvas;
+      canvasElementRef.current = canvas;
+    },
+    [canvasElementRef, canvasRef]
+  );
+
+  return (
+    <div className={className}>
+      <canvas
+        ref={setCanvasRef}
+        aria-label={ariaLabel}
+        height={height}
+        role={ariaLabel ? 'img' : undefined}
+        width={width}
+      />
+    </div>
+  );
+});
 
 function getInteractiveIdleLayer() {
   interactiveIdleLayerPromise ??= Promise.resolve()
