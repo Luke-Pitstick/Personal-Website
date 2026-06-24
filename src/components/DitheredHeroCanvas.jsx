@@ -103,6 +103,7 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
   const [mountains, setMountains] = useState();
   const [fallbackReady, setFallbackReady] = useState(false);
   const [mountainsReady, setMountainsReady] = useState(false);
+  const [liveRevealPrimed, setLiveRevealPrimed] = useState(false);
   const [livePaintReady, setLivePaintReady] = useState(false);
   const [useStaticFallback, setUseStaticFallback] = useState(shouldUseStaticFallback);
   const autoOnly = useAutoOnlyShaderMode();
@@ -146,6 +147,7 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
     let lastAutoRevealTime = performance.now();
     let canvas;
     let canvasRect;
+    let hasPrimedReveal = false;
     let observedCanvas;
     let isDocumentVisible = document.visibilityState !== 'hidden';
     let isHeroIntersecting = true;
@@ -296,6 +298,12 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
 
         stepAutoRevealBalls(autoRevealBalls, deltaMs);
         dispatchAutoPointers(currentCanvas, canvasRect, autoRevealBalls);
+
+        if (!hasPrimedReveal) {
+          hasPrimedReveal = true;
+          setLiveRevealPrimed(true);
+        }
+
         lastAutoRevealTime = time;
       }
 
@@ -418,7 +426,7 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
 
   const liveSceneReady = useStaticFallback
     ? fallbackReady && mountainsReady
-    : Boolean(layers) && Boolean(revealBackground) && mountainsReady;
+    : Boolean(layers) && Boolean(revealBackground) && mountainsReady && liveRevealPrimed;
   const showLiveScene = liveSceneReady && livePaintReady;
   const isInteractive = !useStaticFallback && showLiveScene;
 
