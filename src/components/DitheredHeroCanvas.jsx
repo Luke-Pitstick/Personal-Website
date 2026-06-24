@@ -110,6 +110,7 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
     }
 
     let frame = 0;
+    let autoRevealTimer = 0;
     let rectFrame = 0;
     let pauseUntil = 0;
     let lastAutoRevealTime = performance.now();
@@ -204,15 +205,42 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
         window.cancelAnimationFrame(frame);
         frame = 0;
       }
+
+      if (autoRevealTimer) {
+        window.clearTimeout(autoRevealTimer);
+        autoRevealTimer = 0;
+      }
+    };
+
+    const scheduleAnimation = (delayMs = 0) => {
+      if (frame || autoRevealTimer) {
+        return;
+      }
+
+      if (delayMs > 0) {
+        autoRevealTimer = window.setTimeout(() => {
+          autoRevealTimer = 0;
+
+          if (!canRender()) {
+            syncAnimation();
+            return;
+          }
+
+          frame = window.requestAnimationFrame(animate);
+        }, delayMs);
+        return;
+      }
+
+      frame = window.requestAnimationFrame(animate);
     };
 
     const startAnimation = () => {
-      if (frame) {
+      if (frame || autoRevealTimer) {
         return;
       }
 
       lastAutoRevealTime = performance.now();
-      frame = window.requestAnimationFrame(animate);
+      scheduleAnimation(AUTO_REVEAL_POINTER_INTERVAL_MS);
     };
 
     const syncAnimation = () => {
@@ -260,19 +288,26 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
         refreshCanvasRect();
       }
 
-      if (
-        canvasRect &&
-        time >= pauseUntil &&
-        time - lastAutoRevealTime >= AUTO_REVEAL_POINTER_INTERVAL_MS
-      ) {
-        const deltaMs = Math.min(64, Math.max(0, time - lastAutoRevealTime));
+      let nextDelay = AUTO_REVEAL_POINTER_INTERVAL_MS;
 
-        stepAutoRevealBalls(autoRevealBalls, deltaMs);
-        dispatchAutoPointers(currentCanvas, canvasRect, autoRevealBalls);
-        lastAutoRevealTime = time;
+      if (canvasRect) {
+        const nextAutoRevealTime = Math.max(
+          pauseUntil,
+          lastAutoRevealTime + AUTO_REVEAL_POINTER_INTERVAL_MS
+        );
+
+        if (time >= nextAutoRevealTime) {
+          const deltaMs = Math.min(64, Math.max(0, time - lastAutoRevealTime));
+
+          stepAutoRevealBalls(autoRevealBalls, deltaMs);
+          dispatchAutoPointers(currentCanvas, canvasRect, autoRevealBalls);
+          lastAutoRevealTime = time;
+        } else {
+          nextDelay = nextAutoRevealTime - time;
+        }
       }
 
-      frame = window.requestAnimationFrame(animate);
+      scheduleAnimation(nextDelay);
     };
 
     root.addEventListener('pointermove', pauseForUser, { passive: true });
