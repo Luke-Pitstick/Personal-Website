@@ -3,8 +3,6 @@ import React, { Suspense, lazy, useCallback, useEffect, useRef, useState } from 
 import { scrollToSection } from '../lib/scroll';
 
 const SOCIAL_HIDE_SCROLL_Y = 96;
-const HERO_CANVAS_IDLE_TIMEOUT = 1800;
-const HERO_CANVAS_MIN_DELAY = 900;
 
 let ditheredHeroCanvasModulePromise;
 
@@ -101,50 +99,19 @@ const Hero = () => {
     }
 
     let cancelled = false;
-    let minDelayComplete = false;
-    let idleComplete = false;
-    let idleId;
+    void loadDitheredHeroCanvasModule()
+      .then((module) => {
+        if (cancelled) {
+          return;
+        }
 
-    const loadCanvas = () => {
-      if (!cancelled && minDelayComplete && idleComplete) {
+        module.preloadDitheredHeroCanvasData?.();
         setCanvasReady(true);
-      }
-    };
-    const prepareCanvas = () => {
-      idleComplete = true;
-      void loadDitheredHeroCanvasModule()
-        .then((module) => {
-          if (!cancelled) {
-            module.preloadDitheredHeroCanvasData?.();
-          }
-        })
-        .catch(() => {});
-      loadCanvas();
-    };
-
-    const delayId = window.setTimeout(() => {
-      minDelayComplete = true;
-      loadCanvas();
-    }, HERO_CANVAS_MIN_DELAY);
-
-    if ('requestIdleCallback' in window) {
-      idleId = window.requestIdleCallback(
-        prepareCanvas,
-        { timeout: HERO_CANVAS_IDLE_TIMEOUT },
-      );
-    } else {
-      idleId = window.setTimeout(prepareCanvas, HERO_CANVAS_IDLE_TIMEOUT);
-    }
+      })
+      .catch(() => {});
 
     return () => {
       cancelled = true;
-      window.clearTimeout(delayId);
-
-      if ('cancelIdleCallback' in window && typeof idleId === 'number') {
-        window.cancelIdleCallback(idleId);
-      } else if (typeof idleId === 'number') {
-        window.clearTimeout(idleId);
-      }
     };
   }, []);
 
