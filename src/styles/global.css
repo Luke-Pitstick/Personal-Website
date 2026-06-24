@@ -136,8 +136,11 @@ body::before {
   pointer-events: none;
 }
 
-.dithered-hero--live:not(.dithered-hero--ready) {
+.dithered-hero--live {
   background: transparent;
+}
+
+.dithered-hero--live:not(.dithered-hero--ready) {
   opacity: 0;
   pointer-events: none;
 }
@@ -173,7 +176,7 @@ body::before {
   display: block;
   width: 100%;
   height: 100%;
-  background: #dff1ef;
+  background: transparent;
   image-rendering: pixelated;
   object-fit: cover;
   object-position: center;

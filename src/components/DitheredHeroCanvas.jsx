@@ -103,6 +103,7 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
   const [mountains, setMountains] = useState();
   const [fallbackReady, setFallbackReady] = useState(false);
   const [mountainsReady, setMountainsReady] = useState(false);
+  const [livePaintReady, setLivePaintReady] = useState(false);
   const [useStaticFallback, setUseStaticFallback] = useState(shouldUseStaticFallback);
   const autoOnly = useAutoOnlyShaderMode();
 
@@ -418,7 +419,40 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
   const liveSceneReady = useStaticFallback
     ? fallbackReady && mountainsReady
     : Boolean(layers) && Boolean(revealBackground) && mountainsReady;
-  const isInteractive = !useStaticFallback && liveSceneReady;
+  const showLiveScene = liveSceneReady && livePaintReady;
+  const isInteractive = !useStaticFallback && showLiveScene;
+
+  useEffect(() => {
+    if (!liveSceneReady) {
+      setLivePaintReady(false);
+      return undefined;
+    }
+
+    let cancelled = false;
+    let paintFrame = 0;
+    let revealFrame = 0;
+
+    setLivePaintReady(false);
+    paintFrame = window.requestAnimationFrame(() => {
+      revealFrame = window.requestAnimationFrame(() => {
+        if (!cancelled) {
+          setLivePaintReady(true);
+        }
+      });
+    });
+
+    return () => {
+      cancelled = true;
+
+      if (paintFrame) {
+        window.cancelAnimationFrame(paintFrame);
+      }
+
+      if (revealFrame) {
+        window.cancelAnimationFrame(revealFrame);
+      }
+    };
+  }, [liveSceneReady]);
 
   useEffect(() => {
     onInteractiveChange?.(isInteractive);
@@ -480,7 +514,7 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
     <div
       ref={rootRef}
       className={`dithered-hero dithered-hero--live${autoOnly ? ' dithered-hero--auto-only' : ''}${
-        liveSceneReady ? ' dithered-hero--ready' : ''
+        showLiveScene ? ' dithered-hero--ready' : ''
       }`}
     >
       {fallbackSurface ? (
