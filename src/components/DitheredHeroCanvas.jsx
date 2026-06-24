@@ -4,6 +4,7 @@ import { useDitheredCanvas } from '@dithered-particle-canvas/react';
 const HERO_WIDTH = 1280;
 const HERO_HEIGHT = 720;
 const LOW_RESOLUTION_SCALE = 0.6;
+const HERO_RENDERER_DEVICE_PIXEL_RATIO = 1;
 const BASE_RENDER_WIDTH = HERO_WIDTH * LOW_RESOLUTION_SCALE;
 const BASE_RENDER_HEIGHT = HERO_HEIGHT * LOW_RESOLUTION_SCALE;
 const FOREGROUND_PIXEL_SIZE = 6;
@@ -34,6 +35,7 @@ const QUALITY = {
 };
 const HERO_RENDERER_OPTIONS = {
   IntersectionObserver: false,
+  devicePixelRatio: HERO_RENDERER_DEVICE_PIXEL_RATIO,
 };
 
 const AUTO_REVEAL_POINTER_INTERVAL_MS = 32;
@@ -547,7 +549,7 @@ function useInteractionScale(rootRef) {
       const nextScale = calculateInteractionScale(
         entry.contentRect.width,
         entry.contentRect.height,
-        window.devicePixelRatio || 1
+        HERO_RENDERER_DEVICE_PIXEL_RATIO
       );
 
       setInteractionScale((currentScale) =>
@@ -574,7 +576,7 @@ function getInitialInteractionScale() {
   return calculateInteractionScale(
     window.innerWidth || HERO_WIDTH,
     window.innerHeight || HERO_HEIGHT,
-    window.devicePixelRatio || 1
+    HERO_RENDERER_DEVICE_PIXEL_RATIO
   );
 }
 
