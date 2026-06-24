@@ -670,19 +670,30 @@ function stepAutoRevealBalls(balls, deltaMs) {
 }
 
 function dispatchAutoPointers(canvas, rect, balls) {
-  balls.forEach((ball, index) => {
-    canvas.dispatchEvent(
-      new PointerEvent('pointermove', {
-        bubbles: true,
-        clientX: rect.left + rect.width * ball.x,
-        clientY: rect.top + rect.height * ball.y,
-        isPrimary: index === 0,
-        pointerId: ball.id,
-        pointerType: 'mouse',
-        pressure: 0.65,
-      })
-    );
-  });
+  const originalGetBoundingClientRect = canvas.getBoundingClientRect;
+
+  // Reuse the rect already measured by the wrapper for this synchronous pointer batch.
+  canvas.getBoundingClientRect = () => rect;
+
+  try {
+    for (let index = 0; index < balls.length; index += 1) {
+      const ball = balls[index];
+
+      canvas.dispatchEvent(
+        new PointerEvent('pointermove', {
+          bubbles: true,
+          clientX: rect.left + rect.width * ball.x,
+          clientY: rect.top + rect.height * ball.y,
+          isPrimary: index === 0,
+          pointerId: ball.id,
+          pointerType: 'mouse',
+          pressure: 0.65,
+        })
+      );
+    }
+  } finally {
+    canvas.getBoundingClientRect = originalGetBoundingClientRect;
+  }
 }
 
 async function loadDitheredRevealBackground(width, height) {
