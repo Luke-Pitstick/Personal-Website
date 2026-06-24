@@ -35,7 +35,6 @@ const QUALITY = {
 
 const AUTO_REVEAL_POINTER_INTERVAL_MS = 32;
 const AUTO_CURSOR_RESUME_MS = 2400;
-const AUTO_REVEAL_BALL_COUNT = 5;
 const AUTO_REVEAL_BOUNDS = {
   maxX: 0.92,
   maxY: 0.9,
@@ -47,7 +46,6 @@ const AUTO_REVEAL_BALLS = [
   { id: 2, x: 0.34, y: 0.73, vx: -0.000084, vy: 0.000112 },
   { id: 3, x: 0.58, y: 0.28, vx: 0.000096, vy: -0.000089 },
   { id: 4, x: 0.78, y: 0.66, vx: -0.000118, vy: -0.000071 },
-  { id: 5, x: 0.48, y: 0.48, vx: 0.000073, vy: 0.000126 },
 ];
 const AUTO_ONLY_MEDIA_QUERY = '(hover: none), (pointer: coarse)';
 const idleSurfaceWaveCache = new Map();
@@ -625,7 +623,7 @@ function scaleInteractionValue(value, interactionScale) {
 }
 
 function createAutoRevealBalls() {
-  return AUTO_REVEAL_BALLS.slice(0, AUTO_REVEAL_BALL_COUNT).map((ball) => ({ ...ball }));
+  return AUTO_REVEAL_BALLS.map((ball) => ({ ...ball }));
 }
 
 function stepAutoRevealBalls(balls, deltaMs) {
