@@ -1151,18 +1151,18 @@ k = new WeakMap(), I = new WeakMap(), ke = new WeakMap(), B = new WeakMap(), te 
   const i = u(this, g, ee).call(this), o = u(this, g, gt).call(this);
   i.bindFramebuffer(i.FRAMEBUFFER, r.framebuffer), i.viewport(0, 0, r.texture.width, r.texture.height), i.useProgram(o.copy.program), u(this, g, Je).call(this, 0, t.texture), i.uniform1i(o.copy.uniforms.u_texture, 0), u(this, g, mt).call(this), i.bindFramebuffer(i.FRAMEBUFFER, null);
 }, dr = function(t, r) {
-  const i = u(this, g, ee).call(this), o = r.revealLayer ?? "background", s = o === "background" ? n(this, te).foreground : n(this, te).background, a = { ...Ie, ...(s == null ? void 0 : s.reveal) || {} }, c = Me(a.trail), f = (n(this, W).trail ?? []).slice(0, zt), l = !!(s != null && s.reveal) && (n(this, W).active || (n(this, W).fade ?? 0) > 0);
-  i.uniform2f(t.uniforms.u_pointer, n(this, W).x, n(this, w).height - n(this, W).y), i.uniform1f(t.uniforms.u_pointerActive, l ? 1 : 0), i.uniform1f(t.uniforms.u_pointerFade, n(this, W).fade ?? 1), i.uniform1f(t.uniforms.u_radius, a.radius), i.uniform1f(t.uniforms.u_softness, a.softness), i.uniform1f(t.uniforms.u_strength, a.strength), i.uniform1f(t.uniforms.u_time, r.time), i.uniform1f(t.uniforms.u_edgeDither, a.edgeDither), i.uniform1f(t.uniforms.u_edgeFlicker, Math.max(0, Math.min(1, a.edgeFlicker))), i.uniform1f(t.uniforms.u_edgeNoise, a.edgeNoise), i.uniform1f(t.uniforms.u_foregroundBlend, a.foregroundBlend), i.uniform1f(t.uniforms.u_revealPixelSize, Math.max(1, Math.round(a.pixelSize))), i.uniform1i(t.uniforms.u_revealLayer, o === "background" ? 0 : 1), i.uniform1i(t.uniforms.u_trailCount, c ? f.length : 0), i.uniform1f(
+  const i = u(this, g, ee).call(this), o = r.revealLayer ?? "background", s = o === "background" ? n(this, te).foreground : n(this, te).background, a = { ...Ie, ...(s == null ? void 0 : s.reveal) || {} }, c = Me(a.trail), f = n(this, W).trail ?? [], l = c ? Math.min(f.length, zt) : 0, m = !!(s != null && s.reveal) && (n(this, W).active || (n(this, W).fade ?? 0) > 0);
+  i.uniform2f(t.uniforms.u_pointer, n(this, W).x, n(this, w).height - n(this, W).y), i.uniform1f(t.uniforms.u_pointerActive, m ? 1 : 0), i.uniform1f(t.uniforms.u_pointerFade, n(this, W).fade ?? 1), i.uniform1f(t.uniforms.u_radius, a.radius), i.uniform1f(t.uniforms.u_softness, a.softness), i.uniform1f(t.uniforms.u_strength, a.strength), i.uniform1f(t.uniforms.u_time, r.time), i.uniform1f(t.uniforms.u_edgeDither, a.edgeDither), i.uniform1f(t.uniforms.u_edgeFlicker, Math.max(0, Math.min(1, a.edgeFlicker))), i.uniform1f(t.uniforms.u_edgeNoise, a.edgeNoise), i.uniform1f(t.uniforms.u_foregroundBlend, a.foregroundBlend), i.uniform1f(t.uniforms.u_revealPixelSize, Math.max(1, Math.round(a.pixelSize))), i.uniform1i(t.uniforms.u_revealLayer, o === "background" ? 0 : 1), i.uniform1i(t.uniforms.u_trailCount, l), i.uniform1f(
     t.uniforms.u_trailDustFlicker,
     c ? Math.max(0, Math.min(1, c.dustFlicker)) : 0
   ), i.uniform1f(t.uniforms.u_trailDustSize, c ? Math.max(1, c.dustSize) : 1), i.uniform1f(t.uniforms.u_trailStrength, c ? c.strength : 0);
-  let m = 0;
-  for (; m < f.length; m += 1) {
-    const b = f[m];
-    i.uniform4f(t.uniforms[trailUniformNames[m]], b.x, n(this, w).height - b.y, b.fade, b.x * 0.37 + b.y * 0.21);
+  let b = 0;
+  for (; b < l; b += 1) {
+    const x = f[b];
+    i.uniform4f(t.uniforms[trailUniformNames[b]], x.x, n(this, w).height - x.y, x.fade, x.x * 0.37 + x.y * 0.21);
   }
-  for (; m < zt; m += 1)
-    i.uniform4f(t.uniforms[trailUniformNames[m]], 0, 0, 0, 0);
+  for (; b < zt; b += 1)
+    i.uniform4f(t.uniforms[trailUniformNames[b]], 0, 0, 0, 0);
 }, Je = function(t, r) {
   const i = u(this, g, ee).call(this);
   i.activeTexture(i.TEXTURE0 + t), i.bindTexture(i.TEXTURE_2D, r);
