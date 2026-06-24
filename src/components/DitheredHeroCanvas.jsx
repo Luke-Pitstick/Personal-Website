@@ -647,7 +647,7 @@ function dispatchAutoPointers(canvas, rect, balls) {
 
       canvas.dispatchEvent(
         new PointerEvent('pointermove', {
-          bubbles: true,
+          bubbles: false,
           clientX: rect.left + rect.width * ball.x,
           clientY: rect.top + rect.height * ball.y,
           isPrimary: index === 0,
