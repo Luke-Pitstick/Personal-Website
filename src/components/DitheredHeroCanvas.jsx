@@ -511,14 +511,14 @@ function useInteractionScale(rootRef) {
       return undefined;
     }
 
-    let frame = 0;
+    const updateScale = ([entry]) => {
+      if (!entry) {
+        return;
+      }
 
-    const updateScale = () => {
-      frame = 0;
-      const rect = root.getBoundingClientRect();
       const nextScale = calculateInteractionScale(
-        rect.width,
-        rect.height,
+        entry.contentRect.width,
+        entry.contentRect.height,
         window.devicePixelRatio || 1
       );
 
@@ -527,24 +527,10 @@ function useInteractionScale(rootRef) {
       );
     };
 
-    const scheduleUpdateScale = () => {
-      if (frame) {
-        return;
-      }
-
-      frame = window.requestAnimationFrame(updateScale);
-    };
-
-    updateScale();
-
-    const resizeObserver = new ResizeObserver(scheduleUpdateScale);
+    const resizeObserver = new ResizeObserver(updateScale);
     resizeObserver.observe(root);
 
     return () => {
-      if (frame) {
-        window.cancelAnimationFrame(frame);
-      }
-
       resizeObserver.disconnect();
     };
   }, [rootRef]);
