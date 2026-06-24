@@ -80,6 +80,7 @@ const QUALITY = {
 const AUTO_CURSOR_RESUME_MS = 2400;
 const AUTO_REVEAL_BALL_COUNT = 5;
 const STATIC_HERO_FADE_MS = 180;
+const STATIC_HERO_FADE_SETTLE_MS = 64;
 const LIVE_HANDOFF_SETTLE_MS = 120;
 const LIVE_HANDOFF_GUARD_MS = REVEAL_FADE_MS + LIVE_HANDOFF_SETTLE_MS;
 const LIVE_HANDOFF_SETTLED_CLASS = 'dithered-hero-live-settled';
@@ -508,15 +509,27 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
     }
 
     let cancelled = false;
-    const guardTimer = window.setTimeout(() => {
-      if (!cancelled) {
-        setLivePaperGuardReleased(true);
-      }
-    }, STATIC_HERO_FADE_MS);
+    let fadeFrame = 0;
+    let guardTimer = 0;
+
+    fadeFrame = window.requestAnimationFrame(() => {
+      guardTimer = window.setTimeout(() => {
+        if (!cancelled) {
+          setLivePaperGuardReleased(true);
+        }
+      }, STATIC_HERO_FADE_MS + STATIC_HERO_FADE_SETTLE_MS);
+    });
 
     return () => {
       cancelled = true;
-      window.clearTimeout(guardTimer);
+
+      if (fadeFrame) {
+        window.cancelAnimationFrame(fadeFrame);
+      }
+
+      if (guardTimer) {
+        window.clearTimeout(guardTimer);
+      }
     };
   }, [liveHandoffSettled, useStaticFallback]);
 
