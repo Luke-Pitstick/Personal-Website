@@ -370,7 +370,10 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
   }, [fallbackSurface]);
 
   return (
-    <div ref={rootRef} className={`dithered-hero${autoOnly ? ' dithered-hero--auto-only' : ''}`}>
+    <div
+      ref={rootRef}
+      className={`dithered-hero dithered-hero--interactive${autoOnly ? ' dithered-hero--auto-only' : ''}`}
+    >
       {fallbackSurface ? (
         <canvas
           ref={fallbackCanvasRef}
