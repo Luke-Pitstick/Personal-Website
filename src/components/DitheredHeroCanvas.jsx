@@ -81,6 +81,7 @@ const AUTO_CURSOR_RESUME_MS = 2400;
 const AUTO_REVEAL_BALL_COUNT = 5;
 const LIVE_HANDOFF_SETTLE_MS = 120;
 const LIVE_HANDOFF_GUARD_MS = REVEAL_FADE_MS + LIVE_HANDOFF_SETTLE_MS;
+const LIVE_HANDOFF_SETTLED_CLASS = 'dithered-hero-live-settled';
 const AUTO_REVEAL_BOUNDS = {
   maxX: 0.92,
   maxY: 0.9,
@@ -505,6 +506,20 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
   useEffect(() => {
     onAutoOnlyChange?.(autoOnly);
   }, [autoOnly, onAutoOnlyChange]);
+
+  useEffect(() => {
+    const home = rootRef.current?.closest('#home');
+
+    if (!home) {
+      return undefined;
+    }
+
+    home.classList.toggle(LIVE_HANDOFF_SETTLED_CLASS, liveHandoffSettled);
+
+    return () => {
+      home.classList.remove(LIVE_HANDOFF_SETTLED_CLASS);
+    };
+  }, [liveHandoffSettled]);
 
   useEffect(() => {
     if (useStaticFallback) {

@@ -136,8 +136,19 @@ body::before {
   pointer-events: none;
 }
 
+.dithered-hero--static {
+  z-index: 1;
+  pointer-events: none;
+  transition: opacity 180ms linear;
+}
+
 .dithered-hero--live {
   background: transparent;
+  z-index: 0;
+}
+
+#home.dithered-hero-live-settled .dithered-hero--static {
+  opacity: 0;
 }
 
 .dithered-hero--live:not(.dithered-hero--ready) {
