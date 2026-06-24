@@ -318,16 +318,10 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
     };
 
     const rectResizeObserver = new ResizeObserver(handleRectInvalidation);
-    const mutationObserver = new MutationObserver(() => {
-      discoverCanvas();
-      handleRectInvalidation();
-      syncAnimation();
-    });
     const intersectionObserver = new IntersectionObserver(handleIntersectionChange);
     const scrollListenerOptions = { capture: true, passive: true };
 
     rectResizeObserver.observe(root);
-    mutationObserver.observe(root, { childList: true, subtree: true });
     intersectionObserver.observe(root);
     window.addEventListener('resize', handleRectInvalidation);
     window.addEventListener('scroll', handleRectInvalidation, scrollListenerOptions);
@@ -340,7 +334,6 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
     return () => {
       cancelAnimation();
       rectResizeObserver.disconnect();
-      mutationObserver.disconnect();
       intersectionObserver.disconnect();
       window.removeEventListener('resize', handleRectInvalidation);
       window.removeEventListener('scroll', handleRectInvalidation, scrollListenerOptions);
