@@ -8,7 +8,7 @@ The live website can be found at https://lukepitstick.com
 
 Vercel should use `npm run build` as the build command and `dist` as the output directory. Redirects are managed in `vercel.json`.
 
-The production build regenerates the paper hero surface and responsive portrait assets, builds Astro, then prunes source-only images from `dist/`. The interactive home hero uses committed, precomputed WebP assets (`public/background-dithered.webp`, `public/hero-paper.webp`, and `public/hero-mountains.webp`); the original hero JPEG sources stay in `public/` for local asset regeneration but are not shipped in the deployed output.
+The production build regenerates the paper hero surface and responsive portrait assets, builds Astro, then prunes source-only images from `dist/`. The interactive home hero uses committed, precomputed WebP assets (`public/background-dithered.webp`, `public/hero-paper.webp`, and `public/hero-mountains.webp`) and center-crops them into the 1280 x 720 hero contract; the original hero JPEG sources stay in `public/` for local asset regeneration but are not shipped in the deployed output.
 
 Hero asset scripts:
 
@@ -16,6 +16,7 @@ Hero asset scripts:
 npm run generate:hero-fallback
 npm run generate:hero-paper
 npm run generate:hero-portrait
+npm run verify:hero-crop
 ```
 
 To deploy from the CLI:

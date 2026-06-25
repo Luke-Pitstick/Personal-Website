@@ -4,7 +4,7 @@ Generated: 2026-06-11
 
 ## Current HEAD Summary
 
-The branch now includes the T2/T3-style production integration: the interactive hero consumes the precomputed `/background-dithered.webp` reveal background, `/hero-paper.webp` idle paper surface, and `/hero-mountains.webp` mountain overlay, warms module/data preparation during the existing idle gate, throttles and pauses auto reveal work, seeds coarse-pointer auto-only mode before mount, and prunes source-only hero JPEGs from production `dist/`.
+The branch now includes the T2/T3-style production integration: the interactive hero consumes the precomputed `/background-dithered.webp` reveal background, `/hero-paper.webp` idle paper surface, and `/hero-mountains.webp` mountain overlay, center-crops those sources into the 1280 x 720 hero contract, warms module/data preparation from the hero loader, throttles and pauses auto reveal work, seeds coarse-pointer auto-only mode before mount, and prunes source-only hero JPEGs from production `dist/`.
 
 ## Parent Coordination
 - Plan source: `agents/hero-performance-subtasks.md`
@@ -24,6 +24,7 @@ The branch now includes the T2/T3-style production integration: the interactive 
 | T4 implementation | Hooke (`019eb9ab-c6a9-76e3-9339-6899f061f173`) | complete, parent-accepted after review/smoke | `src/components/DitheredHeroCanvas.jsx`, `agents/hero-performance-t4-implementation-notes.md`, `agents/hero-performance-t4-assets/` | committed `afdc71b` | Build, diff check, read-only review, and browser smoke passed. |
 | REVIEW-T4 | Kuhn (`019eb9b6-9e41-7051-9edc-d468219ef2b4`) | complete, clean | read-only | not applicable | No code findings; noted vendor synthetic pointer path still needs profiling for exact layout-work reduction. |
 | T3/head integration | Parent branch | complete in current HEAD | `src/components/DitheredHeroCanvas.jsx`, `src/components/Hero.jsx`, `src/pages/index.astro`, `public/`, `scripts/` | committed through `cc42186` | Runtime preprocessing now uses committed hero WebPs, preloads them from initial HTML, and prunes source JPEGs from production output. |
+| Hero crop verifier | Parent branch | complete in current HEAD | `scripts/verify-hero-crop.mjs`, `package.json`, `README.md` | committed through current branch | `npm run verify:hero-crop` checks centered crop CSS, centered renderer cover fitting, preload/static-image priorities, and active hero WebP dimensions/budgets. |
 
 ## Pending Tasks
 | Task | Status | Dependency |
@@ -40,3 +41,4 @@ The branch now includes the T2/T3-style production integration: the interactive 
 - Keep visual equivalence higher priority than raw metric gains.
 - Treat browser-produced reference artifacts as the oracle for any future hero visual-equivalence work.
 - Keep `scripts/generate-dithered-background.mjs` aligned with the committed `/background-dithered.webp` fallback asset and `scripts/generate-hero-paper.mjs` aligned with `/hero-paper.webp` when regenerating hero assets.
+- Run `npm run verify:hero-crop` after changing hero crop CSS, hero preload/static image tags, active hero WebP assets, or `DitheredHeroCanvas.jsx` image loading and renderer fit options.
