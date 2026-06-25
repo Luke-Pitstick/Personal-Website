@@ -272,6 +272,7 @@ const mergeSpotifyRecentTracks = (tracks, limit = spotifyRecentTrackLimit) => {
   const seen = new Set();
 
   return tracks
+    .map(sanitizeSpotifyTrackTitle)
     .filter(Boolean)
     .filter((track) => {
       const key = getSpotifyTrackKey(track);
