@@ -6,6 +6,7 @@
     "generate:hero-fallback": "node scripts/generate-dithered-background.mjs",
     "generate:hero-paper": "node scripts/generate-hero-paper.mjs",
     "generate:hero-portrait": "node scripts/generate-hero-portrait.mjs",
+    "verify:hero-crop": "node scripts/verify-hero-crop.mjs",
     "dev": "astro dev",
     "build": "npm run generate:hero-paper && npm run generate:hero-portrait && astro build && node scripts/prune-hero-source.mjs",
     "preview": "astro preview",
