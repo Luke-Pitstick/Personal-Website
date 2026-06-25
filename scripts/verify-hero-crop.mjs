@@ -1,10 +1,16 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import sharp from 'sharp';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const css = readFileSync(join(ROOT, 'src/styles/global.css'), 'utf8');
 const heroCanvas = readFileSync(join(ROOT, 'src/components/DitheredHeroCanvas.jsx'), 'utf8');
 const homePage = readFileSync(join(ROOT, 'src/pages/index.astro'), 'utf8');
+const ACTIVE_HERO_ASSETS = [
+  { maxBytes: 315_000, path: 'public/background-dithered.webp' },
+  { maxBytes: 115_000, path: 'public/hero-paper.webp' },
+  { maxBytes: 30_000, path: 'public/hero-mountains.webp' },
+];
 
 const checks = [
   {
@@ -61,6 +67,7 @@ const checks = [
       blockFor('className="dithered-hero-mountains"', heroCanvas).includes('height={HERO_HEIGHT}') &&
       blockFor('className="dithered-hero-mountains"', heroCanvas).includes('width={HERO_WIDTH}'),
   },
+  ...(await buildAssetChecks()),
 ];
 
 const failures = checks.filter((check) => !check.pass);
@@ -76,6 +83,32 @@ if (failures.length > 0) {
 }
 
 console.log(`Hero crop verification passed (${checks.length} checks).`);
+
+async function buildAssetChecks() {
+  const metadata = await Promise.all(
+    ACTIVE_HERO_ASSETS.map(async (asset) => ({
+      ...asset,
+      metadata: await sharp(join(ROOT, asset.path)).metadata(),
+      sizeBytes: statSync(join(ROOT, asset.path)).size,
+    }))
+  );
+
+  return [
+    {
+      name: 'active hero image assets keep the 1280x720 WebP crop source contract',
+      pass: metadata.every(
+        ({ metadata: assetMetadata }) =>
+          assetMetadata.format === 'webp' &&
+          assetMetadata.width === 1280 &&
+          assetMetadata.height === 720
+      ),
+    },
+    {
+      name: 'active hero image assets stay within the current transfer budget',
+      pass: metadata.every((asset) => asset.sizeBytes <= asset.maxBytes),
+    },
+  ];
+}
 
 function blockFor(selector, source = css) {
   const start = source.indexOf(`${selector} {`);
