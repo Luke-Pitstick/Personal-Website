@@ -11,6 +11,7 @@ const ACTIVE_HERO_ASSETS = [
   { maxBytes: 115_000, path: 'public/hero-paper.webp' },
   { maxBytes: 30_000, path: 'public/hero-mountains.webp' },
 ];
+const narrowHeroCropBlock = mediaBlockFor('@media (max-aspect-ratio: 16 / 9)');
 
 const checks = [
   {
@@ -27,11 +28,18 @@ const checks = [
   {
     name: 'narrow static art keeps 16:9 proportions from container height',
     pass:
-      css.includes('@media (max-aspect-ratio: 16 / 9)') &&
-      css.includes('width: auto;') &&
-      css.includes('min-width: 100%;') &&
-      css.includes('height: 100%;') &&
-      css.includes('transform: translate(-50%, -50%);'),
+      narrowHeroCropBlock.includes('.dithered-hero-paper,\n  .dithered-hero-mountains,\n  .dithered-hero-fallback') &&
+      narrowHeroCropBlock.includes('width: auto;') &&
+      narrowHeroCropBlock.includes('min-width: 100%;') &&
+      narrowHeroCropBlock.includes('height: 100%;') &&
+      narrowHeroCropBlock.includes('transform: translate(-50%, -50%);'),
+  },
+  {
+    name: 'narrow crop sizing does not enlarge the interactive shader canvas',
+    pass:
+      narrowHeroCropBlock.length > 0 &&
+      !narrowHeroCropBlock.includes('.dithered-hero-canvas') &&
+      !narrowHeroCropBlock.includes('.dithered-hero-canvas canvas'),
   },
   {
     name: 'interactive shader source layers use renderer cover fitting',
@@ -136,6 +144,32 @@ function blockTagFor(anchor, source) {
   }
 
   return source.slice(start, end + 1);
+}
+
+function mediaBlockFor(anchor) {
+  const start = css.indexOf(`${anchor} {`);
+
+  if (start === -1) {
+    return '';
+  }
+
+  let depth = 0;
+
+  for (let index = start; index < css.length; index += 1) {
+    const char = css[index];
+
+    if (char === '{') {
+      depth += 1;
+    } else if (char === '}') {
+      depth -= 1;
+
+      if (depth === 0) {
+        return css.slice(start, index + 1);
+      }
+    }
+  }
+
+  return '';
 }
 
 function hasPreload(hrefValue, priority = undefined) {
