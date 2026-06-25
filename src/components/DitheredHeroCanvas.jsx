@@ -491,7 +491,7 @@ function createHeroLayers(idleLayer, revealBackground, interactionScale = 1) {
   return {
     background: {
       dither: false,
-      fit: 'stretch',
+      fit: 'cover',
       filters: EMPTY_FILTERS,
       opacity: 1,
       reveal,
@@ -499,7 +499,7 @@ function createHeroLayers(idleLayer, revealBackground, interactionScale = 1) {
     },
     foreground: {
       dither: false,
-      fit: 'stretch',
+      fit: 'cover',
       filters: EMPTY_FILTERS,
       opacity: 1,
       reveal,
