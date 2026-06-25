@@ -16,6 +16,9 @@ const HERO_ART_CROP_SELECTOR =
 const NARROW_STATIC_ART_SELECTOR =
   '.dithered-hero-paper,\n  .dithered-hero-mountains,\n  .dithered-hero-fallback';
 const heroBackgroundBlock = blockFor('.dithered-hero');
+const heroLayerSizingBlock = blockFor(
+  '.dithered-hero-canvas,\n.dithered-hero-paper,\n.dithered-hero-mountains,\n.dithered-hero-fallback'
+);
 const heroArtCropBlock = blockFor(HERO_ART_CROP_SELECTOR);
 const narrowHeroCropBlock = mediaBlockFor('@media (max-aspect-ratio: 16 / 9)');
 const narrowStaticArtCropBlock = blockFor(NARROW_STATIC_ART_SELECTOR, narrowHeroCropBlock);
@@ -27,6 +30,20 @@ const checks = [
       'background-image: url(\'/background-dithered.webp\');',
       'background-position: center;',
       'background-size: cover;',
+    ]),
+  },
+  {
+    name: 'hero crop container clips over-wide art layers',
+    pass: hasDeclarations(heroBackgroundBlock, ['overflow: hidden;']),
+  },
+  {
+    name: 'hero art layers are anchored to the crop container',
+    pass: hasDeclarations(heroLayerSizingBlock, [
+      'position: absolute;',
+      'inset: 0;',
+      'display: block;',
+      'width: 100%;',
+      'height: 100%;',
     ]),
   },
   {
