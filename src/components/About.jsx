@@ -95,6 +95,74 @@ const spotifyWaveAnimationPath = '/spotify-now-wave-orange.json';
 const transientSpotifyStatuses = new Set(['loading', 'unconfigured', 'error']);
 const spotifyRecentTrackLimit = 3;
 const spotifyObservedRecentLimit = 5;
+const spotifyCensoredTitleWords = [
+  'asshole',
+  'anal',
+  'ass',
+  'bdsm',
+  'bitch',
+  'blunt',
+  'blowjob',
+  'boob',
+  'boobs',
+  'bong',
+  'breast',
+  'breasts',
+  'cock',
+  'cocaine',
+  'coke',
+  'cum',
+  'cumming',
+  'cunt',
+  'damn',
+  'dick',
+  'drug',
+  'drugs',
+  'ecstasy',
+  'fag',
+  'faggot',
+  'fuck',
+  'fucked',
+  'fucker',
+  'fucking',
+  'hell',
+  'heroin',
+  'hoe',
+  'horny',
+  'joint',
+  'lsd',
+  'marijuana',
+  'meth',
+  'molly',
+  'nigga',
+  'nigger',
+  'nude',
+  'nudes',
+  'naked',
+  'oral',
+  'orgy',
+  'percocet',
+  'porn',
+  'porno',
+  'pornography',
+  'pussy',
+  'semen',
+  'sex',
+  'sexual',
+  'sexy',
+  'shit',
+  'shrooms',
+  'slut',
+  'strip',
+  'stripper',
+  'threesome',
+  'tit',
+  'tits',
+  'weed',
+  'whore',
+  'xanax',
+];
+const spotifyCensoredTitlePattern = new RegExp(`\\b(?:${spotifyCensoredTitleWords.join('|')})\\b`, 'gi');
 
 const shouldCacheSpotify = (spotify) =>
   spotify && !transientSpotifyStatuses.has(spotify.status) && (spotify.title || spotify.recentTracks?.length);
@@ -110,11 +178,7 @@ const readCachedSpotify = () => {
       return null;
     }
 
-    return {
-      ...parsed.spotify,
-      isCached: true,
-      recentTracks: parsed.spotify?.recentTracks || [],
-    };
+    return normalizeSpotifyPayload(parsed.spotify, true);
   } catch {
     return null;
   }
@@ -136,10 +200,31 @@ const writeCachedSpotify = (spotify) => {
   }
 };
 
+const sanitizeSpotifyTitle = (title) => {
+  if (!title) return '';
+
+  const sanitizedTitle = title
+    .replace(spotifyCensoredTitlePattern, '')
+    .replace(/\s+([?!.,:;])/g, '$1')
+    .replace(/([([{])\s+/g, '$1')
+    .replace(/\s+([)\]}])/g, '$1')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+    .replace(/\s*[-–—:|/]+\s*$/g, '')
+    .replace(/^[\s-–—:|/]+/g, '')
+    .replace(/[?!.,:;]+$/g, '')
+    .trim();
+
+  return sanitizedTitle || 'Untitled track';
+};
+
+const sanitizeSpotifyTrackTitle = (track) =>
+  track?.title ? { ...track, title: sanitizeSpotifyTitle(track.title) } : track;
+
 const normalizeSpotifyPayload = (spotify, isCached = false) => ({
-  ...spotify,
+  ...sanitizeSpotifyTrackTitle(spotify),
   isCached,
-  recentTracks: spotify?.recentTracks || [],
+  recentTracks: (spotify?.recentTracks || []).map(sanitizeSpotifyTrackTitle),
 });
 
 const getSpotifyTrackKey = (track) => {
@@ -158,7 +243,7 @@ const pickSpotifyTrack = (track) => {
   if (!track?.title) return null;
 
   return {
-    title: track.title,
+    title: sanitizeSpotifyTitle(track.title),
     artist: track.artist || '',
     album: track.album || '',
     image: track.image || null,
