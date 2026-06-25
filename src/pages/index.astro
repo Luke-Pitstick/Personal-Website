@@ -48,22 +48,6 @@ const ditheredHeroMountainsSrc = '/hero-mountains.webp';
 		imagesizes={portraitSizes}
 		fetchpriority="high"
 	/>
-	<link
-		slot="head"
-		rel="preload"
-		as="image"
-		type="image/png"
-		href="/hero-paper-precomputed.png"
-		fetchpriority="high"
-	/>
-	<link
-		slot="head"
-		rel="preload"
-		as="image"
-		type="image/png"
-		href="/hero-mountains-precomputed.png"
-		fetchpriority="high"
-	/>
 	<main id="main-content">
 		<section
 			id="home"
@@ -71,26 +55,6 @@ const ditheredHeroMountainsSrc = '/hero-mountains.webp';
 		>
 			<div class="dithered-hero dithered-hero--static" aria-hidden="true">
 				<img
-<<<<<<< HEAD
-					class="dithered-hero-paper"
-					src="/hero-paper-precomputed.png"
-					alt=""
-					width="1280"
-					height="720"
-					decoding="async"
-					fetchpriority="high"
-					loading="eager"
-				/>
-				<img
-					class="dithered-hero-mountains"
-					src="/hero-mountains-precomputed.png"
-					alt=""
-					width="1280"
-					height="720"
-					decoding="async"
-					fetchpriority="high"
-					loading="eager"
-=======
 					alt=""
 					class="dithered-hero-paper"
 					decoding="async"
@@ -107,7 +71,6 @@ const ditheredHeroMountainsSrc = '/hero-mountains.webp';
 					height="720"
 					src={ditheredHeroMountainsSrc}
 					width="1280"
->>>>>>> refs/remotes/origin/main
 				/>
 				<div class="dithered-hero-shade"></div>
 			</div>

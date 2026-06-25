@@ -136,49 +136,20 @@ body::before {
   pointer-events: none;
 }
 
-<<<<<<< HEAD
-.dithered-hero--static {
-  z-index: 1;
-  pointer-events: none;
-  transition: opacity 180ms linear;
-}
-
-.dithered-hero--live {
-  background: transparent;
-  z-index: 0;
-}
-
-#home.dithered-hero-live-settled .dithered-hero--static {
-  opacity: 0;
-}
-
-.dithered-hero--live:not(.dithered-hero--ready) {
-  opacity: 0;
-  pointer-events: none;
-}
-
-.dithered-hero-canvas,
-.dithered-hero-handoff-paper,
-=======
 .dithered-hero--interactive {
   background-color: transparent;
   background-image: none;
 }
 
 .dithered-hero-canvas,
->>>>>>> refs/remotes/origin/main
 .dithered-hero-paper,
 .dithered-hero-mountains,
 .dithered-hero-fallback {
   position: absolute;
-  inset: 50% auto auto 50%;
+  inset: 0;
   display: block;
-  width: var(--hero-scene-width);
-  height: var(--hero-scene-height);
-  max-width: none;
-  max-height: none;
-  aspect-ratio: 16 / 9;
-  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
 }
 
 .dithered-hero-paper,
@@ -196,11 +167,6 @@ body::before {
 .dithered-hero-paper {
   z-index: 0;
   image-rendering: pixelated;
-<<<<<<< HEAD
-  object-fit: cover;
-  object-position: center;
-=======
->>>>>>> refs/remotes/origin/main
   pointer-events: none;
 }
 
@@ -208,24 +174,8 @@ body::before {
   display: block;
   width: 100%;
   height: 100%;
-  background: transparent;
+  background: #dff1ef;
   image-rendering: pixelated;
-  object-fit: cover;
-  object-position: center;
-}
-
-.dithered-hero-handoff-paper {
-  z-index: 1;
-  image-rendering: pixelated;
-  object-fit: cover;
-  object-position: center;
-  opacity: 1;
-  pointer-events: none;
-  transition: opacity 180ms linear;
-}
-
-.dithered-hero-handoff-paper--hidden {
-  opacity: 0;
 }
 
 .dithered-hero-fallback {
@@ -236,10 +186,8 @@ body::before {
 }
 
 .dithered-hero-mountains {
-  z-index: 2;
+  z-index: 1;
   image-rendering: pixelated;
-  object-fit: cover;
-  object-position: center;
   pointer-events: none;
 }
 
@@ -249,13 +197,11 @@ body::before {
   display: block;
   width: 100%;
   height: 100%;
-  z-index: 3;
+  z-index: 2;
   pointer-events: none;
   background: linear-gradient(180deg, rgba(214, 239, 242, 0.5) 0%, rgba(226, 240, 235, 0.18) 30%, rgba(16, 22, 23, 0) 58%);
 }
 
-<<<<<<< HEAD
-=======
 @media (max-aspect-ratio: 16 / 9) {
   .dithered-hero-paper,
   .dithered-hero-mountains,
@@ -268,7 +214,6 @@ body::before {
   }
 }
 
->>>>>>> refs/remotes/origin/main
 .dithered-hero-title {
   color: #101617;
   font-size: clamp(calc(2.5rem + var(--type-bump)), calc(6vw + var(--type-bump)), calc(5rem + var(--type-bump)));
