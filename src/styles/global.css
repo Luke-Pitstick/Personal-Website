@@ -142,6 +142,14 @@ body::before {
   height: 100%;
 }
 
+.dithered-hero-paper,
+.dithered-hero-mountains,
+.dithered-hero-fallback,
+.dithered-hero-canvas canvas {
+  object-fit: cover;
+  object-position: center;
+}
+
 .dithered-hero-canvas {
   z-index: 0;
 }
