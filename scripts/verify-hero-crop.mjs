@@ -4,6 +4,7 @@ import { join } from 'node:path';
 const ROOT = new URL('..', import.meta.url).pathname;
 const css = readFileSync(join(ROOT, 'src/styles/global.css'), 'utf8');
 const heroCanvas = readFileSync(join(ROOT, 'src/components/DitheredHeroCanvas.jsx'), 'utf8');
+const homePage = readFileSync(join(ROOT, 'src/pages/index.astro'), 'utf8');
 
 const checks = [
   {
@@ -39,6 +40,27 @@ const checks = [
       heroCanvas.includes('sourceX = (sourceWidth - croppedWidth) / 2;') &&
       heroCanvas.includes('sourceY = (sourceHeight - croppedHeight) / 2;'),
   },
+  {
+    name: 'hero image preloads keep existing asset discovery and priorities',
+    pass:
+      hasPreload('ditheredHeroBackgroundSrc') &&
+      hasPreload('ditheredHeroPaperSrc', 'fetchpriority="high"') &&
+      hasPreload('ditheredHeroMountainsSrc', 'fetchpriority="low"'),
+  },
+  {
+    name: 'static poster images keep existing dimensions and decode priorities',
+    pass:
+      hasStaticImage('dithered-hero-paper', 'ditheredHeroPaperSrc', 'fetchpriority="high"') &&
+      hasStaticImage('dithered-hero-mountains', 'ditheredHeroMountainsSrc', 'fetchpriority="low"'),
+  },
+  {
+    name: 'interactive mountain overlay keeps low-priority async loading',
+    pass:
+      blockFor('className="dithered-hero-mountains"', heroCanvas).includes('decoding="async"') &&
+      blockFor('className="dithered-hero-mountains"', heroCanvas).includes('fetchPriority="low"') &&
+      blockFor('className="dithered-hero-mountains"', heroCanvas).includes('height={HERO_HEIGHT}') &&
+      blockFor('className="dithered-hero-mountains"', heroCanvas).includes('width={HERO_WIDTH}'),
+  },
 ];
 
 const failures = checks.filter((check) => !check.pass);
@@ -55,15 +77,55 @@ if (failures.length > 0) {
 
 console.log(`Hero crop verification passed (${checks.length} checks).`);
 
-function blockFor(selector) {
-  const start = css.indexOf(`${selector} {`);
+function blockFor(selector, source = css) {
+  const start = source.indexOf(`${selector} {`);
 
   if (start === -1) {
+    return blockTagFor(selector, source);
+  }
+
+  const end = source.indexOf('}', start);
+  return end === -1 ? '' : source.slice(start, end + 1);
+}
+
+function blockTagFor(anchor, source) {
+  const anchorIndex = source.indexOf(anchor);
+
+  if (anchorIndex === -1) {
     return '';
   }
 
-  const end = css.indexOf('}', start);
-  return end === -1 ? '' : css.slice(start, end + 1);
+  const start = source.lastIndexOf('<', anchorIndex);
+  const end = source.indexOf('>', anchorIndex);
+
+  if (start === -1 || end === -1) {
+    return '';
+  }
+
+  return source.slice(start, end + 1);
+}
+
+function hasPreload(hrefValue, priority = undefined) {
+  const tag = blockTagFor(`href={${hrefValue}}`, homePage);
+
+  return (
+    tag.includes('rel="preload"') &&
+    tag.includes('as="image"') &&
+    tag.includes('type="image/webp"') &&
+    (priority === undefined || tag.includes(priority))
+  );
+}
+
+function hasStaticImage(className, srcValue, priority) {
+  const tag = blockTagFor(`class="${className}"`, homePage);
+
+  return (
+    tag.includes('decoding="async"') &&
+    tag.includes(priority) &&
+    tag.includes('height="720"') &&
+    tag.includes(`src={${srcValue}}`) &&
+    tag.includes('width="1280"')
+  );
 }
 
 function countMatches(value, pattern) {
