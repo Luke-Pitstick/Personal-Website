@@ -693,9 +693,46 @@ async function loadImageData(src, width, height) {
     throw new Error(`Canvas2D is unavailable for loading ${src}.`);
   }
 
-  context.drawImage(image, 0, 0, width, height);
+  drawImageCover(context, image, width, height);
 
   return context.getImageData(0, 0, width, height);
+}
+
+function drawImageCover(context, image, width, height) {
+  const sourceWidth = image.naturalWidth || image.width;
+  const sourceHeight = image.naturalHeight || image.height;
+
+  if (!sourceWidth || !sourceHeight || (sourceWidth === width && sourceHeight === height)) {
+    context.drawImage(image, 0, 0, width, height);
+    return;
+  }
+
+  const sourceAspect = sourceWidth / sourceHeight;
+  const targetAspect = width / height;
+  let sourceX = 0;
+  let sourceY = 0;
+  let croppedWidth = sourceWidth;
+  let croppedHeight = sourceHeight;
+
+  if (sourceAspect > targetAspect) {
+    croppedWidth = sourceHeight * targetAspect;
+    sourceX = (sourceWidth - croppedWidth) / 2;
+  } else if (sourceAspect < targetAspect) {
+    croppedHeight = sourceWidth / targetAspect;
+    sourceY = (sourceHeight - croppedHeight) / 2;
+  }
+
+  context.drawImage(
+    image,
+    sourceX,
+    sourceY,
+    croppedWidth,
+    croppedHeight,
+    0,
+    0,
+    width,
+    height
+  );
 }
 
 function createIdleSurfaceImageData(width, height, { blueTint = 0, contrast = 1 } = {}) {
