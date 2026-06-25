@@ -15,4 +15,4 @@
 - Parent validation: `npm run astro -- build` passed on 2026-06-11 after integration.
 
 ## Later Branch Note
-- Subsequent hero-performance commits changed the hero source path: the interactive hero now preloads and consumes committed WebP assets while `npm run build` prunes source-only hero JPEGs from `dist/`.
+- Subsequent hero-performance commits changed the hero source path: the interactive hero now preloads and consumes committed WebP assets, including the generated `/hero-paper.webp` idle surface, while `npm run build` prunes source-only hero JPEGs from `dist/`.

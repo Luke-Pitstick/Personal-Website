@@ -6,7 +6,7 @@ Baseline state at collection: then-current worktree after parent-integrated T5 r
 
 ## Current Branch Note
 
-This baseline is historical and predates the current branch's precomputed hero asset integration. Current HEAD no longer loads `background.jpg` or `chautauqua-flatirons_fg.jpg` from the interactive hero runtime path.
+This baseline is historical and predates the current branch's precomputed hero asset integration. Current HEAD no longer loads `background.jpg` or `chautauqua-flatirons_fg.jpg` from the interactive hero runtime path; it uses committed WebPs including `/hero-paper.webp`.
 
 ## Commands
 
