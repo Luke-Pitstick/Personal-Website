@@ -51,9 +51,10 @@ const checks = [
       !narrowHeroCropBlock.includes('.dithered-hero-canvas canvas'),
   },
   {
-    name: 'interactive shader source layers use renderer cover fitting',
+    name: 'interactive shader source layers use centered renderer cover fitting',
     pass:
       countMatches(heroCanvas, "fit: 'cover'") >= 2 &&
+      countMatches(heroCanvas, "position: 'center'") >= 2 &&
       !/fit:\s*['"]stretch['"]/.test(heroCanvas),
   },
   {
