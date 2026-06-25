@@ -11,28 +11,37 @@ const ACTIVE_HERO_ASSETS = [
   { maxBytes: 115_000, path: 'public/hero-paper.webp' },
   { maxBytes: 30_000, path: 'public/hero-mountains.webp' },
 ];
+const HERO_ART_CROP_SELECTOR =
+  '.dithered-hero-paper,\n.dithered-hero-mountains,\n.dithered-hero-fallback,\n.dithered-hero-canvas canvas';
+const NARROW_STATIC_ART_SELECTOR =
+  '.dithered-hero-paper,\n  .dithered-hero-mountains,\n  .dithered-hero-fallback';
+const heroBackgroundBlock = blockFor('.dithered-hero');
+const heroArtCropBlock = blockFor(HERO_ART_CROP_SELECTOR);
 const narrowHeroCropBlock = mediaBlockFor('@media (max-aspect-ratio: 16 / 9)');
+const narrowStaticArtCropBlock = blockFor(NARROW_STATIC_ART_SELECTOR, narrowHeroCropBlock);
 
 const checks = [
   {
-    name: 'static hero background crops with background-size: cover',
-    pass: blockFor('.dithered-hero').includes('background-size: cover;'),
+    name: 'static hero background crops from the centered background rule',
+    pass: hasDeclarations(heroBackgroundBlock, [
+      'background-image: url(\'/background-dithered.webp\');',
+      'background-position: center;',
+      'background-size: cover;',
+    ]),
   },
   {
-    name: 'hero art elements use object-fit: cover',
-    pass:
-      css.includes('.dithered-hero-paper,\n.dithered-hero-mountains,\n.dithered-hero-fallback,\n.dithered-hero-canvas canvas') &&
-      css.includes('object-fit: cover;') &&
-      css.includes('object-position: center;'),
+    name: 'hero art elements crop from their own object-fit rule',
+    pass: hasDeclarations(heroArtCropBlock, ['object-fit: cover;', 'object-position: center;']),
   },
   {
     name: 'narrow static art keeps 16:9 proportions from container height',
-    pass:
-      narrowHeroCropBlock.includes('.dithered-hero-paper,\n  .dithered-hero-mountains,\n  .dithered-hero-fallback') &&
-      narrowHeroCropBlock.includes('width: auto;') &&
-      narrowHeroCropBlock.includes('min-width: 100%;') &&
-      narrowHeroCropBlock.includes('height: 100%;') &&
-      narrowHeroCropBlock.includes('transform: translate(-50%, -50%);'),
+    pass: hasDeclarations(narrowStaticArtCropBlock, [
+      'inset: 50% auto auto 50%;',
+      'width: auto;',
+      'min-width: 100%;',
+      'height: 100%;',
+      'transform: translate(-50%, -50%);',
+    ]),
   },
   {
     name: 'narrow crop sizing does not enlarge the interactive shader canvas',
@@ -197,4 +206,8 @@ function hasStaticImage(className, srcValue, priority) {
 
 function countMatches(value, pattern) {
   return value.split(pattern).length - 1;
+}
+
+function hasDeclarations(block, declarations) {
+  return block.length > 0 && declarations.every((declaration) => block.includes(declaration));
 }
