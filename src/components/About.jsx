@@ -112,6 +112,13 @@ const hasTextValue = (value) => typeof value === 'string' && value.trim().length
 const getRecentTrackTime = (track) => Date.parse(track?.playedAt || '');
 const hasUsableRecentTrack = (track) =>
   Boolean(hasTextValue(track?.title) && hasTextValue(track?.artist) && !Number.isNaN(getRecentTrackTime(track)));
+const getSpotifyCurrentTrackKey = (spotify) => {
+  if (!['playing', 'paused'].includes(spotify?.status)) return null;
+  if (hasTextValue(spotify.url)) return spotify.url.trim();
+  if (!hasTextValue(spotify.title) || !hasTextValue(spotify.artist)) return null;
+
+  return [spotify.title, spotify.artist, spotify.album || ''].map((value) => String(value).trim()).join('|');
+};
 const getSpotifyTrackEndRefreshDelay = (spotify) => {
   if (spotify?.status !== 'playing' || !spotify.durationMs || spotify.progressMs == null) return null;
 
@@ -328,9 +335,9 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
   const [spotify, setSpotify] = useState(initialSpotifyState);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const latestSpotifyRequestRef = useRef(0);
-  const previousSpotifyCurrentUrlRef = useRef(null);
+  const previousSpotifyCurrentTrackKeyRef = useRef(null);
   const previousSpotifyProgressMsRef = useRef(null);
-  const recentHistoryCatchUpTrackUrlRef = useRef(null);
+  const recentHistoryCatchUpTrackKeyRef = useRef(null);
   const spotifyRefreshStateRef = useRef({
     controllers: new Set(),
     hasQueuedRefresh: false,
@@ -481,39 +488,39 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
   }, [refreshSpotify, spotify.durationMs, spotify.progressMs, spotify.status, spotify.url]);
 
   useEffect(() => {
-    const currentTrackUrl = ['playing', 'paused'].includes(spotify.status) ? spotify.url || null : null;
+    const currentTrackKey = getSpotifyCurrentTrackKey(spotify);
     const currentProgressMs =
-      currentTrackUrl && Number.isFinite(spotify.progressMs) ? Math.max(0, spotify.progressMs) : null;
-    const previousTrackUrl = previousSpotifyCurrentUrlRef.current;
+      currentTrackKey && Number.isFinite(spotify.progressMs) ? Math.max(0, spotify.progressMs) : null;
+    const previousTrackKey = previousSpotifyCurrentTrackKeyRef.current;
     const previousProgressMs = previousSpotifyProgressMsRef.current;
-    previousSpotifyCurrentUrlRef.current = currentTrackUrl;
+    previousSpotifyCurrentTrackKeyRef.current = currentTrackKey;
     previousSpotifyProgressMsRef.current = currentProgressMs;
     const isInitialTrackNearStart =
-      !previousTrackUrl &&
-      currentTrackUrl &&
+      !previousTrackKey &&
+      currentTrackKey &&
       currentProgressMs != null &&
       currentProgressMs <= spotifyInitialTrackCatchUpMaxProgressMs;
     const hasSameTrackRestartedNearStart =
-      previousTrackUrl === currentTrackUrl &&
-      currentTrackUrl &&
+      previousTrackKey === currentTrackKey &&
+      currentTrackKey &&
       previousProgressMs != null &&
       currentProgressMs != null &&
       previousProgressMs - currentProgressMs >= spotifyTrackRestartProgressDropMs &&
       currentProgressMs <= spotifyInitialTrackCatchUpMaxProgressMs;
     const catchUpKey = hasSameTrackRestartedNearStart
-      ? `${currentTrackUrl}:${previousProgressMs}->${currentProgressMs}`
-      : currentTrackUrl;
+      ? `${currentTrackKey}:${previousProgressMs}->${currentProgressMs}`
+      : currentTrackKey;
 
     if (
-      !currentTrackUrl ||
-      (previousTrackUrl === currentTrackUrl && !hasSameTrackRestartedNearStart) ||
-      (!previousTrackUrl && !isInitialTrackNearStart) ||
-      recentHistoryCatchUpTrackUrlRef.current === catchUpKey
+      !currentTrackKey ||
+      (previousTrackKey === currentTrackKey && !hasSameTrackRestartedNearStart) ||
+      (!previousTrackKey && !isInitialTrackNearStart) ||
+      recentHistoryCatchUpTrackKeyRef.current === catchUpKey
     ) {
       return undefined;
     }
 
-    recentHistoryCatchUpTrackUrlRef.current = catchUpKey;
+    recentHistoryCatchUpTrackKeyRef.current = catchUpKey;
 
     const trackChangeRefreshes = spotifyTrackChangeRefreshRetryDelaysMs.map((retryDelay) =>
       window.setTimeout(refreshSpotify, retryDelay),
