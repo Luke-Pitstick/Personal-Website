@@ -91,103 +91,10 @@ const spotifyEndpoint = '/api/spotify/currently-playing';
 const spotifyWaveAnimationPath = '/spotify-now-wave-orange.json';
 const spotifyRecentTrackLimit = 4;
 const spotifyRefreshIntervalMs = 30 * 1000;
-const spotifyCensoredTitleWords = [
-  'asshole',
-  'anal',
-  'ass',
-  'bdsm',
-  'bitch',
-  'blunt',
-  'blowjob',
-  'boob',
-  'boobs',
-  'bong',
-  'breast',
-  'breasts',
-  'cock',
-  'cocaine',
-  'coke',
-  'cum',
-  'cumming',
-  'cunt',
-  'damn',
-  'dick',
-  'drug',
-  'drugs',
-  'ecstasy',
-  'fag',
-  'faggot',
-  'fuck',
-  'fucked',
-  'fucker',
-  'fucking',
-  'hell',
-  'heroin',
-  'hoe',
-  'horny',
-  'joint',
-  'lsd',
-  'marijuana',
-  'meth',
-  'molly',
-  'nigga',
-  'nigger',
-  'nude',
-  'nudes',
-  'naked',
-  'oral',
-  'orgy',
-  'percocet',
-  'porn',
-  'porno',
-  'pornography',
-  'pussy',
-  'semen',
-  'sex',
-  'sexual',
-  'sexy',
-  'shit',
-  'shrooms',
-  'slut',
-  'strip',
-  'stripper',
-  'threesome',
-  'tit',
-  'tits',
-  'weed',
-  'whore',
-  'xanax',
-];
-const spotifyCensoredTitlePattern = new RegExp(`\\b(?:${spotifyCensoredTitleWords.join('|')})\\b`, 'gi');
-
-const sanitizeSpotifyTitle = (title) => {
-  if (!title) return '';
-
-  const sanitizedTitle = title
-    .replace(spotifyCensoredTitlePattern, '')
-    .replace(/\s+([?!.,:;])/g, '$1')
-    .replace(/([([{])\s+/g, '$1')
-    .replace(/\s+([)\]}])/g, '$1')
-    .replace(/\s{2,}/g, ' ')
-    .trim()
-    .replace(/\s*[-–—:|/]+\s*$/g, '')
-    .replace(/^[\s-–—:|/]+/g, '')
-    .replace(/[?!.,:;]+$/g, '')
-    .trim();
-
-  return sanitizedTitle || 'Untitled track';
-};
-
-const sanitizeSpotifyTrackTitle = (track) =>
-  track?.title ? { ...track, title: sanitizeSpotifyTitle(track.title) } : track;
-
 const normalizeSpotifyPayload = (spotify, isCached = false) => ({
-  ...sanitizeSpotifyTrackTitle(spotify),
+  ...(spotify || {}),
   isCached,
-  recentTracks: (spotify?.recentTracks || [])
-    .map(sanitizeSpotifyTrackTitle)
-    .filter(Boolean)
-    .slice(0, spotifyRecentTrackLimit),
+  recentTracks: (spotify?.recentTracks || []).filter(Boolean).slice(0, spotifyRecentTrackLimit),
 });
 
 const getTrackInitials = (track) => {
