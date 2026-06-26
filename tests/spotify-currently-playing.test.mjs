@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import { afterEach, describe, test } from 'node:test';
 
 import currentlyPlayingHandler from '../api/spotify/currently-playing.js';
@@ -145,5 +146,31 @@ describe('/api/spotify/currently-playing', () => {
     assert.equal(res.payload.recentTracks.length, 4);
     assert.ok(!res.payload.recentTracks.some((track) => track.title === 'Current Song'));
     assert.match(res.headers['Cache-Control'], /no-store/);
+  });
+});
+
+describe('Spotify listening board realtime refresh triggers', () => {
+  test('current-track catch-up effect reruns when URL-less track metadata changes', async () => {
+    const aboutSource = await readFile(new URL('../src/components/About.jsx', import.meta.url), 'utf8');
+    const catchUpEffect = aboutSource.match(
+      /useEffect\(\(\) => \{\n\s+const currentTrackKey = getSpotifyCurrentTrackKey\(spotify\);[\s\S]+?\}, \[(?<dependencies>[^\]]+)\]\);/,
+    );
+
+    assert.ok(catchUpEffect, 'Expected to find the Spotify current-track catch-up effect.');
+
+    const dependencies = catchUpEffect.groups.dependencies
+      .split(',')
+      .map((dependency) => dependency.trim())
+      .sort();
+
+    assert.deepEqual(dependencies, [
+      'refreshSpotify',
+      'spotify.album',
+      'spotify.artist',
+      'spotify.progressMs',
+      'spotify.status',
+      'spotify.title',
+      'spotify.url',
+    ]);
   });
 });

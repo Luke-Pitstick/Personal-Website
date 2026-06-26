@@ -529,7 +529,7 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
     return () => {
       trackChangeRefreshes.forEach((trackChangeRefresh) => window.clearTimeout(trackChangeRefresh));
     };
-  }, [refreshSpotify, spotify.progressMs, spotify.status, spotify.url]);
+  }, [refreshSpotify, spotify.album, spotify.artist, spotify.progressMs, spotify.status, spotify.title, spotify.url]);
 
   const footerState =
     spotify.isCached
