@@ -293,9 +293,20 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
       }
     } catch (error) {
       if (error.name !== 'AbortError' && isLatestRequest()) {
-        setSpotify((currentSpotify) =>
-          currentSpotify.isCached ? currentSpotify : { status: 'error', isPlaying: false, recentTracks: [] },
-        );
+        setSpotify((currentSpotify) => {
+          const recentTracks = (currentSpotify.recentTracks || []).filter(Boolean).slice(0, spotifyRecentTrackLimit);
+
+          if (recentTracks.length) {
+            return {
+              status: 'error',
+              isPlaying: false,
+              isCached: true,
+              recentTracks,
+            };
+          }
+
+          return { status: 'error', isPlaying: false, recentTracks: [] };
+        });
       }
     } finally {
       if (showRefresh && !signal?.aborted) {
