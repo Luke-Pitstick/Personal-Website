@@ -396,4 +396,19 @@ describe('Spotify listening board realtime refresh triggers', () => {
       'spotify.url',
     ]);
   });
+
+  test('initial current-track catch-up still runs when playback progress is unknown', async () => {
+    const aboutSource = await readFile(new URL('../src/components/About.jsx', import.meta.url), 'utf8');
+    const catchUpEffect = aboutSource.match(
+      /useEffect\(\(\) => \{\n\s+const currentTrackKey = getSpotifyCurrentTrackKey\(spotify\);(?<body>[\s\S]+?)\n\s+\}, \[refreshSpotify/,
+    );
+
+    assert.ok(catchUpEffect, 'Expected to find the Spotify current-track catch-up effect.');
+    assert.match(catchUpEffect.groups.body, /const isInitialTrackWithUnknownProgress =/);
+    assert.match(catchUpEffect.groups.body, /currentProgressMs == null/);
+    assert.match(
+      catchUpEffect.groups.body,
+      /\(!previousTrackKey && !isInitialTrackWithUnknownProgress && !isInitialTrackNearStart\)/,
+    );
+  });
 });

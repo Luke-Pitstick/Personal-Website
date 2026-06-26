@@ -524,6 +524,7 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
     const previousProgressMs = previousSpotifyProgressMsRef.current;
     previousSpotifyCurrentTrackKeyRef.current = currentTrackKey;
     previousSpotifyProgressMsRef.current = currentProgressMs;
+    const isInitialTrackWithUnknownProgress = !previousTrackKey && currentTrackKey && currentProgressMs == null;
     const isInitialTrackNearStart =
       !previousTrackKey &&
       currentTrackKey &&
@@ -543,7 +544,7 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
     if (
       !currentTrackKey ||
       (previousTrackKey === currentTrackKey && !hasSameTrackRestartedNearStart) ||
-      (!previousTrackKey && !isInitialTrackNearStart) ||
+      (!previousTrackKey && !isInitialTrackWithUnknownProgress && !isInitialTrackNearStart) ||
       recentHistoryCatchUpTrackKeyRef.current === catchUpKey
     ) {
       return undefined;
