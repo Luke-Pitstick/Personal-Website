@@ -202,18 +202,36 @@ describe('/api/spotify/currently-playing', () => {
 });
 
 describe('Spotify listening board realtime refresh triggers', () => {
-  test('cached fallback preserves the now-playing data with the exact recent songs', async () => {
+  test('cached fallback helper preserves incoming now-playing data with exact recent songs', async () => {
     const aboutSource = await readFile(new URL('../src/components/About.jsx', import.meta.url), 'utf8');
-    const cachedFallback = aboutSource.match(
-      /if \(hasExactRecentTrackCount\(recentTracks\)\) \{\n\s+return \{\n(?<body>[\s\S]+?)\n\s+\};\n\s+\}/,
+    const cachedFallbackHelper = aboutSource.match(
+      /const mergeSpotifyPayloadWithCachedRecentTracks = \(spotify, cachedSpotify\) => \{\n(?<body>[\s\S]+?)\n\};/,
     );
 
-    assert.ok(cachedFallback, 'Expected to find the cached Spotify fallback.');
-    assert.match(cachedFallback.groups.body, /\.\.\.currentSpotify/);
-    assert.match(cachedFallback.groups.body, /isCached: true/);
-    assert.match(cachedFallback.groups.body, /recentTracks/);
-    assert.doesNotMatch(cachedFallback.groups.body, /status: 'error'/);
-    assert.doesNotMatch(cachedFallback.groups.body, /isPlaying: false/);
+    assert.ok(cachedFallbackHelper, 'Expected to find the cached Spotify fallback helper.');
+    assert.match(cachedFallbackHelper.groups.body, /getExactCachedRecentTracks\(cachedSpotify\)/);
+    assert.match(cachedFallbackHelper.groups.body, /\.\.\.spotify/);
+    assert.match(cachedFallbackHelper.groups.body, /isCached: true/);
+    assert.match(cachedFallbackHelper.groups.body, /recentTracks/);
+    assert.doesNotMatch(cachedFallbackHelper.groups.body, /status: 'error'/);
+    assert.doesNotMatch(cachedFallbackHelper.groups.body, /isPlaying: false/);
+  });
+
+  test('incomplete recent-track responses can still update now-playing from the fresh payload', async () => {
+    const aboutSource = await readFile(new URL('../src/components/About.jsx', import.meta.url), 'utf8');
+    const incompleteRecentTrackBranch = aboutSource.match(
+      /if \(data\.status !== 'unconfigured' && !hasExactRecentTrackCount\(data\.recentTracks\)\) \{\n(?<body>[\s\S]+?)\n\s+\}\n\n\s+if \(isLatestRequest\(\)\) \{/,
+    );
+
+    assert.ok(incompleteRecentTrackBranch, 'Expected to find the incomplete recent-track response branch.');
+    assert.match(incompleteRecentTrackBranch.groups.body, /setSpotify\(/);
+    assert.match(
+      incompleteRecentTrackBranch.groups.body,
+      /mergeSpotifyPayloadWithCachedRecentTracks\(data, currentSpotify\)/,
+    );
+    assert.match(incompleteRecentTrackBranch.groups.body, /status: 'error'/);
+    assert.match(incompleteRecentTrackBranch.groups.body, /return;/);
+    assert.doesNotMatch(incompleteRecentTrackBranch.groups.body, /throw new Error/);
   });
 
   test('track-end refresh effect reruns when URL-less track metadata changes', async () => {

@@ -136,6 +136,22 @@ const normalizeSpotifyPayload = (spotify, isCached = false) => ({
     .sort((firstTrack, secondTrack) => getRecentTrackTime(secondTrack) - getRecentTrackTime(firstTrack))
     .slice(0, spotifyRecentTrackLimit),
 });
+const getExactCachedRecentTracks = (spotify) => {
+  const recentTracks = normalizeSpotifyPayload(spotify, true).recentTracks;
+
+  return hasExactRecentTrackCount(recentTracks) ? recentTracks : null;
+};
+const mergeSpotifyPayloadWithCachedRecentTracks = (spotify, cachedSpotify) => {
+  const recentTracks = getExactCachedRecentTracks(cachedSpotify);
+
+  if (!recentTracks) return null;
+
+  return {
+    ...spotify,
+    isCached: true,
+    recentTracks,
+  };
+};
 
 const createTimedSpotifySignal = (externalSignal) => {
   const controller = new AbortController();
@@ -368,7 +384,18 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
 
       const data = normalizeSpotifyPayload(await response.json());
       if (data.status !== 'unconfigured' && !hasExactRecentTrackCount(data.recentTracks)) {
-        throw new Error('Spotify response did not include exactly four recent tracks.');
+        if (isLatestRequest()) {
+          setSpotify(
+            (currentSpotify) =>
+              mergeSpotifyPayloadWithCachedRecentTracks(data, currentSpotify) || {
+                status: 'error',
+                isPlaying: false,
+                recentTracks: [],
+              },
+          );
+        }
+
+        return;
       }
 
       if (isLatestRequest()) {
@@ -379,15 +406,9 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
 
       if (!wasExternallyAborted && isLatestRequest()) {
         setSpotify((currentSpotify) => {
-          const recentTracks = normalizeSpotifyPayload(currentSpotify, true).recentTracks;
+          const cachedSpotify = mergeSpotifyPayloadWithCachedRecentTracks(currentSpotify, currentSpotify);
 
-          if (hasExactRecentTrackCount(recentTracks)) {
-            return {
-              ...currentSpotify,
-              isCached: true,
-              recentTracks,
-            };
-          }
+          if (cachedSpotify) return cachedSpotify;
 
           return { status: 'error', isPlaying: false, recentTracks: [] };
         });
