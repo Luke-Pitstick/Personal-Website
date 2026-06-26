@@ -95,6 +95,7 @@ const spotifyRequestTimeoutMs = 8 * 1000;
 const spotifyTrackEndRefreshBufferMs = 1500;
 const spotifyTrackEndRefreshMinDelayMs = 750;
 const spotifyTrackEndRefreshRetryDelaysMs = [0, 2500, 6500];
+const spotifyTrackChangeRefreshRetryDelaysMs = [1000, 3500, 7500];
 const hasExactRecentTrackCount = (recentTracks) => recentTracks.length === spotifyRecentTrackLimit;
 const getSpotifyRequestUrl = (force = false) => {
   const params = new URLSearchParams({ refresh: String(Date.now()) });
@@ -325,6 +326,7 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
   const [spotify, setSpotify] = useState(initialSpotifyState);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const latestSpotifyRequestRef = useRef(0);
+  const previousSpotifyCurrentUrlRef = useRef(null);
   const spotifyRefreshStateRef = useRef({
     controllers: new Set(),
     hasQueuedRefresh: false,
@@ -473,6 +475,22 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
       trackEndRefreshes.forEach((trackEndRefresh) => window.clearTimeout(trackEndRefresh));
     };
   }, [refreshSpotify, spotify.durationMs, spotify.progressMs, spotify.status, spotify.url]);
+
+  useEffect(() => {
+    const currentTrackUrl = ['playing', 'paused'].includes(spotify.status) ? spotify.url || null : null;
+    const previousTrackUrl = previousSpotifyCurrentUrlRef.current;
+    previousSpotifyCurrentUrlRef.current = currentTrackUrl;
+
+    if (!currentTrackUrl || !previousTrackUrl || previousTrackUrl === currentTrackUrl) return undefined;
+
+    const trackChangeRefreshes = spotifyTrackChangeRefreshRetryDelaysMs.map((retryDelay) =>
+      window.setTimeout(refreshSpotify, retryDelay),
+    );
+
+    return () => {
+      trackChangeRefreshes.forEach((trackChangeRefresh) => window.clearTimeout(trackChangeRefresh));
+    };
+  }, [refreshSpotify, spotify.status, spotify.url]);
 
   const footerState =
     spotify.isCached
