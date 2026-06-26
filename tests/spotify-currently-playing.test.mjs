@@ -95,6 +95,32 @@ describe('Spotify recently played data', () => {
     assert.equal(recentTracks.length, 4);
     assert.ok(recentTracks.every((track) => track.status === 'recent' && track.isPlaying === false));
   });
+
+  test('preserves repeated plays as separate entries in the exact last four songs', async () => {
+    globalThis.fetch = async () =>
+      mockJsonResponse({
+        items: [
+          makeRecentItem('Repeat Song', '2026-06-25T12:00:00.000Z'),
+          makeRecentItem('Second Song', '2026-06-25T11:00:00.000Z'),
+          makeRecentItem('Repeat Song', '2026-06-25T10:00:00.000Z'),
+          makeRecentItem('Fourth Song', '2026-06-25T09:00:00.000Z'),
+          makeRecentItem('Fifth Song', '2026-06-25T08:00:00.000Z'),
+        ],
+      });
+
+    const recentTracks = await getRecentlyPlayed('access-token', 4);
+
+    assert.deepEqual(
+      recentTracks.map((track) => `${track.title}:${track.playedAt}`),
+      [
+        'Repeat Song:2026-06-25T12:00:00.000Z',
+        'Second Song:2026-06-25T11:00:00.000Z',
+        'Repeat Song:2026-06-25T10:00:00.000Z',
+        'Fourth Song:2026-06-25T09:00:00.000Z',
+      ],
+    );
+    assert.equal(recentTracks.length, 4);
+  });
 });
 
 describe('/api/spotify/currently-playing', () => {
@@ -198,6 +224,54 @@ describe('/api/spotify/currently-playing', () => {
     );
     assert.equal(res.payload.recentTracks.length, 4);
     assert.match(res.headers['Cache-Control'], /no-store/);
+  });
+
+  test('keeps a prior play of the current song in the exact last four recent songs', async () => {
+    process.env.SPOTIFY_CLIENT_ID = 'client-id';
+    process.env.SPOTIFY_CLIENT_SECRET = 'client-secret';
+    process.env.SPOTIFY_REFRESH_TOKEN = 'refresh-token';
+
+    globalThis.fetch = async (url) => {
+      const requestUrl = String(url);
+
+      if (requestUrl === 'https://accounts.spotify.com/api/token') {
+        return mockJsonResponse({ access_token: 'access-token' });
+      }
+
+      if (requestUrl === 'https://api.spotify.com/v1/me/player/currently-playing') {
+        return mockJsonResponse({
+          is_playing: true,
+          progress_ms: 12000,
+          item: makeSpotifyTrack('Repeat Song', 'Repeat Artist'),
+        });
+      }
+
+      if (requestUrl.startsWith('https://api.spotify.com/v1/me/player/recently-played')) {
+        return mockJsonResponse({
+          items: [
+            makeRecentItem('Past One', '2026-06-25T12:00:00.000Z'),
+            makeRecentItem('Repeat Song', '2026-06-25T11:00:00.000Z'),
+            makeRecentItem('Past Three', '2026-06-25T10:00:00.000Z'),
+            makeRecentItem('Past Four', '2026-06-25T09:00:00.000Z'),
+          ],
+        });
+      }
+
+      throw new Error(`Unexpected Spotify URL: ${requestUrl}`);
+    };
+
+    const res = createMockResponse();
+
+    await currentlyPlayingHandler({ method: 'GET' }, res);
+
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.payload.title, 'Repeat Song');
+    assert.equal(res.payload.status, 'playing');
+    assert.deepEqual(
+      res.payload.recentTracks.map((track) => track.title),
+      ['Past One', 'Repeat Song', 'Past Three', 'Past Four'],
+    );
+    assert.equal(res.payload.recentTracks.length, 4);
   });
 });
 
