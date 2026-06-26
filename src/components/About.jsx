@@ -313,6 +313,14 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
   const [spotify, setSpotify] = useState(initialSpotifyState);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const latestSpotifyRequestRef = useRef(0);
+  const spotifyRefreshStateRef = useRef({
+    controllers: new Set(),
+    hasQueuedRefresh: false,
+    isInFlight: false,
+    isMounted: false,
+    queuedForce: false,
+    queuedShowRefresh: false,
+  });
 
   const loadSpotify = useCallback(async ({ signal, force = false, showRefresh = false } = {}) => {
     const requestId = (latestSpotifyRequestRef.current += 1);
@@ -369,32 +377,48 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
     }
   }, []);
 
-  useEffect(() => {
-    const controllers = new Set();
-    let isMounted = true;
-    let isRefreshInFlight = false;
-    let hasQueuedRefresh = false;
+  const refreshSpotify = useCallback(
+    ({ force = false, showRefresh = false } = {}) => {
+      const refreshState = spotifyRefreshStateRef.current;
 
-    const refreshSpotify = () => {
-      if (isRefreshInFlight) {
-        hasQueuedRefresh = true;
+      if (refreshState.isInFlight) {
+        refreshState.hasQueuedRefresh = true;
+        refreshState.queuedForce ||= force;
+        refreshState.queuedShowRefresh ||= showRefresh;
+
+        if (showRefresh) {
+          setIsRefreshing(true);
+        }
+
         return;
       }
 
       const controller = new AbortController();
-      isRefreshInFlight = true;
-      controllers.add(controller);
+      refreshState.isInFlight = true;
+      refreshState.controllers.add(controller);
 
-      loadSpotify({ signal: controller.signal }).finally(() => {
-        controllers.delete(controller);
-        isRefreshInFlight = false;
+      loadSpotify({ signal: controller.signal, force, showRefresh }).finally(() => {
+        refreshState.controllers.delete(controller);
+        refreshState.isInFlight = false;
 
-        if (isMounted && hasQueuedRefresh) {
-          hasQueuedRefresh = false;
-          refreshSpotify();
+        if (refreshState.isMounted && refreshState.hasQueuedRefresh) {
+          const queuedForce = refreshState.queuedForce;
+          const queuedShowRefresh = refreshState.queuedShowRefresh;
+
+          refreshState.hasQueuedRefresh = false;
+          refreshState.queuedForce = false;
+          refreshState.queuedShowRefresh = false;
+
+          refreshSpotify({ force: queuedForce, showRefresh: queuedShowRefresh });
         }
       });
-    };
+    },
+    [loadSpotify],
+  );
+
+  useEffect(() => {
+    const refreshState = spotifyRefreshStateRef.current;
+    refreshState.isMounted = true;
 
     refreshSpotify();
     const refreshInterval = window.setInterval(refreshSpotify, spotifyRefreshIntervalMs);
@@ -416,9 +440,14 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
       window.removeEventListener('focus', refreshSpotify);
       window.removeEventListener('online', refreshSpotify);
       window.removeEventListener('pageshow', refreshSpotify);
-      controllers.forEach((controller) => controller.abort());
+      refreshState.isMounted = false;
+      refreshState.hasQueuedRefresh = false;
+      refreshState.queuedForce = false;
+      refreshState.queuedShowRefresh = false;
+      refreshState.controllers.forEach((controller) => controller.abort());
+      refreshState.controllers.clear();
     };
-  }, [loadSpotify]);
+  }, [refreshSpotify]);
 
   const footerState =
     spotify.isCached
@@ -441,7 +470,7 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
         <button
           type="button"
           className="spotify-card-refresh focus-ring"
-          onClick={() => loadSpotify({ force: true, showRefresh: true })}
+          onClick={() => refreshSpotify({ force: true, showRefresh: true })}
           disabled={isRefreshing}
           aria-label="Refresh Spotify listening status"
           title="Refresh Spotify"
