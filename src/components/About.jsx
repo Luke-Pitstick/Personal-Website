@@ -94,6 +94,7 @@ const spotifyRefreshIntervalMs = 10 * 1000;
 const spotifyRequestTimeoutMs = 8 * 1000;
 const spotifyTrackEndRefreshBufferMs = 1500;
 const spotifyTrackEndRefreshMinDelayMs = 750;
+const spotifyTrackEndRefreshRetryDelaysMs = [0, 2500, 6500];
 const hasExactRecentTrackCount = (recentTracks) => recentTracks.length === spotifyRecentTrackLimit;
 const getSpotifyRequestUrl = (force = false) => {
   const params = new URLSearchParams({ refresh: String(Date.now()) });
@@ -464,12 +465,14 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
 
     if (trackEndRefreshDelay == null) return undefined;
 
-    const trackEndRefresh = window.setTimeout(refreshSpotify, trackEndRefreshDelay);
+    const trackEndRefreshes = spotifyTrackEndRefreshRetryDelaysMs.map((retryDelay) =>
+      window.setTimeout(refreshSpotify, trackEndRefreshDelay + retryDelay),
+    );
 
     return () => {
-      window.clearTimeout(trackEndRefresh);
+      trackEndRefreshes.forEach((trackEndRefresh) => window.clearTimeout(trackEndRefresh));
     };
-  }, [refreshSpotify, spotify.durationMs, spotify.progressMs, spotify.status]);
+  }, [refreshSpotify, spotify.durationMs, spotify.progressMs, spotify.status, spotify.url]);
 
   const footerState =
     spotify.isCached
