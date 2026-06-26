@@ -102,10 +102,13 @@ const getSpotifyRequestUrl = (force = false) => {
 
   return `${spotifyEndpoint}?${params.toString()}`;
 };
+const hasTextValue = (value) => typeof value === 'string' && value.trim().length > 0;
+const hasUsableRecentTrack = (track) =>
+  Boolean(hasTextValue(track?.title) && hasTextValue(track?.artist) && !Number.isNaN(Date.parse(track.playedAt || '')));
 const normalizeSpotifyPayload = (spotify, isCached = false) => ({
   ...(spotify || {}),
   isCached,
-  recentTracks: (spotify?.recentTracks || []).filter(Boolean).slice(0, spotifyRecentTrackLimit),
+  recentTracks: (spotify?.recentTracks || []).filter(hasUsableRecentTrack).slice(0, spotifyRecentTrackLimit),
 });
 
 const createTimedSpotifySignal = (externalSignal) => {

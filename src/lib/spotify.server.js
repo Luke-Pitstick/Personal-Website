@@ -116,10 +116,20 @@ const normalizeTrack = (track) => {
   if (!track) return null;
 
   const image = getBestAlbumImage(track.album?.images);
+  const title = typeof track.name === 'string' ? track.name.trim() : '';
+  const artist = Array.isArray(track.artists)
+    ? track.artists
+        .map((artist) => (typeof artist.name === 'string' ? artist.name.trim() : ''))
+        .filter(Boolean)
+        .join(', ')
+        .trim()
+    : '';
+
+  if (!title || !artist) return null;
 
   return {
-    title: track.name,
-    artist: track.artists?.map((artist) => artist.name).join(', ') || '',
+    title,
+    artist,
     album: track.album?.name || '',
     image: image?.url || null,
     url: track.external_urls?.spotify || null,
