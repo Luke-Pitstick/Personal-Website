@@ -97,6 +97,7 @@ const spotifyTrackEndRefreshMinDelayMs = 750;
 const spotifyTrackEndRefreshRetryDelaysMs = [0, 2500, 6500];
 const spotifyTrackChangeRefreshRetryDelaysMs = [1000, 3500, 7500];
 const spotifyInitialTrackCatchUpMaxProgressMs = 15 * 1000;
+const spotifyTrackRestartProgressDropMs = 10 * 1000;
 const hasExactRecentTrackCount = (recentTracks) => recentTracks.length === spotifyRecentTrackLimit;
 const getSpotifyRequestUrl = (force = false) => {
   const params = new URLSearchParams({ refresh: String(Date.now()) });
@@ -328,6 +329,7 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const latestSpotifyRequestRef = useRef(0);
   const previousSpotifyCurrentUrlRef = useRef(null);
+  const previousSpotifyProgressMsRef = useRef(null);
   const recentHistoryCatchUpTrackUrlRef = useRef(null);
   const spotifyRefreshStateRef = useRef({
     controllers: new Set(),
@@ -480,24 +482,38 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
 
   useEffect(() => {
     const currentTrackUrl = ['playing', 'paused'].includes(spotify.status) ? spotify.url || null : null;
+    const currentProgressMs =
+      currentTrackUrl && Number.isFinite(spotify.progressMs) ? Math.max(0, spotify.progressMs) : null;
     const previousTrackUrl = previousSpotifyCurrentUrlRef.current;
+    const previousProgressMs = previousSpotifyProgressMsRef.current;
     previousSpotifyCurrentUrlRef.current = currentTrackUrl;
+    previousSpotifyProgressMsRef.current = currentProgressMs;
     const isInitialTrackNearStart =
       !previousTrackUrl &&
       currentTrackUrl &&
-      spotify.progressMs != null &&
-      spotify.progressMs <= spotifyInitialTrackCatchUpMaxProgressMs;
+      currentProgressMs != null &&
+      currentProgressMs <= spotifyInitialTrackCatchUpMaxProgressMs;
+    const hasSameTrackRestartedNearStart =
+      previousTrackUrl === currentTrackUrl &&
+      currentTrackUrl &&
+      previousProgressMs != null &&
+      currentProgressMs != null &&
+      previousProgressMs - currentProgressMs >= spotifyTrackRestartProgressDropMs &&
+      currentProgressMs <= spotifyInitialTrackCatchUpMaxProgressMs;
+    const catchUpKey = hasSameTrackRestartedNearStart
+      ? `${currentTrackUrl}:${previousProgressMs}->${currentProgressMs}`
+      : currentTrackUrl;
 
     if (
       !currentTrackUrl ||
-      previousTrackUrl === currentTrackUrl ||
+      (previousTrackUrl === currentTrackUrl && !hasSameTrackRestartedNearStart) ||
       (!previousTrackUrl && !isInitialTrackNearStart) ||
-      recentHistoryCatchUpTrackUrlRef.current === currentTrackUrl
+      recentHistoryCatchUpTrackUrlRef.current === catchUpKey
     ) {
       return undefined;
     }
 
-    recentHistoryCatchUpTrackUrlRef.current = currentTrackUrl;
+    recentHistoryCatchUpTrackUrlRef.current = catchUpKey;
 
     const trackChangeRefreshes = spotifyTrackChangeRefreshRetryDelaysMs.map((retryDelay) =>
       window.setTimeout(refreshSpotify, retryDelay),
