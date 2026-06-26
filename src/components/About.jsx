@@ -360,8 +360,12 @@ const SpotifyRecentTrack = ({ track, index }) => (
 const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
   const [spotify, setSpotify] = useState(initialSpotifyState);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const latestSpotifyRequestRef = useRef(0);
 
   const loadSpotify = useCallback(async ({ signal, force = false, showRefresh = false } = {}) => {
+    const requestId = (latestSpotifyRequestRef.current += 1);
+    const isLatestRequest = () => requestId === latestSpotifyRequestRef.current && !signal?.aborted;
+
     if (showRefresh) {
       setIsRefreshing(true);
     }
@@ -377,9 +381,11 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
       }
 
       const data = normalizeSpotifyPayload(await response.json());
-      setSpotify(data);
+      if (isLatestRequest()) {
+        setSpotify(data);
+      }
     } catch (error) {
-      if (error.name !== 'AbortError') {
+      if (error.name !== 'AbortError' && isLatestRequest()) {
         setSpotify((currentSpotify) =>
           currentSpotify.isCached ? currentSpotify : { status: 'error', isPlaying: false, recentTracks: [] },
         );
@@ -405,9 +411,19 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
 
     refreshSpotify();
     const refreshInterval = window.setInterval(refreshSpotify, spotifyRefreshIntervalMs);
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === 'visible') {
+        refreshSpotify();
+      }
+    };
+
+    document.addEventListener('visibilitychange', refreshWhenVisible);
+    window.addEventListener('focus', refreshSpotify);
 
     return () => {
       window.clearInterval(refreshInterval);
+      document.removeEventListener('visibilitychange', refreshWhenVisible);
+      window.removeEventListener('focus', refreshSpotify);
       controllers.forEach((controller) => controller.abort());
     };
   }, [loadSpotify]);
