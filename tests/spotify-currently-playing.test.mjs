@@ -362,6 +362,7 @@ describe('Spotify listening board realtime refresh triggers', () => {
 
     assert.deepEqual(dependencies, [
       'refreshSpotify',
+      'scheduleSpotifyRefreshBurst',
       'spotify.album',
       'spotify.artist',
       'spotify.durationMs',
@@ -388,6 +389,7 @@ describe('Spotify listening board realtime refresh triggers', () => {
 
     assert.deepEqual(dependencies, [
       'refreshSpotify',
+      'scheduleSpotifyRefreshBurst',
       'spotify.album',
       'spotify.artist',
       'spotify.progressMs',
@@ -400,7 +402,7 @@ describe('Spotify listening board realtime refresh triggers', () => {
   test('initial current-track catch-up still runs when playback progress is unknown', async () => {
     const aboutSource = await readFile(new URL('../src/components/About.jsx', import.meta.url), 'utf8');
     const catchUpEffect = aboutSource.match(
-      /useEffect\(\(\) => \{\n\s+const currentTrackKey = getSpotifyCurrentTrackKey\(spotify\);(?<body>[\s\S]+?)\n\s+\}, \[refreshSpotify/,
+      /useEffect\(\(\) => \{\n\s+const currentTrackKey = getSpotifyCurrentTrackKey\(spotify\);(?<body>[\s\S]+?)\n\s+\}, \[\n\s+refreshSpotify,/,
     );
 
     assert.ok(catchUpEffect, 'Expected to find the Spotify current-track catch-up effect.');
@@ -410,5 +412,31 @@ describe('Spotify listening board realtime refresh triggers', () => {
       catchUpEffect.groups.body,
       /\(!previousTrackKey && !isInitialTrackWithUnknownProgress && !isInitialTrackNearStart\)/,
     );
+  });
+
+  test('realtime retry bursts survive progress-driven effect rerenders', async () => {
+    const aboutSource = await readFile(new URL('../src/components/About.jsx', import.meta.url), 'utf8');
+    const trackEndEffect = aboutSource.match(
+      /useEffect\(\(\) => \{\n\s+const trackEndRefreshDelay = getSpotifyTrackEndRefreshDelay\(spotify\);(?<body>[\s\S]+?)\n\s+\}, \[\n\s+refreshSpotify,/,
+    );
+    const catchUpEffect = aboutSource.match(
+      /useEffect\(\(\) => \{\n\s+const currentTrackKey = getSpotifyCurrentTrackKey\(spotify\);(?<body>[\s\S]+?)\n\s+\}, \[\n\s+refreshSpotify,/,
+    );
+    const mountEffect = aboutSource.match(
+      /useEffect\(\(\) => \{\n\s+const refreshState = spotifyRefreshStateRef\.current;(?<body>[\s\S]+?)\n\s+\}, \[clearSpotifyRefreshTimeouts, refreshSpotify\]\);/,
+    );
+
+    assert.ok(trackEndEffect, 'Expected to find the Spotify track-end refresh effect.');
+    assert.ok(catchUpEffect, 'Expected to find the Spotify current-track catch-up effect.');
+    assert.ok(mountEffect, 'Expected to find the Spotify mount cleanup effect.');
+    assert.match(trackEndEffect.groups.body, /scheduleSpotifyRefreshBurst\(\n\s+trackEndRefreshTimeoutsRef,/);
+    assert.match(
+      catchUpEffect.groups.body,
+      /scheduleSpotifyRefreshBurst\(recentHistoryCatchUpTimeoutsRef, spotifyTrackChangeRefreshRetryDelaysMs\)/,
+    );
+    assert.doesNotMatch(trackEndEffect.groups.body, /clearTimeout/);
+    assert.doesNotMatch(catchUpEffect.groups.body, /clearTimeout/);
+    assert.match(mountEffect.groups.body, /clearSpotifyRefreshTimeouts\(trackEndRefreshTimeoutsRef\)/);
+    assert.match(mountEffect.groups.body, /clearSpotifyRefreshTimeouts\(recentHistoryCatchUpTimeoutsRef\)/);
   });
 });

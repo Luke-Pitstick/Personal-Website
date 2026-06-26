@@ -354,6 +354,8 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
   const previousSpotifyCurrentTrackKeyRef = useRef(null);
   const previousSpotifyProgressMsRef = useRef(null);
   const recentHistoryCatchUpTrackKeyRef = useRef(null);
+  const recentHistoryCatchUpTimeoutsRef = useRef([]);
+  const trackEndRefreshTimeoutsRef = useRef([]);
   const spotifyRefreshStateRef = useRef({
     controllers: new Set(),
     hasQueuedRefresh: false,
@@ -461,6 +463,19 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
     [loadSpotify],
   );
 
+  const clearSpotifyRefreshTimeouts = useCallback((timeoutsRef) => {
+    timeoutsRef.current.forEach((timeoutId) => window.clearTimeout(timeoutId));
+    timeoutsRef.current = [];
+  }, []);
+
+  const scheduleSpotifyRefreshBurst = useCallback(
+    (timeoutsRef, delays) => {
+      clearSpotifyRefreshTimeouts(timeoutsRef);
+      timeoutsRef.current = delays.map((delay) => window.setTimeout(refreshSpotify, delay));
+    },
+    [clearSpotifyRefreshTimeouts, refreshSpotify],
+  );
+
   useEffect(() => {
     const refreshState = spotifyRefreshStateRef.current;
     refreshState.isMounted = true;
@@ -490,23 +505,25 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
       refreshState.queuedShowRefresh = false;
       refreshState.controllers.forEach((controller) => controller.abort());
       refreshState.controllers.clear();
+      clearSpotifyRefreshTimeouts(trackEndRefreshTimeoutsRef);
+      clearSpotifyRefreshTimeouts(recentHistoryCatchUpTimeoutsRef);
     };
-  }, [refreshSpotify]);
+  }, [clearSpotifyRefreshTimeouts, refreshSpotify]);
 
   useEffect(() => {
     const trackEndRefreshDelay = getSpotifyTrackEndRefreshDelay(spotify);
 
     if (trackEndRefreshDelay == null) return undefined;
 
-    const trackEndRefreshes = spotifyTrackEndRefreshRetryDelaysMs.map((retryDelay) =>
-      window.setTimeout(refreshSpotify, trackEndRefreshDelay + retryDelay),
+    scheduleSpotifyRefreshBurst(
+      trackEndRefreshTimeoutsRef,
+      spotifyTrackEndRefreshRetryDelaysMs.map((retryDelay) => trackEndRefreshDelay + retryDelay),
     );
 
-    return () => {
-      trackEndRefreshes.forEach((trackEndRefresh) => window.clearTimeout(trackEndRefresh));
-    };
+    return undefined;
   }, [
     refreshSpotify,
+    scheduleSpotifyRefreshBurst,
     spotify.album,
     spotify.artist,
     spotify.durationMs,
@@ -552,14 +569,19 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
 
     recentHistoryCatchUpTrackKeyRef.current = catchUpKey;
 
-    const trackChangeRefreshes = spotifyTrackChangeRefreshRetryDelaysMs.map((retryDelay) =>
-      window.setTimeout(refreshSpotify, retryDelay),
-    );
+    scheduleSpotifyRefreshBurst(recentHistoryCatchUpTimeoutsRef, spotifyTrackChangeRefreshRetryDelaysMs);
 
-    return () => {
-      trackChangeRefreshes.forEach((trackChangeRefresh) => window.clearTimeout(trackChangeRefresh));
-    };
-  }, [refreshSpotify, spotify.album, spotify.artist, spotify.progressMs, spotify.status, spotify.title, spotify.url]);
+    return undefined;
+  }, [
+    refreshSpotify,
+    scheduleSpotifyRefreshBurst,
+    spotify.album,
+    spotify.artist,
+    spotify.progressMs,
+    spotify.status,
+    spotify.title,
+    spotify.url,
+  ]);
 
   const footerState =
     spotify.isCached
