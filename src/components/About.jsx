@@ -426,10 +426,10 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
       whileInView="show"
       viewport={viewportOnce}
       className={`spotify-listening-card w-full min-w-0 ${className}`}
-      aria-label="Currently listening"
+      aria-label="Last four Spotify songs"
     >
       <header className="spotify-card-header">
-        <span>Currently Listening</span>
+        <span>Last 4 Songs</span>
         <button
           type="button"
           className="spotify-card-refresh focus-ring"
@@ -441,7 +441,6 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
           <RefreshCw size={17} strokeWidth={2.6} aria-hidden="true" />
         </button>
       </header>
-      <SpotifyCurrentTrack spotify={spotify} shouldReduceMotion={shouldReduceMotion} />
       <section className="spotify-card-recent" aria-labelledby="spotify-recent-heading">
         <h3 id="spotify-recent-heading">Recently Played</h3>
         {spotify.recentTracks.length ? (

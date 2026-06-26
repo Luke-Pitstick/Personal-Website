@@ -1,5 +1,4 @@
 import {
-  getCurrentlyPlaying,
   getRecentlyPlayed,
   getSpotifyAccessToken,
   hasSpotifyPlaybackCredentials,
@@ -34,18 +33,7 @@ export default async function handler(req, res) {
 
   try {
     const accessToken = await getSpotifyAccessToken();
-    const [currentTrack, recentTracks] = await Promise.all([
-      getCurrentlyPlaying(accessToken),
-      getRecentlyPlayed(accessToken, RECENT_TRACK_LIMIT).catch(() => []),
-    ]);
-
-    if (currentTrack) {
-      return json(res, 200, {
-        ...currentTrack,
-        recentTracks,
-      });
-    }
-
+    const recentTracks = await getRecentlyPlayed(accessToken, RECENT_TRACK_LIMIT);
     const recentTrack = recentTracks[0];
 
     if (recentTrack) {

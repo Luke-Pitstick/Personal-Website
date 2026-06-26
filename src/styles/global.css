@@ -562,6 +562,10 @@ span.spotify-card-art {
   background-color: #dfa5aa;
 }
 
+.spotify-card-art--tone-4 {
+  background-color: #8ecdd3;
+}
+
 .spotify-card-copy,
 .spotify-card-title,
 .spotify-card-subtitle {
