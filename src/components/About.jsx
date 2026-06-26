@@ -89,7 +89,7 @@ const initialSpotifyState = {
 
 const spotifyEndpoint = '/api/spotify/currently-playing';
 const spotifyWaveAnimationPath = '/spotify-now-wave-orange.json';
-const spotifyRecentTrackLimit = 4;
+const spotifyRecentTrackLimit = 3;
 const spotifyRefreshIntervalMs = 10 * 1000;
 const spotifyRequestTimeoutMs = 8 * 1000;
 const spotifyTrackEndRefreshBufferMs = 1500;
@@ -597,7 +597,7 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
       whileInView="show"
       viewport={viewportOnce}
       className={`spotify-listening-card w-full min-w-0 ${className}`}
-      aria-label="Last four Spotify songs"
+      aria-label="Last three Spotify songs"
     >
       <header className="spotify-card-header">
         <span>Currently Playing</span>
