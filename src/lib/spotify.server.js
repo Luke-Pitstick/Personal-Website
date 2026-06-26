@@ -3,6 +3,7 @@ const CURRENTLY_PLAYING_ENDPOINT = 'https://api.spotify.com/v1/me/player/current
 const RECENTLY_PLAYED_ENDPOINT = 'https://api.spotify.com/v1/me/player/recently-played';
 export const SPOTIFY_RECENT_TRACK_LIMIT = 4;
 const SPOTIFY_REQUEST_TIMEOUT_MS = 6500;
+const DEFAULT_SPOTIFY_BLOCKED_TERMS = ['weed'];
 
 export const spotifyScopes = ['user-read-currently-playing', 'user-read-recently-played'];
 
@@ -112,6 +113,34 @@ const getBestAlbumImage = (images = []) => {
   return images.find((image) => image.width >= 300) || images[0];
 };
 
+const getBlockedSpotifyTerms = () => {
+  const configuredTerms = process.env.SPOTIFY_BLOCKED_TERMS?.split(',') || [];
+
+  return [...DEFAULT_SPOTIFY_BLOCKED_TERMS, ...configuredTerms]
+    .map((term) => term.trim().toLowerCase())
+    .filter(Boolean);
+};
+
+const getSearchableSpotifyText = (...values) =>
+  values
+    .filter((value) => typeof value === 'string')
+    .join(' ')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+
+const hasBlockedSpotifyTerm = (track) => {
+  const searchableText = ` ${getSearchableSpotifyText(track.title, track.artist, track.album)} `;
+
+  if (!searchableText.trim()) return false;
+
+  return getBlockedSpotifyTerms().some((term) => {
+    const searchableTerm = getSearchableSpotifyText(term);
+
+    return searchableTerm.length > 0 && searchableText.includes(` ${searchableTerm} `);
+  });
+};
+
 const normalizeTrack = (track) => {
   if (!track) return null;
 
@@ -127,7 +156,7 @@ const normalizeTrack = (track) => {
 
   if (!title || !artist) return null;
 
-  return {
+  const normalizedTrack = {
     title,
     artist,
     album: track.album?.name || '',
@@ -135,6 +164,8 @@ const normalizeTrack = (track) => {
     url: track.external_urls?.spotify || null,
     durationMs: track.duration_ms || null,
   };
+
+  return hasBlockedSpotifyTerm(normalizedTrack) ? null : normalizedTrack;
 };
 
 const clampRecentlyPlayedLimit = (limit) => {

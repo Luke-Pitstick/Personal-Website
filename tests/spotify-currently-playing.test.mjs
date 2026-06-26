@@ -10,6 +10,7 @@ const originalEnv = {
   SPOTIFY_CLIENT_ID: process.env.SPOTIFY_CLIENT_ID,
   SPOTIFY_CLIENT_SECRET: process.env.SPOTIFY_CLIENT_SECRET,
   SPOTIFY_REFRESH_TOKEN: process.env.SPOTIFY_REFRESH_TOKEN,
+  SPOTIFY_BLOCKED_TERMS: process.env.SPOTIFY_BLOCKED_TERMS,
 };
 
 const makeSpotifyTrack = (name, artist, playedAtSuffix = '') => ({
@@ -158,6 +159,49 @@ describe('Spotify recently played data', () => {
       ],
     );
     assert.equal(recentTracks.length, 4);
+  });
+
+  test('skips tracks with blocked words before choosing the latest four songs', async () => {
+    globalThis.fetch = async () =>
+      mockJsonResponse({
+        items: [
+          makeRecentItem('Clean One', '2026-06-25T12:00:00.000Z'),
+          makeRecentItem('How Much Is Weed?', '2026-06-25T11:00:00.000Z'),
+          makeRecentItem('Clean Two', '2026-06-25T10:00:00.000Z'),
+          makeRecentItem('Clean Three', '2026-06-25T09:00:00.000Z'),
+          makeRecentItem('Clean Four', '2026-06-25T08:00:00.000Z'),
+        ],
+      });
+
+    const recentTracks = await getRecentlyPlayed('access-token', 4);
+
+    assert.deepEqual(
+      recentTracks.map((track) => track.title),
+      ['Clean One', 'Clean Two', 'Clean Three', 'Clean Four'],
+    );
+    assert.ok(!recentTracks.some((track) => /weed/i.test(track.title)));
+    assert.equal(recentTracks.length, 4);
+  });
+
+  test('supports additional blocked Spotify terms from configuration', async () => {
+    process.env.SPOTIFY_BLOCKED_TERMS = 'espresso';
+    globalThis.fetch = async () =>
+      mockJsonResponse({
+        items: [
+          makeRecentItem('Clean One', '2026-06-25T12:00:00.000Z'),
+          makeRecentItem('Midnight Espresso', '2026-06-25T11:00:00.000Z'),
+          makeRecentItem('Clean Two', '2026-06-25T10:00:00.000Z'),
+          makeRecentItem('Clean Three', '2026-06-25T09:00:00.000Z'),
+          makeRecentItem('Clean Four', '2026-06-25T08:00:00.000Z'),
+        ],
+      });
+
+    const recentTracks = await getRecentlyPlayed('access-token', 4);
+
+    assert.deepEqual(
+      recentTracks.map((track) => track.title),
+      ['Clean One', 'Clean Two', 'Clean Three', 'Clean Four'],
+    );
   });
 });
 
