@@ -116,6 +116,8 @@ const clampRecentlyPlayedLimit = (limit) => {
   return Math.min(50, Math.max(1, Math.trunc(numericLimit)));
 };
 
+const getRecentlyPlayedFetchLimit = (limit) => Math.min(50, Math.max(limit, limit * 2));
+
 const getPlayedAtTime = (track) => {
   const playedAtTime = Date.parse(track.playedAt || '');
 
@@ -152,7 +154,7 @@ export const getCurrentlyPlaying = async (accessToken) => {
 export const getRecentlyPlayed = async (accessToken, limit = SPOTIFY_RECENT_TRACK_LIMIT) => {
   const normalizedLimit = clampRecentlyPlayedLimit(limit);
   const params = new URLSearchParams({
-    limit: String(normalizedLimit),
+    limit: String(getRecentlyPlayedFetchLimit(normalizedLimit)),
   });
 
   const response = await fetch(`${RECENTLY_PLAYED_ENDPOINT}?${params.toString()}`, {
