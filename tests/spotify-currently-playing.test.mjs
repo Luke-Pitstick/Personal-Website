@@ -25,6 +25,12 @@ const makeSpotifyTrack = (name, artist, playedAtSuffix = '') => ({
   duration_ms: 180000,
 });
 
+const makeUrlLessSpotifyTrack = (name, artist) => {
+  const { external_urls: _externalUrls, ...track } = makeSpotifyTrack(name, artist);
+
+  return track;
+};
+
 const makeRecentItem = (name, playedAt) => ({
   played_at: playedAt,
   track: makeSpotifyTrack(name, `${name} Artist`, playedAt),
@@ -117,6 +123,38 @@ describe('Spotify recently played data', () => {
         'Second Song:2026-06-25T11:00:00.000Z',
         'Repeat Song:2026-06-25T10:00:00.000Z',
         'Fourth Song:2026-06-25T09:00:00.000Z',
+      ],
+    );
+    assert.equal(recentTracks.length, 4);
+  });
+
+  test('keeps URL-less local tracks in the exact last four songs', async () => {
+    globalThis.fetch = async () =>
+      mockJsonResponse({
+        items: [
+          {
+            played_at: '2026-06-25T12:00:00.000Z',
+            track: makeUrlLessSpotifyTrack('Local One', 'Local Artist'),
+          },
+          makeRecentItem('Second Song', '2026-06-25T11:00:00.000Z'),
+          {
+            played_at: '2026-06-25T10:00:00.000Z',
+            track: makeUrlLessSpotifyTrack('Local Three', 'Local Artist'),
+          },
+          makeRecentItem('Fourth Song', '2026-06-25T09:00:00.000Z'),
+          makeRecentItem('Fifth Song', '2026-06-25T08:00:00.000Z'),
+        ],
+      });
+
+    const recentTracks = await getRecentlyPlayed('access-token', 4);
+
+    assert.deepEqual(
+      recentTracks.map((track) => ({ title: track.title, url: track.url })),
+      [
+        { title: 'Local One', url: null },
+        { title: 'Second Song', url: 'https://open.spotify.com/track/Second Song2026-06-25T11:00:00.000Z' },
+        { title: 'Local Three', url: null },
+        { title: 'Fourth Song', url: 'https://open.spotify.com/track/Fourth Song2026-06-25T09:00:00.000Z' },
       ],
     );
     assert.equal(recentTracks.length, 4);
