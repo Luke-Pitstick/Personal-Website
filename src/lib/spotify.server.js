@@ -116,7 +116,7 @@ const clampRecentlyPlayedLimit = (limit) => {
   return Math.min(50, Math.max(1, Math.trunc(numericLimit)));
 };
 
-const getRecentlyPlayedFetchLimit = (limit) => Math.min(50, Math.max(limit, limit * 2));
+const getRecentlyPlayedFetchLimit = () => 50;
 
 const getPlayedAtTime = (track) => {
   const playedAtTime = Date.parse(track.playedAt || '');
