@@ -5,8 +5,8 @@ import {
   hasSpotifyPlaybackCredentials,
 } from '../../src/lib/spotify.server.js';
 
-const LIVE_PLAYBACK_CACHE = 'private, max-age=0, no-cache';
-const RECENT_PLAYBACK_CACHE = 'public, max-age=30, s-maxage=60, stale-while-revalidate=120';
+const LIVE_PLAYBACK_CACHE = 'private, no-store, max-age=0';
+const RECENT_TRACK_LIMIT = 4;
 
 const json = (res, statusCode, payload, cacheControl = LIVE_PLAYBACK_CACHE) => {
   res.setHeader('Cache-Control', cacheControl);
@@ -36,7 +36,7 @@ export default async function handler(req, res) {
     const accessToken = await getSpotifyAccessToken();
     const [currentTrack, recentTracks] = await Promise.all([
       getCurrentlyPlaying(accessToken),
-      getRecentlyPlayed(accessToken, 3).catch(() => []),
+      getRecentlyPlayed(accessToken, RECENT_TRACK_LIMIT).catch(() => []),
     ]);
 
     if (currentTrack) {
@@ -56,7 +56,7 @@ export default async function handler(req, res) {
           ...recentTrack,
           recentTracks,
         },
-        RECENT_PLAYBACK_CACHE,
+        LIVE_PLAYBACK_CACHE,
       );
     }
 
@@ -68,7 +68,7 @@ export default async function handler(req, res) {
         isPlaying: false,
         recentTracks: [],
       },
-      RECENT_PLAYBACK_CACHE,
+      LIVE_PLAYBACK_CACHE,
     );
   } catch (error) {
     console.error('Spotify currently-playing request failed:', error.message || error);
