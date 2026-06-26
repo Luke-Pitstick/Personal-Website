@@ -600,7 +600,7 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
       aria-label="Last four Spotify songs"
     >
       <header className="spotify-card-header">
-        <span>Last 4 Songs</span>
+        <span>Currently Playing</span>
         <button
           type="button"
           className="spotify-card-refresh focus-ring"
