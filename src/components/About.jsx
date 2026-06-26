@@ -93,6 +93,15 @@ const spotifyRecentTrackLimit = 4;
 const spotifyRefreshIntervalMs = 10 * 1000;
 const spotifyRequestTimeoutMs = 8 * 1000;
 const hasExactRecentTrackCount = (recentTracks) => recentTracks.length === spotifyRecentTrackLimit;
+const getSpotifyRequestUrl = (force = false) => {
+  const params = new URLSearchParams({ refresh: String(Date.now()) });
+
+  if (force) {
+    params.set('force', '1');
+  }
+
+  return `${spotifyEndpoint}?${params.toString()}`;
+};
 const normalizeSpotifyPayload = (spotify, isCached = false) => ({
   ...(spotify || {}),
   isCached,
@@ -308,7 +317,7 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
     }
 
     try {
-      const response = await fetch(force ? `${spotifyEndpoint}?refresh=${Date.now()}` : spotifyEndpoint, {
+      const response = await fetch(getSpotifyRequestUrl(force), {
         cache: 'no-store',
         signal: timedSignal.signal,
       });
