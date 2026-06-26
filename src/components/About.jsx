@@ -485,7 +485,16 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
     return () => {
       trackEndRefreshes.forEach((trackEndRefresh) => window.clearTimeout(trackEndRefresh));
     };
-  }, [refreshSpotify, spotify.durationMs, spotify.progressMs, spotify.status, spotify.url]);
+  }, [
+    refreshSpotify,
+    spotify.album,
+    spotify.artist,
+    spotify.durationMs,
+    spotify.progressMs,
+    spotify.status,
+    spotify.title,
+    spotify.url,
+  ]);
 
   useEffect(() => {
     const currentTrackKey = getSpotifyCurrentTrackKey(spotify);

@@ -150,6 +150,32 @@ describe('/api/spotify/currently-playing', () => {
 });
 
 describe('Spotify listening board realtime refresh triggers', () => {
+  test('track-end refresh effect reruns when URL-less track metadata changes', async () => {
+    const aboutSource = await readFile(new URL('../src/components/About.jsx', import.meta.url), 'utf8');
+    const trackEndEffect = aboutSource.match(
+      /useEffect\(\(\) => \{\n\s+const trackEndRefreshDelay = getSpotifyTrackEndRefreshDelay\(spotify\);[\s\S]+?\}, \[(?<dependencies>[^\]]+)\]\);/,
+    );
+
+    assert.ok(trackEndEffect, 'Expected to find the Spotify track-end refresh effect.');
+
+    const dependencies = trackEndEffect.groups.dependencies
+      .split(',')
+      .map((dependency) => dependency.trim())
+      .filter(Boolean)
+      .sort();
+
+    assert.deepEqual(dependencies, [
+      'refreshSpotify',
+      'spotify.album',
+      'spotify.artist',
+      'spotify.durationMs',
+      'spotify.progressMs',
+      'spotify.status',
+      'spotify.title',
+      'spotify.url',
+    ]);
+  });
+
   test('current-track catch-up effect reruns when URL-less track metadata changes', async () => {
     const aboutSource = await readFile(new URL('../src/components/About.jsx', import.meta.url), 'utf8');
     const catchUpEffect = aboutSource.match(
@@ -161,6 +187,7 @@ describe('Spotify listening board realtime refresh triggers', () => {
     const dependencies = catchUpEffect.groups.dependencies
       .split(',')
       .map((dependency) => dependency.trim())
+      .filter(Boolean)
       .sort();
 
     assert.deepEqual(dependencies, [
