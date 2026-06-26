@@ -12,6 +12,8 @@ const json = (res, statusCode, payload, cacheControl = LIVE_PLAYBACK_CACHE) => {
   return res.status(statusCode).json(payload);
 };
 
+const hasExactRecentTrackCount = (recentTracks) => recentTracks.length === SPOTIFY_RECENT_TRACK_LIMIT;
+
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET');
@@ -34,27 +36,19 @@ export default async function handler(req, res) {
   try {
     const accessToken = await getSpotifyAccessToken();
     const recentTracks = await getRecentlyPlayed(accessToken, SPOTIFY_RECENT_TRACK_LIMIT);
-    const recentTrack = recentTracks[0];
 
-    if (recentTrack) {
-      return json(
-        res,
-        200,
-        {
-          ...recentTrack,
-          recentTracks,
-        },
-        LIVE_PLAYBACK_CACHE,
-      );
+    if (!hasExactRecentTrackCount(recentTracks)) {
+      throw new Error(`Spotify returned ${recentTracks.length} of ${SPOTIFY_RECENT_TRACK_LIMIT} recent tracks.`);
     }
+
+    const recentTrack = recentTracks[0];
 
     return json(
       res,
       200,
       {
-        status: 'idle',
-        isPlaying: false,
-        recentTracks: [],
+        ...recentTrack,
+        recentTracks,
       },
       LIVE_PLAYBACK_CACHE,
     );

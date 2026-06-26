@@ -91,6 +91,7 @@ const spotifyEndpoint = '/api/spotify/currently-playing';
 const spotifyWaveAnimationPath = '/spotify-now-wave-orange.json';
 const spotifyRecentTrackLimit = 4;
 const spotifyRefreshIntervalMs = 10 * 1000;
+const hasExactRecentTrackCount = (recentTracks) => recentTracks.length === spotifyRecentTrackLimit;
 const normalizeSpotifyPayload = (spotify, isCached = false) => ({
   ...(spotify || {}),
   isCached,
@@ -288,6 +289,10 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
       }
 
       const data = normalizeSpotifyPayload(await response.json());
+      if (data.status !== 'unconfigured' && !hasExactRecentTrackCount(data.recentTracks)) {
+        throw new Error('Spotify response did not include exactly four recent tracks.');
+      }
+
       if (isLatestRequest()) {
         setSpotify(data);
       }
@@ -296,7 +301,7 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
         setSpotify((currentSpotify) => {
           const recentTracks = (currentSpotify.recentTracks || []).filter(Boolean).slice(0, spotifyRecentTrackLimit);
 
-          if (recentTracks.length) {
+          if (hasExactRecentTrackCount(recentTracks)) {
             return {
               status: 'error',
               isPlaying: false,
