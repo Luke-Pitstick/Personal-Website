@@ -150,6 +150,20 @@ describe('/api/spotify/currently-playing', () => {
 });
 
 describe('Spotify listening board realtime refresh triggers', () => {
+  test('cached fallback preserves the now-playing data with the exact recent songs', async () => {
+    const aboutSource = await readFile(new URL('../src/components/About.jsx', import.meta.url), 'utf8');
+    const cachedFallback = aboutSource.match(
+      /if \(hasExactRecentTrackCount\(recentTracks\)\) \{\n\s+return \{\n(?<body>[\s\S]+?)\n\s+\};\n\s+\}/,
+    );
+
+    assert.ok(cachedFallback, 'Expected to find the cached Spotify fallback.');
+    assert.match(cachedFallback.groups.body, /\.\.\.currentSpotify/);
+    assert.match(cachedFallback.groups.body, /isCached: true/);
+    assert.match(cachedFallback.groups.body, /recentTracks/);
+    assert.doesNotMatch(cachedFallback.groups.body, /status: 'error'/);
+    assert.doesNotMatch(cachedFallback.groups.body, /isPlaying: false/);
+  });
+
   test('track-end refresh effect reruns when URL-less track metadata changes', async () => {
     const aboutSource = await readFile(new URL('../src/components/About.jsx', import.meta.url), 'utf8');
     const trackEndEffect = aboutSource.match(

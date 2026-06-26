@@ -383,8 +383,7 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
 
           if (hasExactRecentTrackCount(recentTracks)) {
             return {
-              status: 'error',
-              isPlaying: false,
+              ...currentSpotify,
               isCached: true,
               recentTracks,
             };
