@@ -124,6 +124,8 @@ const getPlayedAtTime = (track) => {
   return Number.isNaN(playedAtTime) ? 0 : playedAtTime;
 };
 
+const hasValidPlayedAt = (track) => getPlayedAtTime(track) > 0;
+
 export const getCurrentlyPlaying = async (accessToken) => {
   const response = await fetch(CURRENTLY_PLAYING_ENDPOINT, {
     headers: {
@@ -183,6 +185,7 @@ export const getRecentlyPlayed = async (accessToken, limit = SPOTIFY_RECENT_TRAC
       };
     })
     .filter(Boolean)
+    .filter(hasValidPlayedAt)
     .sort((firstTrack, secondTrack) => getPlayedAtTime(secondTrack) - getPlayedAtTime(firstTrack))
     .slice(0, normalizedLimit);
 };
