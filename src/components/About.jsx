@@ -91,12 +91,40 @@ const spotifyEndpoint = '/api/spotify/currently-playing';
 const spotifyWaveAnimationPath = '/spotify-now-wave-orange.json';
 const spotifyRecentTrackLimit = 4;
 const spotifyRefreshIntervalMs = 10 * 1000;
+const spotifyRequestTimeoutMs = 8 * 1000;
 const hasExactRecentTrackCount = (recentTracks) => recentTracks.length === spotifyRecentTrackLimit;
 const normalizeSpotifyPayload = (spotify, isCached = false) => ({
   ...(spotify || {}),
   isCached,
   recentTracks: (spotify?.recentTracks || []).filter(Boolean).slice(0, spotifyRecentTrackLimit),
 });
+
+const createTimedSpotifySignal = (externalSignal) => {
+  const controller = new AbortController();
+  let timedOut = false;
+
+  const timeoutId = window.setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, spotifyRequestTimeoutMs);
+
+  const abortFromExternalSignal = () => controller.abort();
+
+  if (externalSignal?.aborted) {
+    controller.abort();
+  } else {
+    externalSignal?.addEventListener('abort', abortFromExternalSignal, { once: true });
+  }
+
+  return {
+    signal: controller.signal,
+    didTimeOut: () => timedOut,
+    cleanup: () => {
+      window.clearTimeout(timeoutId);
+      externalSignal?.removeEventListener('abort', abortFromExternalSignal);
+    },
+  };
+};
 
 const getTrackInitials = (track) => {
   if (!track?.title) return 'SP';
@@ -273,6 +301,7 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
   const loadSpotify = useCallback(async ({ signal, force = false, showRefresh = false } = {}) => {
     const requestId = (latestSpotifyRequestRef.current += 1);
     const isLatestRequest = () => requestId === latestSpotifyRequestRef.current && !signal?.aborted;
+    const timedSignal = createTimedSpotifySignal(signal);
 
     if (showRefresh) {
       setIsRefreshing(true);
@@ -281,7 +310,7 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
     try {
       const response = await fetch(force ? `${spotifyEndpoint}?refresh=${Date.now()}` : spotifyEndpoint, {
         cache: 'no-store',
-        signal,
+        signal: timedSignal.signal,
       });
 
       if (!response.ok) {
@@ -297,7 +326,9 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
         setSpotify(data);
       }
     } catch (error) {
-      if (error.name !== 'AbortError' && isLatestRequest()) {
+      const wasExternallyAborted = error.name === 'AbortError' && signal?.aborted && !timedSignal.didTimeOut();
+
+      if (!wasExternallyAborted && isLatestRequest()) {
         setSpotify((currentSpotify) => {
           const recentTracks = (currentSpotify.recentTracks || []).filter(Boolean).slice(0, spotifyRecentTrackLimit);
 
@@ -314,6 +345,8 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
         });
       }
     } finally {
+      timedSignal.cleanup();
+
       if (showRefresh && !signal?.aborted) {
         setIsRefreshing(false);
       }
