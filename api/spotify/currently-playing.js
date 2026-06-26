@@ -36,8 +36,11 @@ export default async function handler(req, res) {
 
   try {
     const accessToken = await getSpotifyAccessToken();
-    const [currentTrack, recentTracks] = await Promise.all([
-      getCurrentlyPlaying(accessToken),
+    const [currentTrackResult, recentTracks] = await Promise.all([
+      getCurrentlyPlaying(accessToken).catch((error) => {
+        console.error('Spotify current playback lookup failed:', error.message || error);
+        return null;
+      }),
       getRecentlyPlayed(accessToken, SPOTIFY_RECENT_TRACK_LIMIT),
     ]);
 
@@ -49,7 +52,7 @@ export default async function handler(req, res) {
       res,
       200,
       {
-        ...(currentTrack || {
+        ...(currentTrackResult || {
           status: 'idle',
           isPlaying: false,
         }),

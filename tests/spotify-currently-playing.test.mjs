@@ -147,6 +147,58 @@ describe('/api/spotify/currently-playing', () => {
     assert.ok(!res.payload.recentTracks.some((track) => track.title === 'Current Song'));
     assert.match(res.headers['Cache-Control'], /no-store/);
   });
+
+  test('still returns the exact last four recent songs when current playback lookup fails', async () => {
+    process.env.SPOTIFY_CLIENT_ID = 'client-id';
+    process.env.SPOTIFY_CLIENT_SECRET = 'client-secret';
+    process.env.SPOTIFY_REFRESH_TOKEN = 'refresh-token';
+
+    globalThis.fetch = async (url) => {
+      const requestUrl = String(url);
+
+      if (requestUrl === 'https://accounts.spotify.com/api/token') {
+        return mockJsonResponse({ access_token: 'access-token' });
+      }
+
+      if (requestUrl === 'https://api.spotify.com/v1/me/player/currently-playing') {
+        return mockJsonResponse(
+          {
+            error: {
+              message: 'Current playback temporarily unavailable',
+            },
+          },
+          { status: 503 },
+        );
+      }
+
+      if (requestUrl.startsWith('https://api.spotify.com/v1/me/player/recently-played')) {
+        return mockJsonResponse({
+          items: [
+            makeRecentItem('Recent One', '2026-06-25T12:00:00.000Z'),
+            makeRecentItem('Recent Two', '2026-06-25T11:00:00.000Z'),
+            makeRecentItem('Recent Three', '2026-06-25T10:00:00.000Z'),
+            makeRecentItem('Recent Four', '2026-06-25T09:00:00.000Z'),
+          ],
+        });
+      }
+
+      throw new Error(`Unexpected Spotify URL: ${requestUrl}`);
+    };
+
+    const res = createMockResponse();
+
+    await currentlyPlayingHandler({ method: 'GET' }, res);
+
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.payload.status, 'idle');
+    assert.equal(res.payload.isPlaying, false);
+    assert.deepEqual(
+      res.payload.recentTracks.map((track) => track.title),
+      ['Recent One', 'Recent Two', 'Recent Three', 'Recent Four'],
+    );
+    assert.equal(res.payload.recentTracks.length, 4);
+    assert.match(res.headers['Cache-Control'], /no-store/);
+  });
 });
 
 describe('Spotify listening board realtime refresh triggers', () => {
