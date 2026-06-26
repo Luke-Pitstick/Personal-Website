@@ -434,7 +434,6 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
     window.addEventListener('pageshow', refreshSpotify);
 
     return () => {
-      isMounted = false;
       window.clearInterval(refreshInterval);
       document.removeEventListener('visibilitychange', refreshWhenVisible);
       window.removeEventListener('focus', refreshSpotify);
