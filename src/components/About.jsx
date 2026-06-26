@@ -92,6 +92,8 @@ const spotifyWaveAnimationPath = '/spotify-now-wave-orange.json';
 const spotifyRecentTrackLimit = 4;
 const spotifyRefreshIntervalMs = 10 * 1000;
 const spotifyRequestTimeoutMs = 8 * 1000;
+const spotifyTrackEndRefreshBufferMs = 1500;
+const spotifyTrackEndRefreshMinDelayMs = 750;
 const hasExactRecentTrackCount = (recentTracks) => recentTracks.length === spotifyRecentTrackLimit;
 const getSpotifyRequestUrl = (force = false) => {
   const params = new URLSearchParams({ refresh: String(Date.now()) });
@@ -106,6 +108,15 @@ const hasTextValue = (value) => typeof value === 'string' && value.trim().length
 const getRecentTrackTime = (track) => Date.parse(track?.playedAt || '');
 const hasUsableRecentTrack = (track) =>
   Boolean(hasTextValue(track?.title) && hasTextValue(track?.artist) && !Number.isNaN(getRecentTrackTime(track)));
+const getSpotifyTrackEndRefreshDelay = (spotify) => {
+  if (spotify?.status !== 'playing' || !spotify.durationMs || spotify.progressMs == null) return null;
+
+  const remainingMs = spotify.durationMs - spotify.progressMs;
+
+  if (!Number.isFinite(remainingMs)) return null;
+
+  return Math.max(spotifyTrackEndRefreshMinDelayMs, remainingMs + spotifyTrackEndRefreshBufferMs);
+};
 const normalizeSpotifyPayload = (spotify, isCached = false) => ({
   ...(spotify || {}),
   isCached,
@@ -447,6 +458,18 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
       refreshState.controllers.clear();
     };
   }, [refreshSpotify]);
+
+  useEffect(() => {
+    const trackEndRefreshDelay = getSpotifyTrackEndRefreshDelay(spotify);
+
+    if (trackEndRefreshDelay == null) return undefined;
+
+    const trackEndRefresh = window.setTimeout(refreshSpotify, trackEndRefreshDelay);
+
+    return () => {
+      window.clearTimeout(trackEndRefresh);
+    };
+  }, [refreshSpotify, spotify.durationMs, spotify.progressMs, spotify.status]);
 
   const footerState =
     spotify.isCached
