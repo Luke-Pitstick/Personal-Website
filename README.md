@@ -4,6 +4,29 @@ This is the source code for my personal website. It is built using Astro and dep
 
 The live website can be found at https://lukepitstick.com
 
+## Spotify listening card
+
+The About page includes a live Spotify listening card. `/api/spotify/currently-playing` returns the current track when Spotify has an active or paused playback item, plus `recentTracks` with the exact last four completed plays from Spotify history. The card refreshes every 10 seconds, retries around expected track changes, and keeps cached recent tracks visible while a refresh is incomplete.
+
+Required Vercel environment variables:
+
+- `SPOTIFY_CLIENT_ID`
+- `SPOTIFY_CLIENT_SECRET`
+- `SPOTIFY_REFRESH_TOKEN`
+
+Optional Spotify setup variables:
+
+- `SPOTIFY_REDIRECT_URI` overrides the inferred `/api/spotify/callback` URL.
+- `SPOTIFY_AUTH_STATE` enables state validation during the authorization callback.
+
+To generate a refresh token, set the client credentials, visit `/api/spotify/login`, authorize the app with the displayed scopes, then add the returned `SPOTIFY_REFRESH_TOKEN` to Vercel and redeploy.
+
+Run the focused Spotify regression tests with:
+
+```sh
+npm run test:spotify
+```
+
 ## Deployment
 
 Vercel should use `npm run build` as the build command and `dist` as the output directory. Redirects are managed in `vercel.json`.

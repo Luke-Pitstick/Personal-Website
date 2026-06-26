@@ -92,6 +92,12 @@ const spotifyWaveAnimationPath = '/spotify-now-wave-orange.json';
 const spotifyRecentTrackLimit = 4;
 const spotifyRefreshIntervalMs = 10 * 1000;
 const spotifyRequestTimeoutMs = 8 * 1000;
+const spotifyTrackEndRefreshBufferMs = 1500;
+const spotifyTrackEndRefreshMinDelayMs = 750;
+const spotifyTrackEndRefreshRetryDelaysMs = [0, 2500, 6500];
+const spotifyTrackChangeRefreshRetryDelaysMs = [1000, 3500, 7500];
+const spotifyInitialTrackCatchUpMaxProgressMs = 15 * 1000;
+const spotifyTrackRestartProgressDropMs = 10 * 1000;
 const hasExactRecentTrackCount = (recentTracks) => recentTracks.length === spotifyRecentTrackLimit;
 const getSpotifyRequestUrl = (force = false) => {
   const params = new URLSearchParams({ refresh: String(Date.now()) });
@@ -106,6 +112,22 @@ const hasTextValue = (value) => typeof value === 'string' && value.trim().length
 const getRecentTrackTime = (track) => Date.parse(track?.playedAt || '');
 const hasUsableRecentTrack = (track) =>
   Boolean(hasTextValue(track?.title) && hasTextValue(track?.artist) && !Number.isNaN(getRecentTrackTime(track)));
+const getSpotifyCurrentTrackKey = (spotify) => {
+  if (!['playing', 'paused'].includes(spotify?.status)) return null;
+  if (hasTextValue(spotify.url)) return spotify.url.trim();
+  if (!hasTextValue(spotify.title) || !hasTextValue(spotify.artist)) return null;
+
+  return [spotify.title, spotify.artist, spotify.album || ''].map((value) => String(value).trim()).join('|');
+};
+const getSpotifyTrackEndRefreshDelay = (spotify) => {
+  if (spotify?.status !== 'playing' || !spotify.durationMs || spotify.progressMs == null) return null;
+
+  const remainingMs = spotify.durationMs - spotify.progressMs;
+
+  if (!Number.isFinite(remainingMs)) return null;
+
+  return Math.max(spotifyTrackEndRefreshMinDelayMs, remainingMs + spotifyTrackEndRefreshBufferMs);
+};
 const normalizeSpotifyPayload = (spotify, isCached = false) => ({
   ...(spotify || {}),
   isCached,
@@ -114,6 +136,22 @@ const normalizeSpotifyPayload = (spotify, isCached = false) => ({
     .sort((firstTrack, secondTrack) => getRecentTrackTime(secondTrack) - getRecentTrackTime(firstTrack))
     .slice(0, spotifyRecentTrackLimit),
 });
+const getExactCachedRecentTracks = (spotify) => {
+  const recentTracks = normalizeSpotifyPayload(spotify, true).recentTracks;
+
+  return hasExactRecentTrackCount(recentTracks) ? recentTracks : null;
+};
+const mergeSpotifyPayloadWithCachedRecentTracks = (spotify, cachedSpotify) => {
+  const recentTracks = getExactCachedRecentTracks(cachedSpotify);
+
+  if (!recentTracks) return null;
+
+  return {
+    ...spotify,
+    isCached: true,
+    recentTracks,
+  };
+};
 
 const createTimedSpotifySignal = (externalSignal) => {
   const controller = new AbortController();
@@ -313,6 +351,11 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
   const [spotify, setSpotify] = useState(initialSpotifyState);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const latestSpotifyRequestRef = useRef(0);
+  const previousSpotifyCurrentTrackKeyRef = useRef(null);
+  const previousSpotifyProgressMsRef = useRef(null);
+  const recentHistoryCatchUpTrackKeyRef = useRef(null);
+  const recentHistoryCatchUpTimeoutsRef = useRef([]);
+  const trackEndRefreshTimeoutsRef = useRef([]);
   const spotifyRefreshStateRef = useRef({
     controllers: new Set(),
     hasQueuedRefresh: false,
@@ -343,7 +386,18 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
 
       const data = normalizeSpotifyPayload(await response.json());
       if (data.status !== 'unconfigured' && !hasExactRecentTrackCount(data.recentTracks)) {
-        throw new Error('Spotify response did not include exactly four recent tracks.');
+        if (isLatestRequest()) {
+          setSpotify(
+            (currentSpotify) =>
+              mergeSpotifyPayloadWithCachedRecentTracks(data, currentSpotify) || {
+                status: 'error',
+                isPlaying: false,
+                recentTracks: [],
+              },
+          );
+        }
+
+        return;
       }
 
       if (isLatestRequest()) {
@@ -354,16 +408,9 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
 
       if (!wasExternallyAborted && isLatestRequest()) {
         setSpotify((currentSpotify) => {
-          const recentTracks = normalizeSpotifyPayload(currentSpotify, true).recentTracks;
+          const cachedSpotify = mergeSpotifyPayloadWithCachedRecentTracks(currentSpotify, currentSpotify);
 
-          if (hasExactRecentTrackCount(recentTracks)) {
-            return {
-              status: 'error',
-              isPlaying: false,
-              isCached: true,
-              recentTracks,
-            };
-          }
+          if (cachedSpotify) return cachedSpotify;
 
           return { status: 'error', isPlaying: false, recentTracks: [] };
         });
@@ -416,6 +463,19 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
     [loadSpotify],
   );
 
+  const clearSpotifyRefreshTimeouts = useCallback((timeoutsRef) => {
+    timeoutsRef.current.forEach((timeoutId) => window.clearTimeout(timeoutId));
+    timeoutsRef.current = [];
+  }, []);
+
+  const scheduleSpotifyRefreshBurst = useCallback(
+    (timeoutsRef, delays) => {
+      clearSpotifyRefreshTimeouts(timeoutsRef);
+      timeoutsRef.current = delays.map((delay) => window.setTimeout(refreshSpotify, delay));
+    },
+    [clearSpotifyRefreshTimeouts, refreshSpotify],
+  );
+
   useEffect(() => {
     const refreshState = spotifyRefreshStateRef.current;
     refreshState.isMounted = true;
@@ -434,7 +494,6 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
     window.addEventListener('pageshow', refreshSpotify);
 
     return () => {
-      isMounted = false;
       window.clearInterval(refreshInterval);
       document.removeEventListener('visibilitychange', refreshWhenVisible);
       window.removeEventListener('focus', refreshSpotify);
@@ -446,8 +505,83 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
       refreshState.queuedShowRefresh = false;
       refreshState.controllers.forEach((controller) => controller.abort());
       refreshState.controllers.clear();
+      clearSpotifyRefreshTimeouts(trackEndRefreshTimeoutsRef);
+      clearSpotifyRefreshTimeouts(recentHistoryCatchUpTimeoutsRef);
     };
-  }, [refreshSpotify]);
+  }, [clearSpotifyRefreshTimeouts, refreshSpotify]);
+
+  useEffect(() => {
+    const trackEndRefreshDelay = getSpotifyTrackEndRefreshDelay(spotify);
+
+    if (trackEndRefreshDelay == null) return undefined;
+
+    scheduleSpotifyRefreshBurst(
+      trackEndRefreshTimeoutsRef,
+      spotifyTrackEndRefreshRetryDelaysMs.map((retryDelay) => trackEndRefreshDelay + retryDelay),
+    );
+
+    return undefined;
+  }, [
+    refreshSpotify,
+    scheduleSpotifyRefreshBurst,
+    spotify.album,
+    spotify.artist,
+    spotify.durationMs,
+    spotify.progressMs,
+    spotify.status,
+    spotify.title,
+    spotify.url,
+  ]);
+
+  useEffect(() => {
+    const currentTrackKey = getSpotifyCurrentTrackKey(spotify);
+    const currentProgressMs =
+      currentTrackKey && Number.isFinite(spotify.progressMs) ? Math.max(0, spotify.progressMs) : null;
+    const previousTrackKey = previousSpotifyCurrentTrackKeyRef.current;
+    const previousProgressMs = previousSpotifyProgressMsRef.current;
+    previousSpotifyCurrentTrackKeyRef.current = currentTrackKey;
+    previousSpotifyProgressMsRef.current = currentProgressMs;
+    const isInitialTrackWithUnknownProgress = !previousTrackKey && currentTrackKey && currentProgressMs == null;
+    const isInitialTrackNearStart =
+      !previousTrackKey &&
+      currentTrackKey &&
+      currentProgressMs != null &&
+      currentProgressMs <= spotifyInitialTrackCatchUpMaxProgressMs;
+    const hasSameTrackRestartedNearStart =
+      previousTrackKey === currentTrackKey &&
+      currentTrackKey &&
+      previousProgressMs != null &&
+      currentProgressMs != null &&
+      previousProgressMs - currentProgressMs >= spotifyTrackRestartProgressDropMs &&
+      currentProgressMs <= spotifyInitialTrackCatchUpMaxProgressMs;
+    const catchUpKey = hasSameTrackRestartedNearStart
+      ? `${currentTrackKey}:${previousProgressMs}->${currentProgressMs}`
+      : currentTrackKey;
+
+    if (
+      !currentTrackKey ||
+      (previousTrackKey === currentTrackKey && !hasSameTrackRestartedNearStart) ||
+      (!previousTrackKey && !isInitialTrackWithUnknownProgress && !isInitialTrackNearStart) ||
+      recentHistoryCatchUpTrackKeyRef.current === catchUpKey
+    ) {
+      return undefined;
+    }
+
+    recentHistoryCatchUpTrackKeyRef.current = catchUpKey;
+
+    scheduleSpotifyRefreshBurst(recentHistoryCatchUpTimeoutsRef, spotifyTrackChangeRefreshRetryDelaysMs);
+
+    return undefined;
+  }, [
+    refreshSpotify,
+    scheduleSpotifyRefreshBurst,
+    spotify.album,
+    spotify.artist,
+    spotify.progressMs,
+    spotify.status,
+    spotify.title,
+    spotify.url,
+  ]);
 
   const footerState =
     spotify.isCached
@@ -478,6 +612,7 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
           <RefreshCw size={17} strokeWidth={2.6} aria-hidden="true" />
         </button>
       </header>
+      <SpotifyCurrentTrack spotify={spotify} shouldReduceMotion={shouldReduceMotion} />
       <section className="spotify-card-recent" aria-labelledby="spotify-recent-heading">
         <h3 id="spotify-recent-heading">Recently Played</h3>
         {spotify.recentTracks.length ? (
