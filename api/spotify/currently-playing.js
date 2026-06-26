@@ -1,5 +1,6 @@
 import {
   SPOTIFY_RECENT_TRACK_LIMIT,
+  getCurrentlyPlaying,
   getRecentlyPlayed,
   getSpotifyAccessToken,
   hasSpotifyPlaybackCredentials,
@@ -35,19 +36,23 @@ export default async function handler(req, res) {
 
   try {
     const accessToken = await getSpotifyAccessToken();
-    const recentTracks = await getRecentlyPlayed(accessToken, SPOTIFY_RECENT_TRACK_LIMIT);
+    const [currentTrack, recentTracks] = await Promise.all([
+      getCurrentlyPlaying(accessToken),
+      getRecentlyPlayed(accessToken, SPOTIFY_RECENT_TRACK_LIMIT),
+    ]);
 
     if (!hasExactRecentTrackCount(recentTracks)) {
       throw new Error(`Spotify returned ${recentTracks.length} of ${SPOTIFY_RECENT_TRACK_LIMIT} recent tracks.`);
     }
 
-    const recentTrack = recentTracks[0];
-
     return json(
       res,
       200,
       {
-        ...recentTrack,
+        ...(currentTrack || {
+          status: 'idle',
+          isPlaying: false,
+        }),
         recentTracks,
       },
       LIVE_PLAYBACK_CACHE,

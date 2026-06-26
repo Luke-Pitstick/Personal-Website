@@ -478,6 +478,7 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
           <RefreshCw size={17} strokeWidth={2.6} aria-hidden="true" />
         </button>
       </header>
+      <SpotifyCurrentTrack spotify={spotify} shouldReduceMotion={shouldReduceMotion} />
       <section className="spotify-card-recent" aria-labelledby="spotify-recent-heading">
         <h3 id="spotify-recent-heading">Recently Played</h3>
         {spotify.recentTracks.length ? (
