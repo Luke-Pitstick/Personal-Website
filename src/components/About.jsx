@@ -364,13 +364,28 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
 
   useEffect(() => {
     const controllers = new Set();
+    let isMounted = true;
+    let isRefreshInFlight = false;
+    let hasQueuedRefresh = false;
 
     const refreshSpotify = () => {
+      if (isRefreshInFlight) {
+        hasQueuedRefresh = true;
+        return;
+      }
+
       const controller = new AbortController();
+      isRefreshInFlight = true;
       controllers.add(controller);
 
       loadSpotify({ signal: controller.signal }).finally(() => {
         controllers.delete(controller);
+        isRefreshInFlight = false;
+
+        if (isMounted && hasQueuedRefresh) {
+          hasQueuedRefresh = false;
+          refreshSpotify();
+        }
       });
     };
 
@@ -388,6 +403,7 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
     window.addEventListener('pageshow', refreshSpotify);
 
     return () => {
+      isMounted = false;
       window.clearInterval(refreshInterval);
       document.removeEventListener('visibilitychange', refreshWhenVisible);
       window.removeEventListener('focus', refreshSpotify);
