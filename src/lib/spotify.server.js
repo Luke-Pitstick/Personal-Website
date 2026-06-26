@@ -2,6 +2,7 @@ const TOKEN_ENDPOINT = 'https://accounts.spotify.com/api/token';
 const CURRENTLY_PLAYING_ENDPOINT = 'https://api.spotify.com/v1/me/player/currently-playing';
 const RECENTLY_PLAYED_ENDPOINT = 'https://api.spotify.com/v1/me/player/recently-played';
 export const SPOTIFY_RECENT_TRACK_LIMIT = 4;
+const SPOTIFY_REQUEST_TIMEOUT_MS = 6500;
 
 export const spotifyScopes = ['user-read-currently-playing', 'user-read-recently-played'];
 
@@ -40,8 +41,28 @@ const getBasicAuthorization = () => {
   return Buffer.from(credentials).toString('base64');
 };
 
+const fetchSpotify = async (url, options = {}) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), SPOTIFY_REQUEST_TIMEOUT_MS);
+
+  try {
+    return await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      throw new Error('Spotify request timed out.');
+    }
+
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+};
+
 export const exchangeCodeForTokens = async ({ code, redirectUri }) => {
-  const response = await fetch(TOKEN_ENDPOINT, {
+  const response = await fetchSpotify(TOKEN_ENDPOINT, {
     method: 'POST',
     headers: {
       Authorization: `Basic ${getBasicAuthorization()}`,
@@ -64,7 +85,7 @@ export const exchangeCodeForTokens = async ({ code, redirectUri }) => {
 };
 
 export const getSpotifyAccessToken = async () => {
-  const response = await fetch(TOKEN_ENDPOINT, {
+  const response = await fetchSpotify(TOKEN_ENDPOINT, {
     method: 'POST',
     headers: {
       Authorization: `Basic ${getBasicAuthorization()}`,
@@ -127,7 +148,7 @@ const getPlayedAtTime = (track) => {
 const hasValidPlayedAt = (track) => getPlayedAtTime(track) > 0;
 
 export const getCurrentlyPlaying = async (accessToken) => {
-  const response = await fetch(CURRENTLY_PLAYING_ENDPOINT, {
+  const response = await fetchSpotify(CURRENTLY_PLAYING_ENDPOINT, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
@@ -159,7 +180,7 @@ export const getRecentlyPlayed = async (accessToken, limit = SPOTIFY_RECENT_TRAC
     limit: String(getRecentlyPlayedFetchLimit(normalizedLimit)),
   });
 
-  const response = await fetch(`${RECENTLY_PLAYED_ENDPOINT}?${params.toString()}`, {
+  const response = await fetchSpotify(`${RECENTLY_PLAYED_ENDPOINT}?${params.toString()}`, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
