@@ -1,11 +1,11 @@
 import {
+  SPOTIFY_RECENT_TRACK_LIMIT,
   getRecentlyPlayed,
   getSpotifyAccessToken,
   hasSpotifyPlaybackCredentials,
 } from '../../src/lib/spotify.server.js';
 
 const LIVE_PLAYBACK_CACHE = 'private, no-store, max-age=0';
-const RECENT_TRACK_LIMIT = 4;
 
 const json = (res, statusCode, payload, cacheControl = LIVE_PLAYBACK_CACHE) => {
   res.setHeader('Cache-Control', cacheControl);
@@ -33,7 +33,7 @@ export default async function handler(req, res) {
 
   try {
     const accessToken = await getSpotifyAccessToken();
-    const recentTracks = await getRecentlyPlayed(accessToken, RECENT_TRACK_LIMIT);
+    const recentTracks = await getRecentlyPlayed(accessToken, SPOTIFY_RECENT_TRACK_LIMIT);
     const recentTrack = recentTracks[0];
 
     if (recentTrack) {

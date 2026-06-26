@@ -1,6 +1,7 @@
 const TOKEN_ENDPOINT = 'https://accounts.spotify.com/api/token';
 const CURRENTLY_PLAYING_ENDPOINT = 'https://api.spotify.com/v1/me/player/currently-playing';
 const RECENTLY_PLAYED_ENDPOINT = 'https://api.spotify.com/v1/me/player/recently-played';
+export const SPOTIFY_RECENT_TRACK_LIMIT = 4;
 
 export const spotifyScopes = ['user-read-currently-playing', 'user-read-recently-played'];
 
@@ -105,6 +106,22 @@ const normalizeTrack = (track) => {
   };
 };
 
+const clampRecentlyPlayedLimit = (limit) => {
+  const numericLimit = Number(limit);
+
+  if (!Number.isFinite(numericLimit)) {
+    return SPOTIFY_RECENT_TRACK_LIMIT;
+  }
+
+  return Math.min(50, Math.max(1, Math.trunc(numericLimit)));
+};
+
+const getPlayedAtTime = (track) => {
+  const playedAtTime = Date.parse(track.playedAt || '');
+
+  return Number.isNaN(playedAtTime) ? 0 : playedAtTime;
+};
+
 export const getCurrentlyPlaying = async (accessToken) => {
   const response = await fetch(CURRENTLY_PLAYING_ENDPOINT, {
     headers: {
@@ -132,9 +149,10 @@ export const getCurrentlyPlaying = async (accessToken) => {
   };
 };
 
-export const getRecentlyPlayed = async (accessToken, limit = 3) => {
+export const getRecentlyPlayed = async (accessToken, limit = SPOTIFY_RECENT_TRACK_LIMIT) => {
+  const normalizedLimit = clampRecentlyPlayedLimit(limit);
   const params = new URLSearchParams({
-    limit: String(limit),
+    limit: String(normalizedLimit),
   });
 
   const response = await fetch(`${RECENTLY_PLAYED_ENDPOINT}?${params.toString()}`, {
@@ -162,5 +180,7 @@ export const getRecentlyPlayed = async (accessToken, limit = 3) => {
         ...track,
       };
     })
-    .filter(Boolean);
+    .filter(Boolean)
+    .sort((firstTrack, secondTrack) => getPlayedAtTime(secondTrack) - getPlayedAtTime(firstTrack))
+    .slice(0, normalizedLimit);
 };
