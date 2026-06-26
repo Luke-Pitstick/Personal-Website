@@ -384,11 +384,15 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
 
     document.addEventListener('visibilitychange', refreshWhenVisible);
     window.addEventListener('focus', refreshSpotify);
+    window.addEventListener('online', refreshSpotify);
+    window.addEventListener('pageshow', refreshSpotify);
 
     return () => {
       window.clearInterval(refreshInterval);
       document.removeEventListener('visibilitychange', refreshWhenVisible);
       window.removeEventListener('focus', refreshSpotify);
+      window.removeEventListener('online', refreshSpotify);
+      window.removeEventListener('pageshow', refreshSpotify);
       controllers.forEach((controller) => controller.abort());
     };
   }, [loadSpotify]);
