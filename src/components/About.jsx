@@ -96,6 +96,7 @@ const spotifyTrackEndRefreshBufferMs = 1500;
 const spotifyTrackEndRefreshMinDelayMs = 750;
 const spotifyTrackEndRefreshRetryDelaysMs = [0, 2500, 6500];
 const spotifyTrackChangeRefreshRetryDelaysMs = [1000, 3500, 7500];
+const spotifyInitialTrackCatchUpMaxProgressMs = 15 * 1000;
 const hasExactRecentTrackCount = (recentTracks) => recentTracks.length === spotifyRecentTrackLimit;
 const getSpotifyRequestUrl = (force = false) => {
   const params = new URLSearchParams({ refresh: String(Date.now()) });
@@ -327,6 +328,7 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const latestSpotifyRequestRef = useRef(0);
   const previousSpotifyCurrentUrlRef = useRef(null);
+  const recentHistoryCatchUpTrackUrlRef = useRef(null);
   const spotifyRefreshStateRef = useRef({
     controllers: new Set(),
     hasQueuedRefresh: false,
@@ -480,8 +482,22 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
     const currentTrackUrl = ['playing', 'paused'].includes(spotify.status) ? spotify.url || null : null;
     const previousTrackUrl = previousSpotifyCurrentUrlRef.current;
     previousSpotifyCurrentUrlRef.current = currentTrackUrl;
+    const isInitialTrackNearStart =
+      !previousTrackUrl &&
+      currentTrackUrl &&
+      spotify.progressMs != null &&
+      spotify.progressMs <= spotifyInitialTrackCatchUpMaxProgressMs;
 
-    if (!currentTrackUrl || !previousTrackUrl || previousTrackUrl === currentTrackUrl) return undefined;
+    if (
+      !currentTrackUrl ||
+      previousTrackUrl === currentTrackUrl ||
+      (!previousTrackUrl && !isInitialTrackNearStart) ||
+      recentHistoryCatchUpTrackUrlRef.current === currentTrackUrl
+    ) {
+      return undefined;
+    }
+
+    recentHistoryCatchUpTrackUrlRef.current = currentTrackUrl;
 
     const trackChangeRefreshes = spotifyTrackChangeRefreshRetryDelaysMs.map((retryDelay) =>
       window.setTimeout(refreshSpotify, retryDelay),
@@ -490,7 +506,7 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
     return () => {
       trackChangeRefreshes.forEach((trackChangeRefresh) => window.clearTimeout(trackChangeRefresh));
     };
-  }, [refreshSpotify, spotify.status, spotify.url]);
+  }, [refreshSpotify, spotify.progressMs, spotify.status, spotify.url]);
 
   const footerState =
     spotify.isCached
