@@ -103,12 +103,16 @@ const getSpotifyRequestUrl = (force = false) => {
   return `${spotifyEndpoint}?${params.toString()}`;
 };
 const hasTextValue = (value) => typeof value === 'string' && value.trim().length > 0;
+const getRecentTrackTime = (track) => Date.parse(track?.playedAt || '');
 const hasUsableRecentTrack = (track) =>
-  Boolean(hasTextValue(track?.title) && hasTextValue(track?.artist) && !Number.isNaN(Date.parse(track.playedAt || '')));
+  Boolean(hasTextValue(track?.title) && hasTextValue(track?.artist) && !Number.isNaN(getRecentTrackTime(track)));
 const normalizeSpotifyPayload = (spotify, isCached = false) => ({
   ...(spotify || {}),
   isCached,
-  recentTracks: (spotify?.recentTracks || []).filter(hasUsableRecentTrack).slice(0, spotifyRecentTrackLimit),
+  recentTracks: (spotify?.recentTracks || [])
+    .filter(hasUsableRecentTrack)
+    .sort((firstTrack, secondTrack) => getRecentTrackTime(secondTrack) - getRecentTrackTime(firstTrack))
+    .slice(0, spotifyRecentTrackLimit),
 });
 
 const createTimedSpotifySignal = (externalSignal) => {
@@ -342,7 +346,7 @@ const SpotifyListeningBoard = ({ shouldReduceMotion, className = '' }) => {
 
       if (!wasExternallyAborted && isLatestRequest()) {
         setSpotify((currentSpotify) => {
-          const recentTracks = (currentSpotify.recentTracks || []).filter(Boolean).slice(0, spotifyRecentTrackLimit);
+          const recentTracks = normalizeSpotifyPayload(currentSpotify, true).recentTracks;
 
           if (hasExactRecentTrackCount(recentTracks)) {
             return {
