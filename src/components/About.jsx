@@ -90,7 +90,7 @@ const initialSpotifyState = {
 const spotifyEndpoint = '/api/spotify/currently-playing';
 const spotifyWaveAnimationPath = '/spotify-now-wave-orange.json';
 const spotifyRecentTrackLimit = 4;
-const spotifyRefreshIntervalMs = 30 * 1000;
+const spotifyRefreshIntervalMs = 10 * 1000;
 const normalizeSpotifyPayload = (spotify, isCached = false) => ({
   ...(spotify || {}),
   isCached,
