@@ -752,6 +752,7 @@ export const ExperienceSection = () => {
         whileInView="show"
         viewport={viewportOnce}
         className={`experience-index ${SECTION_INDEX_BAND}`}
+        style={{ borderBottomWidth: 0 }}
         aria-labelledby="experience-heading"
       >
         {experiences.map((exp) => (
