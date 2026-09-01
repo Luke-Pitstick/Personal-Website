@@ -1,5 +1,6 @@
 import * as motion from 'motion/react-client';
 import { useReducedMotion } from 'motion/react';
+import { Github, Linkedin, Mail } from 'lucide-react';
 import { createReveal, createStagger, softSpring, tapMotion, viewportOnce } from '../lib/motion';
 import { SITE_SHELL } from './SectionChrome';
 
@@ -7,6 +8,9 @@ const emailAddress = 'lukepitstick06@gmail.com';
 
 const footerPillClassName =
   'focus-ring rounded-full border-2 border-[#101617] bg-[#faf9f4] px-4 py-2 font-mono text-xs font-extrabold uppercase tracking-[0.14em] text-[#101617] shadow-[4px_4px_0_0_rgba(255,58,18,0.85)] transition-[background-color,box-shadow,color,transform] hover:-translate-y-0.5 hover:bg-[#dff1ef] hover:shadow-[5px_5px_0_0_rgba(16,22,23,0.85)]';
+
+const footerIconClassName =
+  'focus-ring inline-flex size-11 items-center justify-center rounded-full border-2 border-[#101617] bg-[#faf9f4] text-[#101617] shadow-[4px_4px_0_0_rgba(255,58,18,0.85)] transition-[background-color,box-shadow,color,transform] hover:-translate-y-0.5 hover:bg-[#dff1ef] hover:shadow-[5px_5px_0_0_rgba(16,22,23,0.85)]';
 
 const Contact = () => {
   const shouldReduceMotion = useReducedMotion();
@@ -32,18 +36,16 @@ const Contact = () => {
             Let's Connect
           </h3>
           <p className="mt-1 font-body font-bold text-[#334044]">Open for opportunities and collaborations.</p>
-          <a
-            href={`mailto:${emailAddress}`}
-            className="focus-ring mt-3 inline-flex rounded-md text-sm font-extrabold text-[#ff3a12] transition-colors hover:text-[#101617]"
-          >
-            {emailAddress}
-          </a>
         </motion.div>
 
         <motion.div variants={createStagger(0.03, 0.05)} className="flex flex-wrap justify-center gap-4">
-          <FooterLink href="https://github.com/Luke-Pitstick" label="GitHub" />
-          <FooterLink href="https://www.linkedin.com/in/luke-pitstick-2ab1a5239/" label="LinkedIn" />
-          <FooterLink href={`mailto:${emailAddress}`} label="Email" local />
+          <FooterLink href="https://github.com/Luke-Pitstick" label="GitHub" Icon={Github} />
+          <FooterLink
+            href="https://www.linkedin.com/in/luke-pitstick-2ab1a5239/"
+            label="LinkedIn"
+            Icon={Linkedin}
+          />
+          <FooterLink href={`mailto:${emailAddress}`} label="Email" Icon={Mail} local />
         </motion.div>
 
         <motion.button
@@ -70,7 +72,7 @@ const Contact = () => {
   );
 };
 
-const FooterLink = ({ href, label, local = false }) => {
+const FooterLink = ({ href, label, Icon, local = false }) => {
   const shouldReduceMotion = useReducedMotion();
 
   return (
@@ -82,10 +84,11 @@ const FooterLink = ({ href, label, local = false }) => {
       whileHover={shouldReduceMotion ? { scale: 1.04 } : { y: -2, scale: 1.1 }}
       whileTap={tapMotion}
       transition={softSpring}
-      className={footerPillClassName}
-      aria-label={label}
+      className={footerIconClassName}
+      aria-label={label === 'Email' ? 'Email Luke Pitstick' : `Visit Luke Pitstick's ${label} profile`}
+      title={label}
     >
-      {label}
+      <Icon aria-hidden="true" size={20} strokeWidth={2.25} />
     </motion.a>
   );
 };
