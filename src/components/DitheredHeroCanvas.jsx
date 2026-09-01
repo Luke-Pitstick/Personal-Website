@@ -3,11 +3,10 @@ import { useDitheredCanvas } from '@dithered-particle-canvas/react';
 
 const HERO_WIDTH = 1280;
 const HERO_HEIGHT = 720;
-const MACBOOK_PRO_BASELINE_WIDTH = 1512;
+const MACBOOK_PRO_BASELINE_PIXEL_WIDTH = 3024;
+const MACBOOK_PRO_BASELINE_PIXEL_HEIGHT = 1964;
 const LOW_RESOLUTION_SCALE = 0.6;
 const HERO_RENDERER_DEVICE_PIXEL_RATIO = 1;
-const BASE_RENDER_WIDTH = MACBOOK_PRO_BASELINE_WIDTH * LOW_RESOLUTION_SCALE;
-const BASE_RENDER_HEIGHT = HERO_HEIGHT * LOW_RESOLUTION_SCALE;
 const FOREGROUND_PIXEL_SIZE = 6;
 const REVEAL_EDGE_NOISE = 0.56;
 const REVEAL_EDGE_DITHER = 0.94;
@@ -83,7 +82,7 @@ const DitheredHeroCanvas = ({ onAutoOnlyChange, onInteractiveChange, onUserInter
     console.error('Dithered hero WebGL renderer failed.', error);
     setUseStaticFallback(true);
   }, []);
-  const interactionScale = useInteractionScale(rootRef);
+  const interactionScale = useInteractionScale();
 
   useEffect(() => {
     if (useStaticFallback) {
@@ -534,62 +533,55 @@ function buildRevealConfig(interactionScale = 1) {
   };
 }
 
-function useInteractionScale(rootRef) {
-  const [interactionScale, setInteractionScale] = useState(getInitialInteractionScale);
+function useInteractionScale() {
+  const [interactionScale, setInteractionScale] = useState(getScreenInteractionScale);
 
   useEffect(() => {
-    const root = rootRef.current;
-
-    if (!root || typeof window === 'undefined') {
+    if (typeof window === 'undefined') {
       return undefined;
     }
 
-    const updateScale = ([entry]) => {
-      if (!entry) {
-        return;
-      }
-
-      const nextScale = calculateInteractionScale(
-        entry.contentRect.width,
-        entry.contentRect.height,
-        HERO_RENDERER_DEVICE_PIXEL_RATIO
-      );
+    const updateScale = () => {
+      const nextScale = getScreenInteractionScale();
 
       setInteractionScale((currentScale) =>
         Math.abs(currentScale - nextScale) < 0.01 ? currentScale : nextScale
       );
     };
 
-    const resizeObserver = new ResizeObserver(updateScale);
-    resizeObserver.observe(root);
+    window.addEventListener('resize', updateScale);
 
     return () => {
-      resizeObserver.disconnect();
+      window.removeEventListener('resize', updateScale);
     };
-  }, [rootRef]);
+  }, []);
 
   return interactionScale;
 }
 
-function getInitialInteractionScale() {
+function getScreenInteractionScale() {
   if (typeof window === 'undefined') {
     return 1;
   }
 
   return calculateInteractionScale(
-    window.innerWidth || HERO_WIDTH,
-    window.innerHeight || HERO_HEIGHT,
-    HERO_RENDERER_DEVICE_PIXEL_RATIO
+    window.screen.width,
+    window.screen.height,
+    window.devicePixelRatio || 1
   );
 }
 
 function calculateInteractionScale(width, height, devicePixelRatio = 1) {
-  const renderWidth = width * QUALITY.resolutionScale * devicePixelRatio;
-  const renderHeight = height * QUALITY.resolutionScale * devicePixelRatio;
+  const screenPixelWidth = width * devicePixelRatio;
+  const screenPixelHeight = height * devicePixelRatio;
 
   return Math.max(
     0.1,
-    Math.min(1, renderWidth / BASE_RENDER_WIDTH, renderHeight / BASE_RENDER_HEIGHT)
+    Math.min(
+      1,
+      screenPixelWidth / MACBOOK_PRO_BASELINE_PIXEL_WIDTH,
+      screenPixelHeight / MACBOOK_PRO_BASELINE_PIXEL_HEIGHT
+    )
   );
 }
 

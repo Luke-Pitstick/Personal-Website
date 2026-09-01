@@ -6,10 +6,10 @@ import { SITE_SHELL } from './SectionChrome';
 const emailAddress = 'lukepitstick06@gmail.com';
 
 const footerPillClassName =
-  'focus-ring rounded-full border-2 border-[#101617] bg-[#faf9f4] px-4 py-2 font-mono text-xs font-extrabold uppercase tracking-[0.14em] text-[#101617] shadow-[4px_4px_0_0_rgba(16,22,23,0.9)] transition-[background-color,box-shadow,color,transform] hover:-translate-y-0.5 hover:bg-[#ffda18] hover:shadow-[5px_5px_0_0_rgba(16,22,23,0.95)]';
+  'focus-ring rounded-full border-2 border-[#101617] bg-[#faf9f4] px-4 py-2 font-mono text-xs font-extrabold uppercase tracking-[0.14em] text-[#101617] shadow-[4px_4px_0_0_rgba(16,22,23,0.9)] transition-[background-color,box-shadow,color,transform] hover:-translate-y-0.5 hover:bg-[#ffda18] hover:shadow-[5px_5px_0_0_rgba(16,22,23,0.95)] focus-visible:!outline-[#faf9f4]';
 
 const footerLinkClassName =
-  'focus-ring inline-flex rounded-sm font-mono text-xs font-extrabold uppercase tracking-[0.14em] text-[#faf9f4] underline decoration-2 underline-offset-4 transition-[color,transform,text-decoration-color] hover:-translate-y-0.5 hover:text-[#ffda18] hover:decoration-[#ffda18]';
+  'focus-ring inline-flex rounded-sm font-mono text-xs font-extrabold uppercase tracking-[0.14em] text-[#faf9f4] underline decoration-2 underline-offset-4 transition-[transform,text-decoration-color] hover:-translate-y-0.5 hover:decoration-[#ffda18] focus-visible:!outline-[#faf9f4]';
 
 const Contact = () => {
   const shouldReduceMotion = useReducedMotion();
@@ -24,7 +24,7 @@ const Contact = () => {
       initial={false}
       whileInView="show"
       viewport={viewportOnce}
-      className="w-full bg-[#ff3a12] text-[#faf9f4]"
+      className="w-full bg-[#d43310] text-[#faf9f4]"
     >
       <div className={`${SITE_SHELL} py-6 md:py-7`}>
         <motion.div
@@ -35,7 +35,7 @@ const Contact = () => {
             <h3 className="font-heading text-2xl font-bold !text-[#faf9f4] md:text-3xl">
               Let's Connect
             </h3>
-            <p className="mt-1 font-body font-bold text-[#faf9f4]/90">
+            <p className="mt-1 font-body font-bold text-[#faf9f4]">
               Open for opportunities and collaborations.
             </p>
           </motion.div>
@@ -62,7 +62,7 @@ const Contact = () => {
 
         <motion.div
           variants={createReveal({ y: 8 }, shouldReduceMotion)}
-          className="mt-8 text-center font-body text-sm font-bold text-[#faf9f4]/90"
+          className="mt-8 text-center font-body text-sm font-bold text-[#faf9f4]"
         >
           © {new Date().getFullYear()} Luke Pitstick. Built with Astro & React.
         </motion.div>
