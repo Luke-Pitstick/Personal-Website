@@ -24,7 +24,7 @@ const Contact = () => {
       initial={false}
       whileInView="show"
       viewport={viewportOnce}
-      className="w-full bg-[#ff3a12] text-[#faf9f4]"
+      className="w-full bg-[#d43310] text-[#faf9f4]"
     >
       <div className={`${SITE_SHELL} py-6 md:py-7`}>
         <motion.div

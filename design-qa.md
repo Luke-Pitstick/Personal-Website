@@ -29,7 +29,7 @@ The reference and implementation screenshots were reviewed together in the same 
 
 - Typography: existing Lora, Nunito, and monospace roles are preserved; weights and hierarchy match the surrounding site.
 - Spacing and layout: the responsive footer keeps the existing shell width and desktop three-column alignment.
-- Color: solid `#ff3a12` orange background with `#faf9f4` white foreground text.
+- Color: solid `#d43310` orange background with `#faf9f4` white foreground text, providing a 4.65:1 WCAG AA contrast ratio for the smaller footer copy.
 - Assets: no imagery is required for this footer state; icon assets were intentionally removed from the social links.
 - Copy: contact copy and copyright remain unchanged; social destinations are labeled GitHub, LinkedIn, and Email.
 
@@ -44,6 +44,7 @@ The reference and implementation screenshots were reviewed together in the same 
 1. First pass found that the global heading rule kept “Let's Connect” dark and that the Experience index band still rendered its lower border.
 2. The heading received an explicit white override and the Experience index band's bottom border was removed locally, leaving other index bands unchanged.
 3. Second pass confirmed the heading is white, both footer-adjacent borders are zero-width, and the social links have transparent backgrounds.
+4. Standards review found insufficient contrast between the original bright orange and the smaller white copy. The orange was deepened to `#d43310`, preserving the requested solid orange treatment while raising contrast to 4.65:1.
 
 ## Findings
 
