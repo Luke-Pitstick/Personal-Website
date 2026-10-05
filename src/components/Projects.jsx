@@ -5,23 +5,27 @@ import { createReveal, createStagger, liftHover, softSpring, tapMotion, viewport
 import { MachadoSectionHeader, SITE_SHELL } from './SectionChrome';
 
 const projectImages = {
+  taco: '/taco.png',
   atlas: '/atlas-projection-explorer.webp',
   renewably: 'https://np69tokggkswfstp.public.blob.vercel-storage.com/website/projects/renewably.png',
   brickme: '/brickme.webp',
   nycRent: '/nycrentpriceforecaster.webp',
-  infraDrone: '/infradrone.webp',
+  infraDrone: '/roaddetection.png',
 };
 
 const projects = [
   {
-    title: 'Atlas Projection Explorer',
-    eyebrow: 'Geospatial Visualization',
+    title: 'Road Crack Detection Engine',
+    eyebrow: 'Computer Vision',
     description:
-      'Interactive world map for exploring 40 map projections, comparing geographic boundaries, and visualizing how projections distort size and shape.',
-    tags: ['Cartography', 'Map Projections', 'Geospatial'],
-    link: 'https://atlas-projection-explorer.vercel.app/',
-    image: projectImages.atlas,
-    metric: '40 map projections',
+      'Road-damage analysis engine that uses YOLO detection and segmentation to identify cracks and potholes in drone imagery, then measures and classifies crack geometry.',
+    tags: ['Python', 'YOLO', 'PyTorch', 'OpenCV'],
+    link: 'https://github.com/Luke-Pitstick/road-crack-detection-engine',
+    github: 'https://github.com/Luke-Pitstick/road-crack-detection-engine',
+    writeup: 'https://infradrone.vercel.app/',
+    linkLabel: 'Read write-up',
+    image: projectImages.infraDrone,
+    metric: 'Crack & pothole detection',
   },
   {
     title: 'Renewably Wind',
@@ -46,26 +50,36 @@ const projects = [
     metric: 'Rent forecasting',
   },
   {
-    title: 'Road Crack Detection Engine',
-    eyebrow: 'Computer Vision',
+    title: 'Taco',
+    eyebrow: 'Developer Tools',
     description:
-      'Road-damage analysis engine that uses YOLO detection and segmentation to identify cracks and potholes in drone imagery, then measures and classifies crack geometry.',
-    tags: ['Python', 'YOLO', 'PyTorch', 'OpenCV'],
-    link: 'https://github.com/Luke-Pitstick/road-crack-detection-engine',
-    github: 'https://github.com/Luke-Pitstick/road-crack-detection-engine',
-    image: projectImages.infraDrone,
-    imageClass: '-translate-x-[6%] -translate-y-[14%] scale-[1.28] object-[center_42%]',
-    metric: 'Crack & pothole detection',
+      'Python CLI that connects project environments to Jupyter by resolving the selected interpreter, registering durable kernels, and verifying they run correctly.',
+    tags: ['Python', 'Jupyter', 'uv', 'Poetry', 'Conda'],
+    link: 'https://github.com/Luke-Pitstick/taco',
+    github: 'https://github.com/Luke-Pitstick/taco',
+    image: projectImages.taco,
+    metric: 'Jupyter kernel management',
   },
   {
     title: 'BrickMe',
     eyebrow: 'HackCU Winner',
     description: 'Browser app that turns photos into LEGO-style 3D models you can inspect and share.',
     tags: ['Python', 'FastAPI', 'Next.js'],
-    link: 'https://github.com/Luke-Pitstick/brickme',
+    link: 'https://devpost.com/software/brickme',
+    linkLabel: 'View on Devpost',
     github: 'https://github.com/Luke-Pitstick/brickme',
     image: projectImages.brickme,
     metric: '3D model generation',
+  },
+  {
+    title: 'Atlas Projection Explorer',
+    eyebrow: 'Geospatial Visualization',
+    description:
+      'Interactive world map for exploring 40 map projections, comparing geographic boundaries, and visualizing how projections distort size and shape.',
+    tags: ['Cartography', 'Map Projections', 'Geospatial'],
+    link: 'https://atlas-projection-explorer.vercel.app/',
+    image: projectImages.atlas,
+    metric: '40 map projections',
   },
 ];
 
@@ -77,6 +91,20 @@ const ProjectActions = ({ project, shouldReduceMotion }) => {
 
   return (
     <div className="flex flex-wrap gap-3">
+      {project.writeup ? (
+        <motion.a
+          href={project.writeup}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`Read ${project.title} write-up`}
+          className={actionButtonClass}
+          whileHover={shouldReduceMotion ? undefined : liftHover}
+          whileTap={shouldReduceMotion ? undefined : tapMotion}
+          transition={softSpring}
+        >
+          Write-up
+        </motion.a>
+      ) : null}
       {hasLive ? (
         <motion.a
           href={project.link}
@@ -111,7 +139,7 @@ const ProjectActions = ({ project, shouldReduceMotion }) => {
 
 const ProjectCard = ({ project, index, shouldReduceMotion }) => {
   const titleId = `${project.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-title`;
-  const liveHref = project.link && project.link !== project.github ? project.link : null;
+  const imageHref = project.writeup ?? (project.link && project.link !== project.github ? project.link : null);
 
   const image = (
     <motion.img
@@ -133,18 +161,18 @@ const ProjectCard = ({ project, index, shouldReduceMotion }) => {
       aria-labelledby={titleId}
     >
       <div className="relative aspect-video w-full overflow-hidden bg-[#101617]">
-        {liveHref ? (
+        {imageHref ? (
           <a
-            href={liveHref}
+            href={imageHref}
             target="_blank"
             rel="noopener noreferrer"
             className="focus-ring block h-full w-full"
-            aria-label={`Open ${project.title} live demo`}
+            aria-label={`${project.linkLabel ?? 'Open live demo'}: ${project.title}`}
           >
             {image}
             <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#101617]/50 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover/card:opacity-100" />
             <span className="pointer-events-none absolute bottom-3 left-3 translate-y-1 font-mono text-[10px] font-extrabold uppercase tracking-[0.14em] text-[#faf9f4] opacity-0 transition-[opacity,transform] duration-300 group-hover/card:translate-y-0 group-hover/card:opacity-100 sm:text-xs">
-              Open live demo →
+              {project.linkLabel ?? 'Open live demo'} →
             </span>
           </a>
         ) : (

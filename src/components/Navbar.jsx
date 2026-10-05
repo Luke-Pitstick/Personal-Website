@@ -22,6 +22,7 @@ const Navbar = () => {
     { name: 'About', href: '/#about' },
     { name: 'Projects', href: '/#projects' },
     { name: 'Experience', href: '/#experience' },
+    { name: 'Resume', href: '/resume/' },
     { name: 'Blog', href: '/blog/' },
     { name: 'Contact', href: '/#contact' },
   ];
@@ -58,10 +59,10 @@ const Navbar = () => {
   );
 
   useEffect(() => {
-    const isBlogPage = window.location.pathname.startsWith('/blog');
+    const pageHref = window.location.pathname.startsWith('/resume') ? '/resume/' : '/blog/';
 
-    if (isBlogPage) {
-      setActiveHref('/blog/');
+    if (window.location.pathname !== '/') {
+      setActiveHref(pageHref);
       setScrolled(true);
       return;
     }
@@ -84,7 +85,7 @@ const Navbar = () => {
     const handleScroll = () => {
       if (window.location.pathname !== '/') {
         setScrolled(true);
-        setActiveHref(window.location.pathname.startsWith('/blog') ? '/blog/' : '/#home');
+        setActiveHref(window.location.pathname.startsWith('/resume') ? '/resume/' : '/blog/');
         return;
       }
 
@@ -144,7 +145,7 @@ const Navbar = () => {
         </motion.a>
 
         {/* Desktop Menu */}
-        <div className="hidden items-center gap-4 md:flex lg:gap-6">
+        <div className="hidden items-center gap-2 md:flex lg:gap-6">
           {navLinks.map((link) => {
             const isHighlighted = (hoveredHref || activeHref) === link.href;
 

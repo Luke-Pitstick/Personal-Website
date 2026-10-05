@@ -4,7 +4,7 @@ import { useReducedMotion } from 'motion/react';
 import { createReveal, createStagger, softSpring, tapMotion, viewportOnce } from '../lib/motion';
 import { EXPERIENCE_ROW_GRID, MachadoSectionHeader, SECTION_INDEX_BAND, SITE_SHELL } from './SectionChrome';
 
-const resumeDownloadUrl = 'https://np69tokggkswfstp.public.blob.vercel-storage.com/website/Luke_Pitstick_Resume.pdf?download=1';
+const resumeDownloadUrl = '/Luke_Pitstick_Resume.pdf';
 
 const experiences = [
   {

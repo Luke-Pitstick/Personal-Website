@@ -1,5 +1,6 @@
 import * as motion from 'motion/react-client';
 import { useReducedMotion } from 'motion/react';
+import { Github, Linkedin, Mail } from 'lucide-react';
 import { createReveal, createStagger, softSpring, tapMotion, viewportOnce } from '../lib/motion';
 import { SITE_SHELL } from './SectionChrome';
 
@@ -9,7 +10,7 @@ const footerPillClassName =
   'focus-ring rounded-full border-2 border-[#101617] bg-[#faf9f4] px-4 py-2 font-mono text-xs font-extrabold uppercase tracking-[0.14em] text-[#101617] shadow-[4px_4px_0_0_rgba(16,22,23,0.9)] transition-[background-color,box-shadow,color,transform] hover:-translate-y-0.5 hover:bg-[#ffda18] hover:shadow-[5px_5px_0_0_rgba(16,22,23,0.95)] focus-visible:!outline-[#faf9f4]';
 
 const footerLinkClassName =
-  'focus-ring inline-flex rounded-sm font-mono text-xs font-extrabold uppercase tracking-[0.14em] text-[#faf9f4] underline decoration-2 underline-offset-4 transition-[transform,text-decoration-color] hover:-translate-y-0.5 hover:decoration-[#ffda18] focus-visible:!outline-[#faf9f4]';
+  'focus-ring inline-flex size-12 items-center justify-center rounded-full border-2 border-[#101617] bg-[#faf9f4] text-[#101617] shadow-[3px_3px_0_0_rgba(16,22,23,0.85)] transition-[background-color,box-shadow,color] duration-300 hover:bg-[#ffda18] hover:shadow-[5px_5px_0_0_rgba(255,58,18,0.95)] focus-visible:!outline-[#faf9f4]';
 
 const Contact = () => {
   const shouldReduceMotion = useReducedMotion();
@@ -24,7 +25,7 @@ const Contact = () => {
       initial={false}
       whileInView="show"
       viewport={viewportOnce}
-      className="w-full bg-[#d43310] text-[#faf9f4]"
+      className="w-full bg-[var(--color-accent)] text-[#faf9f4]"
     >
       <div className={`${SITE_SHELL} py-6 md:py-7`}>
         <motion.div
@@ -41,9 +42,9 @@ const Contact = () => {
           </motion.div>
 
           <motion.div variants={createStagger(0.03, 0.05)} className="flex flex-wrap justify-center gap-5">
-            <FooterLink href="https://github.com/Luke-Pitstick" label="GitHub" />
-            <FooterLink href="https://www.linkedin.com/in/luke-pitstick-2ab1a5239/" label="LinkedIn" />
-            <FooterLink href={`mailto:${emailAddress}`} label="Email" local />
+            <FooterLink href="https://github.com/Luke-Pitstick" label="GitHub" icon={Github} />
+            <FooterLink href="https://www.linkedin.com/in/luke-pitstick-2ab1a5239/" label="LinkedIn" icon={Linkedin} />
+            <FooterLink href={`mailto:${emailAddress}`} label="Email" icon={Mail} local />
           </motion.div>
 
           <motion.button
@@ -71,7 +72,7 @@ const Contact = () => {
   );
 };
 
-const FooterLink = ({ href, label, local = false }) => {
+const FooterLink = ({ href, label, icon: Icon, local = false }) => {
   const shouldReduceMotion = useReducedMotion();
 
   return (
@@ -85,8 +86,9 @@ const FooterLink = ({ href, label, local = false }) => {
       transition={softSpring}
       className={footerLinkClassName}
       aria-label={label === 'Email' ? 'Email Luke Pitstick' : `Visit Luke Pitstick's ${label} profile`}
+      title={label}
     >
-      {label}
+      <Icon aria-hidden="true" size={22} strokeWidth={2.25} />
     </motion.a>
   );
 };
