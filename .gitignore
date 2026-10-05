@@ -33,15 +33,14 @@ firebase-debug.log
 .venv
 
 public/*
+!public/atlas-projection-explorer.webp
+!public/brickme.webp
+!public/nycrentpriceforecaster.webp
+!public/infradrone.webp
 !public/favicon.svg
 !public/background-dithered.webp
-<<<<<<< HEAD
-!public/hero-paper-precomputed.png
-!public/hero-mountains-precomputed.png
-=======
 !public/hero-paper.webp
 !public/hero-mountains.webp
->>>>>>> refs/remotes/origin/main
 !public/pictureofme.jpg
 !public/pictureofme-*.avif
 !public/pictureofme-*.webp
