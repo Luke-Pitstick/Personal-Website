@@ -18,8 +18,8 @@ const projects = [
     title: 'Road Crack Detection Engine',
     eyebrow: 'Computer Vision',
     description:
-      'Road-damage analysis engine that uses YOLO detection and segmentation to identify cracks and potholes in drone imagery, then measures and classifies crack geometry.',
-    tags: ['Python', 'YOLO', 'PyTorch', 'OpenCV'],
+      'Road-damage analysis engine that uses YOLO segmentation to detect cracks and potholes in survey video and measure crack geometry. SuperPoint and LightGlue match road features to align observations and track the same defects across frames and surveys.',
+    tags: ['Python', 'YOLO', 'PyTorch', 'OpenCV', 'LightGlue'],
     link: 'https://github.com/Luke-Pitstick/road-crack-detection-engine',
     github: 'https://github.com/Luke-Pitstick/road-crack-detection-engine',
     writeup: 'https://infradrone.vercel.app/',

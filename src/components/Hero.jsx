@@ -4,6 +4,7 @@ import { ArrowDown } from 'lucide-react';
 import { scrollToSection } from '../lib/scroll';
 
 const SOCIAL_HIDE_SCROLL_Y = 96;
+const SITE_VISITED_STORAGE_KEY = 'site-visited';
 
 let ditheredHeroCanvasModulePromise;
 
@@ -21,7 +22,8 @@ const Hero = () => {
   const [canvasReady, setCanvasReady] = useState(false);
   const [heroShaderActive, setHeroShaderActive] = useState(false);
   const [heroShaderAutoOnly, setHeroShaderAutoOnly] = useState(false);
-  const [shaderHintDismissed, setShaderHintDismissed] = useState(false);
+  const [shaderHintDismissed, setShaderHintDismissed] = useState(true);
+  const visitCheckedRef = useRef(false);
   const shouldReduceMotion = usePrefersReducedMotion();
   const arrowRef = useRef(null);
   const dismissShaderHint = useCallback(() => setShaderHintDismissed(true), []);
@@ -32,6 +34,19 @@ const Hero = () => {
     setHeroShaderActive(interactive);
   }, []);
   const showShaderHint = heroShaderActive && !shaderHintDismissed;
+
+  useEffect(() => {
+    if (visitCheckedRef.current) return;
+    visitCheckedRef.current = true;
+
+    try {
+      const hasVisited = window.localStorage.getItem(SITE_VISITED_STORAGE_KEY) !== null;
+      window.localStorage.setItem(SITE_VISITED_STORAGE_KEY, 'true');
+      setShaderHintDismissed(hasVisited);
+    } catch {
+      setShaderHintDismissed(false);
+    }
+  }, []);
 
   const scrollPastHero = () => {
     scrollToSection('about', { behavior: shouldReduceMotion ? 'auto' : 'smooth' });
