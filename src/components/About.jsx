@@ -8,6 +8,17 @@ const resumeDownloadUrl = '/Luke_Pitstick_Resume.pdf';
 
 const experiences = [
   {
+    role: 'Freelance Web Designer',
+    company: 'Independent',
+    period: 'Freelance',
+    location: 'Remote',
+    highlights: [
+      'Designing and building websites for civic organizations, including Just Vote Colorado and Ranked Choice Voting for Longmont.',
+      'Rebuilt Just Vote Colorado\'s voting-location map and completely redesigned the Ranked Choice Voting for Longmont website.',
+    ],
+    portfolioUrl: '/portfolio/',
+  },
+  {
     role: 'Junior Data Manager',
     company: 'National Oceanic and Atmospheric Administration',
     period: 'Oct 2025 — Present',
@@ -173,7 +184,7 @@ export const ExperienceSection = () => {
       <MachadoSectionHeader
         title="Experience"
         titleId="experience-heading"
-        description="AI/ML and data engineering work across startups, governmental organizations, and fast software teams."
+        description="AI/ML, data engineering, and freelance web design across startups, government, and civic organizations."
         descriptionClassName="xl:max-w-none xl:whitespace-nowrap"
         shouldReduceMotion={shouldReduceMotion}
       />
@@ -212,6 +223,11 @@ export const ExperienceSection = () => {
               </p>
 
               <ExperienceHighlights highlights={exp.highlights} shouldReduceMotion={shouldReduceMotion} />
+              {exp.portfolioUrl && (
+                <a href={exp.portfolioUrl} className="focus-ring mt-4 inline-flex min-h-11 items-center font-body text-sm font-extrabold text-[#101617] underline decoration-[#ff3a12] decoration-2 underline-offset-4 hover:text-[#ff3a12]">
+                  View web design portfolio
+                </a>
+              )}
             </div>
           </motion.li>
         ))}

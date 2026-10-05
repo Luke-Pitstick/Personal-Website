@@ -1,0 +1,2 @@
+export const actionButtonClass =
+  'focus-ring inline-flex min-h-12 items-center justify-center rounded-lg border-2 border-[#101617] bg-[#faf9f4] px-6 py-3.5 font-mono text-base font-extrabold uppercase tracking-[0.12em] text-[#101617] shadow-[5px_5px_0_0_rgba(255,58,18,0.9)] transition-[background-color,box-shadow,color,transform] hover:-translate-y-0.5 hover:bg-[#ffda18] hover:shadow-[7px_7px_0_0_rgba(16,22,23,0.9)] active:translate-y-0 active:shadow-[3px_3px_0_0_rgba(255,58,18,0.9)]';

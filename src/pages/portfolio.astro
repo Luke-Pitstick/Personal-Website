@@ -1,0 +1,92 @@
+---
+import { Image } from 'astro:assets';
+import Layout from '../layouts/Layout.astro';
+import { SITE_SHELL } from '../components/SectionChrome';
+import { actionButtonClass } from '../lib/buttonStyles';
+import justVoteImage from '../assets/portfolio/just-vote-colorado.png';
+import rcvImage from '../assets/portfolio/rcv-for-longmont.png';
+
+const projects = [
+  {
+    name: 'Just Vote Colorado',
+    url: 'https://justvotecolorado.org/',
+    image: justVoteImage,
+    alt: 'Just Vote Colorado voting-location map with address search, location filters, and a list of ballot drop boxes.',
+    description: 'I rebuilt Just Vote Colorado\'s interactive voting-location map, bringing address and ZIP-code search, location filters, and a clear location list into one place.',
+    impact: 'Finding where to vote should be straightforward. The map helps Coloradans find nearby ballot drop boxes and in-person voting locations, making it easier to take the next step and cast a ballot.',
+  },
+  {
+    name: 'Ranked Choice Voting for Longmont',
+    url: 'https://www.rcvforlongmont.org/',
+    image: rcvImage,
+    alt: 'Redesigned Ranked Choice Voting for Longmont homepage with a mountain landscape, ballot-measure information, and links to explore the measures and donate.',
+    description: 'I completely redesigned the Ranked Choice Voting for Longmont website, giving the campaign a fresh visual identity and a clearer way to tell its story.',
+    impact: 'The redesign brings the ballot measures, educational resources, and ways to get involved together, helping visitors understand the campaign and find their next step.',
+  },
+];
+---
+
+<Layout title="Luke Pitstick | Portfolio" description="Freelance web design by Luke Pitstick: Just Vote Colorado's voting-location map and a complete redesign for Ranked Choice Voting for Longmont.">
+  <main id="main-content" class="min-h-screen bg-[#f8f7f1] pt-24 text-[#101617] sm:pt-28">
+    <section class={`${SITE_SHELL} py-12 md:py-16`} aria-labelledby="portfolio-heading">
+      <header class="portfolio-header">
+        <div>
+          <p class="eyebrow">Freelance web design</p>
+          <h1 id="portfolio-heading" class="font-heading text-3xl font-bold md:text-4xl lg:text-[2.75rem]">Portfolio</h1>
+        </div>
+        <p class="intro">Websites and tools that help people find information, get involved, and make their voices heard.</p>
+      </header>
+
+      <div class="portfolio-projects">
+        {projects.map((project, index) => (
+          <article class="portfolio-project" aria-labelledby={`project-${index}`}>
+            <div class="project-copy">
+              <h2 id={`project-${index}`} class="font-heading text-2xl font-bold md:text-3xl">{project.name}</h2>
+              <p>{project.description}</p>
+              <p>{project.impact}</p>
+              <a class={`${actionButtonClass} mt-6`} href={project.url} target="_blank" rel="noopener noreferrer" aria-label={`Visit ${project.name} website (opens in a new tab)`}>
+                Visit website
+              </a>
+            </div>
+            <a class="focus-ring project-image" href={project.url} target="_blank" rel="noopener noreferrer" aria-label={`Visit ${project.name} (opens in a new tab)`}>
+              <Image src={project.image} alt={project.alt} widths={[480, 800, 1200, 1600]} sizes="(min-width: 1024px) 60vw, 100vw" format="webp" loading={index === 0 ? 'eager' : 'lazy'} />
+            </a>
+          </article>
+        ))}
+      </div>
+    </section>
+  </main>
+</Layout>
+
+<style>
+  .portfolio-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 3px solid #101617;
+    box-shadow: 0 3px 0 #ff3a12;
+  }
+  .eyebrow {
+    margin-bottom: 0.75rem;
+    color: #334044;
+    font-family: monospace;
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .intro { max-width: 32rem; font-weight: 700; line-height: 1.65; color: #334044; }
+  .portfolio-project { display: grid; gap: 2rem; padding: 3rem 0; }
+  .portfolio-project + .portfolio-project { border-top: 2px solid #101617; }
+  .project-copy { min-width: 0; }
+  .project-copy > p:not(.eyebrow) { margin-top: 1rem; font-weight: 700; line-height: 1.75; color: #334044; }
+  .project-image { display: block; align-self: start; overflow: hidden; border: 2px solid #101617; border-radius: 8px; box-shadow: 6px 6px 0 #ff3a12; }
+  .project-image img { display: block; width: 100%; height: auto; }
+  @media (min-width: 1024px) {
+    .intro { text-align: right; }
+    .portfolio-project { grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 3rem; padding: 4rem 0; }
+  }
+</style>

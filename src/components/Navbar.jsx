@@ -14,13 +14,33 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [activeHref, setActiveHref] = useState('/#home');
   const [hoveredHref, setHoveredHref] = useState(null);
+  const [focusedHref, setFocusedHref] = useState(null);
+  const [underline, setUnderline] = useState(null);
+  const desktopMenuRef = useRef(null);
   const scrollLockRef = useRef(null);
   const shouldReduceMotion = useReducedMotion();
+  const highlightedHref = hoveredHref || focusedHref || activeHref;
+
+  useEffect(() => {
+    const menu = desktopMenuRef.current;
+    const updateUnderline = () => {
+      const link = menu.querySelector(`a[href="${highlightedHref}"]`);
+      if (link && menu.offsetWidth > 0) {
+        setUnderline({ x: link.offsetLeft, width: link.offsetWidth });
+      }
+    };
+
+    updateUnderline();
+    const observer = new ResizeObserver(updateUnderline);
+    observer.observe(menu);
+    return () => observer.disconnect();
+  }, [highlightedHref]);
 
   const navLinks = [
     { name: 'Home', href: '/#home' },
     { name: 'About', href: '/#about' },
     { name: 'Projects', href: '/#projects' },
+    { name: 'Portfolio', href: '/portfolio/' },
     { name: 'Experience', href: '/#experience' },
     { name: 'Resume', href: '/resume/' },
     { name: 'Blog', href: '/blog/' },
@@ -59,7 +79,7 @@ const Navbar = () => {
   );
 
   useEffect(() => {
-    const pageHref = window.location.pathname.startsWith('/resume') ? '/resume/' : '/blog/';
+    const pageHref = `/${window.location.pathname.split('/')[1]}/`;
 
     if (window.location.pathname !== '/') {
       setActiveHref(pageHref);
@@ -85,7 +105,7 @@ const Navbar = () => {
     const handleScroll = () => {
       if (window.location.pathname !== '/') {
         setScrolled(true);
-        setActiveHref(window.location.pathname.startsWith('/resume') ? '/resume/' : '/blog/');
+        setActiveHref(`/${window.location.pathname.split('/')[1]}/`);
         return;
       }
 
@@ -145,42 +165,44 @@ const Navbar = () => {
         </motion.a>
 
         {/* Desktop Menu */}
-        <div className="hidden items-center gap-2 md:flex lg:gap-6">
-          {navLinks.map((link) => {
-            const isHighlighted = (hoveredHref || activeHref) === link.href;
-
-            return (
+        <div
+          ref={desktopMenuRef}
+          className="relative -my-2 hidden items-center gap-6 py-2 lg:flex"
+          onMouseLeave={() => setHoveredHref(null)}
+        >
+          {navLinks.map((link) => (
               <motion.a
                 key={link.name}
                 href={link.href}
                 onMouseEnter={() => setHoveredHref(link.href)}
-                onMouseLeave={() => setHoveredHref(null)}
-                onFocus={() => setHoveredHref(link.href)}
-                onBlur={() => setHoveredHref(null)}
+                onFocus={() => setFocusedHref(link.href)}
+                onBlur={() => setFocusedHref(null)}
                 onClick={(event) => handleNavClick(event, link.href)}
-                whileHover={shouldReduceMotion ? undefined : { y: -1 }}
                 whileTap={tapMotion}
                 transition={softSpring}
                 className="focus-ring relative rounded-lg px-1 text-sm font-extrabold text-[#101617] transition-colors hover:text-[#ff3a12] lg:text-base"
                 aria-current={activeHref === link.href ? 'page' : undefined}
               >
                 <span>{link.name}</span>
-                {isHighlighted && (
-                  <motion.span
-                    layoutId="nav-underline"
-                    className="absolute -bottom-1 left-0 h-[3px] w-full rounded-full bg-[#ff3a12]"
-                    transition={softSpring}
-                  />
-                )}
               </motion.a>
-            );
-          })}
+          ))}
+          {underline && (
+            <motion.span
+              aria-hidden="true"
+              className="pointer-events-none absolute bottom-1 left-0 h-[3px] rounded-full bg-[#ff3a12]"
+              initial={false}
+              animate={underline}
+              transition={shouldReduceMotion
+                ? { duration: 0 }
+                : { type: 'spring', stiffness: 420, damping: 36, mass: 0.6 }}
+            />
+          )}
         </div>
 
         {/* Mobile Menu Button */}
         <motion.button
           type="button"
-          className="focus-ring rounded-lg border-2 border-[#101617] bg-[#faf9f4]/80 px-3 py-2 text-sm font-extrabold text-[#101617] shadow-[3px_3px_0_0_rgba(255,58,18,0.9)] transition-colors hover:bg-[#ffda18] md:hidden"
+          className="focus-ring rounded-lg border-2 border-[#101617] bg-[#faf9f4]/80 px-3 py-2 text-sm font-extrabold text-[#101617] shadow-[3px_3px_0_0_rgba(255,58,18,0.9)] transition-colors hover:bg-[#ffda18] lg:hidden"
           onClick={() => setIsOpen(!isOpen)}
           whileTap={tapMotion}
           transition={softSpring}
@@ -199,7 +221,7 @@ const Navbar = () => {
               initial="hidden"
               animate="show"
               exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -14, transition: { duration: 0.18 } }}
-              className="absolute left-0 top-full w-full border-y-2 border-[#101617] bg-[#faf9f4] shadow-[0_5px_0_rgba(255,58,18,0.8)] md:hidden"
+              className="absolute left-0 top-full w-full border-y-2 border-[#101617] bg-[#faf9f4] shadow-[0_5px_0_rgba(255,58,18,0.8)] lg:hidden"
               id="mobile-menu"
             >
               <div className="flex flex-col gap-2 p-4">
