@@ -3,7 +3,7 @@ import { ArrowDown } from 'lucide-react';
 
 import { scrollToSection } from '../lib/scroll';
 
-const SOCIAL_HIDE_SCROLL_Y = 96;
+const HERO_CONTROLS_HIDE_SCROLL_Y = 96;
 const SITE_VISITED_STORAGE_KEY = 'site-visited';
 
 let ditheredHeroCanvasModulePromise;
@@ -60,9 +60,6 @@ const Hero = () => {
     const onScroll = () => {
       const scrollY = window.scrollY;
       const home = document.getElementById('home');
-      const nav = document.querySelector('nav[aria-label="Primary navigation"]');
-      const navBottom = nav?.getBoundingClientRect().bottom ?? 80;
-      const homeBottom = home?.getBoundingClientRect().bottom ?? 0;
       const homeHeight = home?.offsetHeight || window.innerHeight || 1;
       const progress = home ? clamp((-home.getBoundingClientRect().top) / homeHeight, 0, 1) : 0;
 
@@ -74,10 +71,8 @@ const Hero = () => {
         content.style.setProperty('--hero-content-opacity', contentOpacity);
       }
 
-      const arrowPinned = scrollY >= SOCIAL_HIDE_SCROLL_Y;
-      const arrowTop = navBottom + 8;
-      const arrowVisible = homeBottom > navBottom + 48;
-      const socialsVisible = scrollY < SOCIAL_HIDE_SCROLL_Y;
+      const arrowVisible = scrollY < HERO_CONTROLS_HIDE_SCROLL_Y;
+      const socialsVisible = scrollY < HERO_CONTROLS_HIDE_SCROLL_Y;
 
       if (socials) {
         socials.classList.toggle('translate-y-0', socialsVisible);
@@ -90,12 +85,9 @@ const Hero = () => {
 
       if (arrow) {
         arrow.style.opacity = arrowVisible ? '1' : '0';
-        arrow.style.top = arrowPinned ? `${arrowTop}px` : '';
-        arrow.style.transform = `translateX(-50%) translateY(${arrowVisible ? '0' : '8px'})`;
+        arrow.style.transform = `translateX(-50%) translateY(${arrowVisible || shouldReduceMotion ? '0' : '8px'})`;
         arrow.style.pointerEvents = arrowVisible ? 'auto' : 'none';
-        arrow.classList.toggle('fixed', arrowPinned);
-        arrow.classList.toggle('absolute', !arrowPinned);
-        arrow.classList.toggle('bottom-4', !arrowPinned);
+        arrow.tabIndex = arrowVisible ? 0 : -1;
         arrow.setAttribute('aria-hidden', arrowVisible ? 'false' : 'true');
       }
     };
@@ -148,7 +140,7 @@ const Hero = () => {
         ref={arrowRef}
         type="button"
         onClick={scrollPastHero}
-        className="focus-ring absolute bottom-4 left-1/2 z-40 grid h-12 w-12 place-items-center rounded-full border-2 border-[#101617] bg-[#faf9f4]/90 text-[#101617] shadow-[4px_4px_0_0_rgba(255,58,18,0.9)] backdrop-blur-sm transition-[background-color,box-shadow,color,transform,top] duration-300 hover:bg-[#ffda18] hover:shadow-[6px_6px_0_0_rgba(16,22,23,0.9)] sm:h-14 sm:w-14"
+        className="focus-ring absolute bottom-4 left-1/2 z-40 grid h-12 w-12 place-items-center rounded-full border-2 border-[#101617] bg-[#faf9f4]/90 text-[#101617] shadow-[4px_4px_0_0_rgba(255,58,18,0.9)] backdrop-blur-sm transition-[background-color,box-shadow,color,transform,opacity] duration-300 motion-reduce:transition-none hover:bg-[#ffda18] hover:shadow-[6px_6px_0_0_rgba(16,22,23,0.9)] sm:h-14 sm:w-14"
         aria-label="Scroll past hero to about section"
       >
         <ArrowDown className="h-6 w-6 sm:h-7 sm:w-7" strokeWidth={3.25} aria-hidden="true" />
