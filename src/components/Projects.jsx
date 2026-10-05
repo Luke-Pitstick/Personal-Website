@@ -56,6 +56,7 @@ const projects = [
       'Python CLI that connects project environments to Jupyter by resolving the selected interpreter, registering durable kernels, and verifying they run correctly.',
     tags: ['Python', 'Jupyter', 'uv', 'Poetry', 'Conda'],
     link: 'https://github.com/Luke-Pitstick/taco',
+    linkLabel: 'View on GitHub',
     github: 'https://github.com/Luke-Pitstick/taco',
     image: projectImages.taco,
     metric: 'Jupyter kernel management',
@@ -139,7 +140,7 @@ const ProjectActions = ({ project, shouldReduceMotion }) => {
 
 const ProjectCard = ({ project, index, shouldReduceMotion }) => {
   const titleId = `${project.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-title`;
-  const imageHref = project.writeup ?? (project.link && project.link !== project.github ? project.link : null);
+  const imageHref = project.writeup ?? project.link ?? project.github;
 
   const image = (
     <motion.img
