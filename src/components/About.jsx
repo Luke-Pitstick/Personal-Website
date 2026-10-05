@@ -225,7 +225,7 @@ export const ExperienceSection = () => {
               <ExperienceHighlights highlights={exp.highlights} shouldReduceMotion={shouldReduceMotion} />
               {exp.portfolioUrl && (
                 <a href={exp.portfolioUrl} className="focus-ring mt-4 inline-flex min-h-11 items-center font-body text-sm font-extrabold text-[#101617] underline decoration-[#ff3a12] decoration-2 underline-offset-4 hover:text-[#ff3a12]">
-                  View web design portfolio
+                  View Portfolio
                 </a>
               )}
             </div>
