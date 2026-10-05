@@ -46,13 +46,13 @@ const projects = [
     metric: 'Rent forecasting',
   },
   {
-    title: 'InfraDrone (WIP)',
+    title: 'Road Crack Detection Engine',
     eyebrow: 'Computer Vision',
     description:
       'Road-damage analysis engine that uses YOLO detection and segmentation to identify cracks and potholes in drone imagery, then measures and classifies crack geometry.',
     tags: ['Python', 'YOLO', 'PyTorch', 'OpenCV'],
-    link: 'https://github.com/Luke-Pitstick/InfraDrone',
-    github: 'https://github.com/Luke-Pitstick/InfraDrone',
+    link: 'https://github.com/Luke-Pitstick/road-crack-detection-engine',
+    github: 'https://github.com/Luke-Pitstick/road-crack-detection-engine',
     image: projectImages.infraDrone,
     imageClass: '-translate-x-[6%] -translate-y-[14%] scale-[1.28] object-[center_42%]',
     metric: 'Crack & pothole detection',
