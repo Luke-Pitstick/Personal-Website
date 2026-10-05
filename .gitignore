@@ -33,6 +33,10 @@ firebase-debug.log
 .venv
 
 public/*
+!public/atlas-projection-explorer.webp
+!public/brickme.webp
+!public/nycrentpriceforecaster.webp
+!public/infradrone.webp
 !public/favicon.svg
 !public/background-dithered.webp
 <<<<<<< HEAD

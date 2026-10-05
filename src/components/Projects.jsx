@@ -5,13 +5,24 @@ import { createReveal, createStagger, liftHover, softSpring, tapMotion, viewport
 import { MachadoSectionHeader, SITE_SHELL } from './SectionChrome';
 
 const projectImages = {
+  atlas: '/atlas-projection-explorer.webp',
   renewably: 'https://np69tokggkswfstp.public.blob.vercel-storage.com/website/projects/renewably.png',
-  brickme: 'https://np69tokggkswfstp.public.blob.vercel-storage.com/website/projects/brickme.png',
-  nycRent: 'https://np69tokggkswfstp.public.blob.vercel-storage.com/website/projects/nycrentpriceforecaster.png',
-  infraDrone: 'https://np69tokggkswfstp.public.blob.vercel-storage.com/website/projects/infradrone.png',
+  brickme: '/brickme.webp',
+  nycRent: '/nycrentpriceforecaster.webp',
+  infraDrone: '/infradrone.webp',
 };
 
 const projects = [
+  {
+    title: 'Atlas Projection Explorer',
+    eyebrow: 'Geospatial Visualization',
+    description:
+      'Interactive world map for exploring 40 map projections, comparing geographic boundaries, and visualizing how projections distort size and shape.',
+    tags: ['Cartography', 'Map Projections', 'Geospatial'],
+    link: 'https://atlas-projection-explorer.vercel.app/',
+    image: projectImages.atlas,
+    metric: '40 map projections',
+  },
   {
     title: 'Renewably Wind',
     eyebrow: 'Machine Learning',
@@ -36,15 +47,15 @@ const projects = [
   },
   {
     title: 'InfraDrone (WIP)',
-    eyebrow: 'Robotics',
+    eyebrow: 'Computer Vision',
     description:
-      'Autonomous drone and ground-station system for offline road damage surveys with YOLO segmentation and GPS-temporal analysis.',
-    tags: ['Computer Vision', 'PyTorch', 'TensorRT'],
+      'Road-damage analysis engine that uses YOLO detection and segmentation to identify cracks and potholes in drone imagery, then measures and classifies crack geometry.',
+    tags: ['Python', 'YOLO', 'PyTorch', 'OpenCV'],
     link: 'https://github.com/Luke-Pitstick/InfraDrone',
     github: 'https://github.com/Luke-Pitstick/InfraDrone',
     image: projectImages.infraDrone,
     imageClass: '-translate-x-[6%] -translate-y-[14%] scale-[1.28] object-[center_42%]',
-    metric: 'Road surveys',
+    metric: 'Crack & pothole detection',
   },
   {
     title: 'BrickMe',
