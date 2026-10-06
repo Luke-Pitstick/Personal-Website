@@ -19,17 +19,6 @@ const experiences = [
     ],
   },
   {
-    role: 'Freelance Web Designer',
-    company: 'Independent',
-    period: 'Freelance',
-    location: 'Remote',
-    highlights: [
-      'Designing and building websites for civic organizations, including Just Vote Colorado and Ranked Choice Voting for Longmont.',
-      'Rebuilt Just Vote Colorado\'s voting-location map and completely redesigned the Ranked Choice Voting for Longmont website.',
-    ],
-    portfolioUrl: '/portfolio/',
-  },
-  {
     role: 'AI/ML Engineer Intern',
     company: 'WattByte Nexus',
     period: 'June 2026 - August 2026',
@@ -50,6 +39,17 @@ const experiences = [
       'Made charts and visualizations to support targeted campaign efforts.',
       'Modeled voting patterns and preferences to inform campaign strategy using fixed-effect linear regression.',
     ],
+  },
+  {
+    role: 'Freelance Web Designer',
+    company: 'Independent',
+    period: 'Freelance',
+    location: 'Remote',
+    highlights: [
+      'Designing and building websites for civic organizations, including Just Vote Colorado and Ranked Choice Voting for Longmont.',
+      'Rebuilt Just Vote Colorado\'s voting-location map and completely redesigned the Ranked Choice Voting for Longmont website.',
+    ],
+    portfolioUrl: '/portfolio/',
   },
   {
     role: 'Student Software Developer',
