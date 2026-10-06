@@ -8,17 +8,6 @@ const resumeDownloadUrl = '/Luke_Pitstick_Resume.pdf';
 
 const experiences = [
   {
-    role: 'Freelance Web Designer',
-    company: 'Independent',
-    period: 'Freelance',
-    location: 'Remote',
-    highlights: [
-      'Designing and building websites for civic organizations, including Just Vote Colorado and Ranked Choice Voting for Longmont.',
-      'Rebuilt Just Vote Colorado\'s voting-location map and completely redesigned the Ranked Choice Voting for Longmont website.',
-    ],
-    portfolioUrl: '/portfolio/',
-  },
-  {
     role: 'Junior Data Manager',
     company: 'National Oceanic and Atmospheric Administration',
     period: 'Oct 2025 — Present',
@@ -28,6 +17,17 @@ const experiences = [
       'Building Python pipelines to automate data validation and reporting.',
       'Currently processing over 10 TB a week of oceanographic data.',
     ],
+  },
+  {
+    role: 'Freelance Web Designer',
+    company: 'Independent',
+    period: 'Freelance',
+    location: 'Remote',
+    highlights: [
+      'Designing and building websites for civic organizations, including Just Vote Colorado and Ranked Choice Voting for Longmont.',
+      'Rebuilt Just Vote Colorado\'s voting-location map and completely redesigned the Ranked Choice Voting for Longmont website.',
+    ],
+    portfolioUrl: '/portfolio/',
   },
   {
     role: 'AI/ML Engineer Intern',
@@ -44,7 +44,7 @@ const experiences = [
   {
     role: 'Data Science Intern',
     company: 'Ranked Choice Voting for Longmont',
-    period: 'Aug 2025 — Dec 2026',
+    period: 'Aug 2025 — Dec 2025',
     location: 'Boulder, CO',
     highlights: [
       'Made charts and visualizations to support targeted campaign efforts.',
